@@ -1,30 +1,38 @@
 # =============================================================================
 # CODEOWNERS — EduMyles Monorepo
-# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# Updated to reflect restructured folder layout
 # =============================================================================
 
-# Default owner for everything
-*                                   @mylesoft-technologies/core-engineers
+# Default — core engineers own everything
+*                                       @mylesoft-technologies/core-engineers
 
-# Frontend
-apps/web/                           @mylesoft-technologies/frontend
-apps/mobile/                        @mylesoft-technologies/frontend
+# Frontend (Next.js web app)
+frontend/                               @mylesoft-technologies/frontend
 
-# Backend
-convex/                             @mylesoft-technologies/backend
+# Mobile (React Native)
+mobile/                                 @mylesoft-technologies/frontend
 
-# Shared packages (requires both teams)
-packages/shared/                    @mylesoft-technologies/frontend @mylesoft-technologies/backend
+# Landing page
+landing/                                @mylesoft-technologies/frontend
 
-# Infrastructure & CI — DevOps must review
-.github/                            @mylesoft-technologies/devops
-vercel.json                         @mylesoft-technologies/devops
+# Backend (Convex)
+backend/                                @mylesoft-technologies/backend
 
-# Security-sensitive files — core-engineers only
-convex/helpers/auth.ts              @mylesoft-technologies/core-engineers
-convex/platform/                    @mylesoft-technologies/core-engineers
-apps/web/src/middleware.ts          @mylesoft-technologies/core-engineers
+# Shared packages
+shared/                                 @mylesoft-technologies/frontend @mylesoft-technologies/backend
 
-# Finance module — senior engineers only
-convex/modules/finance/             @mylesoft-technologies/core-engineers
-convex/modules/ewallet/             @mylesoft-technologies/core-engineers
+# Infrastructure — DevOps must review
+infra/                                  @mylesoft-technologies/devops
+.github/                                @mylesoft-technologies/devops
+
+# Security-critical files — core engineers only
+backend/helpers/auth.ts                 @mylesoft-technologies/core-engineers
+backend/platform/                       @mylesoft-technologies/core-engineers
+frontend/src/middleware.ts              @mylesoft-technologies/core-engineers
+
+# Finance & Wallet — core engineers only
+backend/modules/finance/                @mylesoft-technologies/core-engineers
+backend/modules/ewallet/                @mylesoft-technologies/core-engineers
+
+# Docs — any engineer can update
+docs/                                   @mylesoft-technologies/core-engineers
