@@ -11,128 +11,126 @@ on:
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
+  issues: read
+  pull-requests: read
   repository-projects: write
 
 jobs:
-  sync-project-status:
-    name: Sync Issue/PR Status To Project
+  sync-project-boards:
+    name: Sync Project Boards
     runs-on: ubuntu-latest
     steps:
-      - name: Sync board item
-        uses: actions/github-script@v7
+      - name: Reconcile board fields
         env:
-          ORG_LOGIN: Mylesoft-Technologies
-          PROJECT_NUMBER: "5"
-          STATUS_FIELD_ID: PVTSSF_lADODSjJ2c4BQRKgzg-cAU8
-          TODO_OPTION_ID: f75ad846
-          IN_PROGRESS_OPTION_ID: 47fc9ee4
-          DONE_OPTION_ID: 98236657
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const orgLogin = process.env.ORG_LOGIN;
-            const projectNumber = Number(process.env.PROJECT_NUMBER);
-            const statusFieldId = process.env.STATUS_FIELD_ID;
-            const todoOptionId = process.env.TODO_OPTION_ID;
-            const inProgressOptionId = process.env.IN_PROGRESS_OPTION_ID;
-            const doneOptionId = process.env.DONE_OPTION_ID;
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: Mylesoft-Technologies
+          REPO: edumyles
+        run: |
+          set -euo pipefail
 
-            const issue = context.payload.issue;
-            const pr = context.payload.pull_request;
-            const contentNodeId = issue?.node_id ?? pr?.node_id;
-            if (!contentNodeId) {
-              core.info("No issue/pull request payload; skipping.");
-              return;
-            }
+          sync_project() {
+            local PROJ_NUM="$1"
+            local PROJ_ID="$2"
+            local STATUS_FIELD="$3"
+            local SPRINT_FIELD="$4"
+            local TRACK_FIELD="$5"
+            local EST_FIELD="$6"
 
-            const getProject = await github.graphql(
-              `query($org: String!, $number: Int!) {
-                organization(login: $org) {
-                  projectV2(number: $number) { id }
-                }
-              }`,
-              { org: orgLogin, number: projectNumber }
-            );
-            const projectId = getProject.organization.projectV2.id;
+            local TODO='f75ad846'
+            local INP='47fc9ee4'
+            local DONE='98236657'
 
-            let itemId = null;
-            const itemsResp = await github.graphql(
-              `query($projectId: ID!) {
-                node(id: $projectId) {
-                  ... on ProjectV2 {
-                    items(first: 200) {
-                      nodes {
-                        id
-                        content {
-                          __typename
-                          ... on Issue { id }
-                          ... on PullRequest { id }
-                        }
-                      }
-                    }
-                  }
-                }
-              }`,
-              { projectId }
-            );
+            local OPEN_ISSUES CLOSED_ISSUES OPEN_PRS MERGED_PRS
+            OPEN_ISSUES=$(gh issue list -R "$OWNER/$REPO" --state open --limit 300 --json number | jq -r '.[].number' | tr '\n' ' ')
+            CLOSED_ISSUES=$(gh issue list -R "$OWNER/$REPO" --state closed --limit 300 --json number | jq -r '.[].number' | tr '\n' ' ')
+            OPEN_PRS=$(gh pr list -R "$OWNER/$REPO" --state open --limit 300 --json number | jq -r '.[].number' | tr '\n' ' ')
+            MERGED_PRS=$(gh pr list -R "$OWNER/$REPO" --state merged --limit 300 --json number | jq -r '.[].number' | tr '\n' ' ')
 
-            for (const node of itemsResp.node.items.nodes) {
-              const id = node?.content?.id;
-              if (id && id === contentNodeId) {
-                itemId = node.id;
-                break;
-              }
-            }
+            contains_num () { case " $2 " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
-            if (!itemId) {
-              const addResp = await github.graphql(
-                `mutation($projectId: ID!, $contentId: ID!) {
-                  addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
-                    item { id }
-                  }
-                }`,
-                { projectId, contentId: contentNodeId }
-              );
-              itemId = addResp.addProjectV2ItemById.item.id;
-              core.info(`Added item ${itemId} to project.`);
-            }
+            local updated=0
+            while IFS= read -r row; do
+              local item_id num ctype
+              item_id=$(echo "$row" | jq -r '.id')
+              num=$(echo "$row" | jq -r '.content.number // empty')
+              ctype=$(echo "$row" | jq -r '.content.type // empty')
+              [ -z "$num" ] && continue
 
-            let optionId = todoOptionId;
-            if (issue) {
-              if (context.payload.action === "closed" || issue.state === "closed") {
-                optionId = doneOptionId;
-              } else {
-                optionId = todoOptionId;
-              }
-            } else if (pr) {
-              if (context.payload.action === "closed") {
-                optionId = pr.merged ? doneOptionId : todoOptionId;
-              } else {
-                optionId = inProgressOptionId;
-              }
-            }
+              local target="$TODO"
+              local labels_json='[]'
 
-            await github.graphql(
-              `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                updateProjectV2ItemFieldValue(
-                  input: {
-                    projectId: $projectId
-                    itemId: $itemId
-                    fieldId: $fieldId
-                    value: { singleSelectOptionId: $optionId }
-                  }
-                ) {
-                  projectV2Item { id }
-                }
-              }`,
-              {
-                projectId,
-                itemId,
-                fieldId: statusFieldId,
-                optionId,
-              }
-            );
+              if [ "$ctype" = "Issue" ]; then
+                labels_json=$(echo "$row" | jq -c '.labels // []')
+                if contains_num "$num" "$CLOSED_ISSUES"; then
+                  target="$DONE"
+                elif [ "$num" = "3" ] || [ "$num" = "21" ]; then
+                  target="$INP"
+                else
+                  target="$TODO"
+                fi
+              elif [ "$ctype" = "PullRequest" ]; then
+                if contains_num "$num" "$MERGED_PRS"; then
+                  target="$DONE"
+                elif contains_num "$num" "$OPEN_PRS"; then
+                  target="$INP"
+                else
+                  target="$TODO"
+                fi
 
-            core.info(`Updated item ${itemId} status.`);
+                local pr_body ref_issue
+                pr_body=$(gh pr view "$num" -R "$OWNER/$REPO" --json body -q .body || true)
+                ref_issue=$(echo "$pr_body" | rg -o '#[0-9]+' -m 1 | tr -d '#' || true)
+                if [ -n "${ref_issue:-}" ]; then
+                  labels_json=$(gh issue view "$ref_issue" -R "$OWNER/$REPO" --json labels -q '.labels | map(.name)' | jq -c '.')
+                else
+                  labels_json=$(gh pr view "$num" -R "$OWNER/$REPO" --json labels -q '.labels | map(.name)' | jq -c '.')
+                fi
+              else
+                continue
+              fi
+
+              local sprint_val track_val est_val
+              sprint_val=$(echo "$labels_json" | jq -r '[.[] | select(startswith("sprint:"))] | join(", ")')
+              track_val=$(echo "$labels_json" | jq -r '[.[] | select(startswith("track:"))] | join(", ")')
+
+              if echo "$labels_json" | jq -e 'index("mvp:must-have")' >/dev/null; then
+                est_val=8
+              elif echo "$labels_json" | jq -e 'index("mvp:should-have")' >/dev/null; then
+                est_val=5
+              elif echo "$labels_json" | jq -e 'index("mvp:could-have")' >/dev/null; then
+                est_val=3
+              else
+                est_val=''
+              fi
+
+              gh project item-edit --id "$item_id" --project-id "$PROJ_ID" --field-id "$STATUS_FIELD" --single-select-option-id "$target" >/dev/null
+
+              if [ -n "$sprint_val" ]; then
+                gh project item-edit --id "$item_id" --project-id "$PROJ_ID" --field-id "$SPRINT_FIELD" --text "$sprint_val" >/dev/null
+              else
+                gh project item-edit --id "$item_id" --project-id "$PROJ_ID" --field-id "$SPRINT_FIELD" --clear >/dev/null || true
+              fi
+
+              if [ -n "$track_val" ]; then
+                gh project item-edit --id "$item_id" --project-id "$PROJ_ID" --field-id "$TRACK_FIELD" --text "$track_val" >/dev/null
+              else
+                gh project item-edit --id "$item_id" --project-id "$PROJ_ID" --field-id "$TRACK_FIELD" --clear >/dev/null || true
+              fi
+
+              if [ -n "$est_val" ]; then
+                gh project item-edit --id "$item_id" --project-id "$PROJ_ID" --field-id "$EST_FIELD" --number "$est_val" >/dev/null
+              else
+                gh project item-edit --id "$item_id" --project-id "$PROJ_ID" --field-id "$EST_FIELD" --clear >/dev/null || true
+              fi
+
+              updated=$((updated+1))
+            done < <(gh project item-list "$PROJ_NUM" --owner "$OWNER" --limit 500 --format json | jq -c '.items[]')
+
+            echo "Project #$PROJ_NUM reconciled: $updated items"
+          }
+
+          # Current active board
+          sync_project 5 PVT_kwDODSjJ2c4BQRKg PVTSSF_lADODSjJ2c4BQRKgzg-cAU8 PVTF_lADODSjJ2c4BQRKgzg-cAVg PVTF_lADODSjJ2c4BQRKgzg-cAWQ PVTF_lADODSjJ2c4BQRKgzg-cAWk
+
+          # Legacy board copy still used by the team
+          sync_project 3 PVT_kwDODSjJ2c4BQRIb PVTSSF_lADODSjJ2c4BQRIbzg-b-3c PVTF_lADODSjJ2c4BQRIbzg-b-5Q PVTF_lADODSjJ2c4BQRIbzg-b-5U PVTF_lADODSjJ2c4BQRIbzg-b-5Y
