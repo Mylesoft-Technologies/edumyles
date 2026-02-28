@@ -1,8 +1,7 @@
-export default function DashboardPage() {
-  return (
-    <main>
-      <h1>EduMyles Dashboard</h1>
-      <p>School portal loading…</p>
-    </main>
-  );
+import { redirect } from "next/navigation";
+
+export default function HomePage() {
+  // Authenticated users are redirected by middleware to their role dashboard
+  // Unauthenticated users landing here get sent to login
+  redirect("/auth/login");
 }
