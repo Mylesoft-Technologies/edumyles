@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "EduMyles", template: "%s | EduMyles" },
   description: "Multi-tenant school management platform for East Africa",
+  themeColor: "#056C40",
+  other: {
+    "msapplication-TileColor": "#056C40",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
