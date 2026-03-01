@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://edumyles.vercel.app";
-
 const navItems = [
   {
     label: "Features",
@@ -59,10 +57,31 @@ const navItems = [
   },
 ];
 
+interface UserInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar: string;
+}
+
+function getUserFromCookie(): UserInfo | null {
+  if (typeof document === "undefined") return null;
+  try {
+    const match = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("edumyles_user="));
+    if (!match) return null;
+    return JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
+  } catch {
+    return null;
+  }
+}
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -71,11 +90,20 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Read user cookie on mount
+  useEffect(() => {
+    setUser(getUserFromCookie());
+  }, []);
+
   // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setOpenDropdown(null);
   }, [pathname]);
+
+  const initials = user
+    ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || (user.email?.[0] ?? "").toUpperCase())
+    : "";
 
   return (
     <>
@@ -115,12 +143,26 @@ export default function Navbar() {
         </ul>
 
         <div className="navbar-actions">
-          <a className="navbar-login" href={`${APP_URL}/auth/login`}>
-            Log In
-          </a>
-          <a className="navbar-signup" href={`${APP_URL}/auth/signup`}>
-            Sign Up Free
-          </a>
+          {user ? (
+            <>
+              <div className="navbar-user">
+                <div className="navbar-avatar">{initials}</div>
+                <span className="navbar-username">{user.firstName || user.email.split("@")[0]}</span>
+              </div>
+              <a className="navbar-login" href="/auth/logout">
+                Log Out
+              </a>
+            </>
+          ) : (
+            <>
+              <a className="navbar-login" href="/auth/login">
+                Log In
+              </a>
+              <a className="navbar-signup" href="/auth/signup">
+                Sign Up Free
+              </a>
+            </>
+          )}
           <button
             className="mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -151,12 +193,26 @@ export default function Navbar() {
             </div>
           ))}
           <div className="mobile-auth-actions">
-            <a href={`${APP_URL}/auth/login`} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
-              Log In
-            </a>
-            <a href={`${APP_URL}/auth/signup`} className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
-              Sign Up Free
-            </a>
+            {user ? (
+              <>
+                <div className="mobile-user-info">
+                  <div className="navbar-avatar">{initials}</div>
+                  <span>{user.firstName || user.email.split("@")[0]}</span>
+                </div>
+                <a href="/auth/logout" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                  Log Out
+                </a>
+              </>
+            ) : (
+              <>
+                <a href="/auth/login" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                  Log In
+                </a>
+                <a href="/auth/signup" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
+                  Sign Up Free
+                </a>
+              </>
+            )}
           </div>
         </div>
       )}
