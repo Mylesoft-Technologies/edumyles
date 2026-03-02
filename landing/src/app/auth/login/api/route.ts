@@ -22,12 +22,11 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Build the WorkOS AuthKit authorization URL
+        // Build the WorkOS authorization URL — no provider param for email auth
         const params = new URLSearchParams({
             client_id: clientId,
             redirect_uri: redirectUri,
             response_type: "code",
-            provider: "authkit",
             login_hint: email,
             screen_hint: "sign-in",
         });
