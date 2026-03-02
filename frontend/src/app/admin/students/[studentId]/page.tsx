@@ -1,0 +1,195 @@
+"use client";
+
+import { PageHeader } from "@/components/shared/PageHeader";
+import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Id } from "@/convex/_generated/dataModel";
+import { ArrowLeft, GraduationCap, UserCircle, Mail, Phone, Calendar } from "lucide-react";
+import Link from "next/link";
+
+export default function StudentProfilePage() {
+    const { studentId } = useParams<{ studentId: string }>();
+    const { isLoading, sessionToken } = useAuth();
+    const router = useRouter();
+    const [showGraduateConfirm, setShowGraduateConfirm] = useState(false);
+
+    const student = useQuery(
+        api.modules.sis.queries.getStudent,
+        sessionToken && studentId
+            ? { studentId: studentId as Id<"students"> }
+            : "skip"
+    );
+
+    const graduateStudent = useMutation(api.modules.sis.mutations.graduateStudent);
+
+    if (isLoading || student === undefined) return <LoadingSkeleton variant="page" />;
+    if (!student) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12">
+                <p className="text-muted-foreground">Student not found.</p>
+                <Link href="/admin/students">
+                    <Button variant="outline" className="mt-4">Back to Students</Button>
+                </Link>
+            </div>
+        );
+    }
+
+    const handleGraduate = async () => {
+        await graduateStudent({ studentId: studentId as Id<"students"> });
+        setShowGraduateConfirm(false);
+    };
+
+    const statusColors: Record<string, "default" | "secondary" | "destructive"> = {
+        active: "default",
+        graduated: "secondary",
+        suspended: "destructive",
+    };
+
+    return (
+        <div>
+            <div className="mb-4">
+                <Link href="/admin/students" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+                    <ArrowLeft className="h-4 w-4" /> Back to Students
+                </Link>
+            </div>
+
+            <PageHeader
+                title={`${student.firstName} ${student.lastName}`}
+                description={`Admission No: ${student.admissionNumber}`}
+                actions={
+                    <div className="flex gap-2">
+                        <Link href={`/admin/students/${studentId}/edit`}>
+                            <Button variant="outline">Edit Profile</Button>
+                        </Link>
+                        {student.status === "active" && (
+                            <Button variant="destructive" onClick={() => setShowGraduateConfirm(true)}>
+                                <GraduationCap className="mr-2 h-4 w-4" />
+                                Graduate
+                            </Button>
+                        )}
+                    </div>
+                }
+            />
+
+            <Tabs defaultValue="info" className="mt-6">
+                <TabsList>
+                    <TabsTrigger value="info">Information</TabsTrigger>
+                    <TabsTrigger value="guardians">Guardians</TabsTrigger>
+                    <TabsTrigger value="academics">Academics</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="info" className="mt-4">
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Personal Information</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <InfoRow icon={UserCircle} label="Full Name" value={`${student.firstName} ${student.lastName}`} />
+                                <InfoRow icon={Calendar} label="Date of Birth" value={student.dateOfBirth} />
+                                <InfoRow icon={UserCircle} label="Gender" value={student.gender} />
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Status</span>
+                                    <Badge variant={statusColors[student.status] ?? "outline"}>{student.status}</Badge>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Academic Information</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <InfoRow icon={GraduationCap} label="Admission No." value={student.admissionNumber} />
+                                <InfoRow
+                                    icon={UserCircle}
+                                    label="Class"
+                                    value={student.class?.name ?? "Not assigned"}
+                                />
+                                <InfoRow
+                                    icon={Calendar}
+                                    label="Enrolled"
+                                    value={new Date(student.enrolledAt).toLocaleDateString()}
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="guardians" className="mt-4">
+                    {student.guardians && student.guardians.length > 0 ? (
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {student.guardians.map((g) => (
+                                <Card key={g._id}>
+                                    <CardHeader>
+                                        <CardTitle className="text-base">
+                                            {g.firstName} {g.lastName}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <InfoRow icon={UserCircle} label="Relationship" value={g.relationship} />
+                                        <InfoRow icon={Mail} label="Email" value={g.email} />
+                                        <InfoRow icon={Phone} label="Phone" value={g.phone} />
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <Card>
+                            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                                No guardians linked to this student.
+                            </CardContent>
+                        </Card>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="academics" className="mt-4">
+                    <Card>
+                        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                            Academic records will be available once the Academics module is installed.
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+
+            <ConfirmDialog
+                open={showGraduateConfirm}
+                onOpenChange={setShowGraduateConfirm}
+                title="Graduate Student"
+                description={`Are you sure you want to mark ${student.firstName} ${student.lastName} as graduated? This action can be reversed later.`}
+                onConfirm={handleGraduate}
+                confirmLabel="Graduate"
+                variant="destructive"
+            />
+        </div>
+    );
+}
+
+function InfoRow({
+    icon: Icon,
+    label,
+    value,
+}: {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Icon className="h-4 w-4" />
+                {label}
+            </div>
+            <span className="text-sm font-medium">{value}</span>
+        </div>
+    );
+}

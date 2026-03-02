@@ -139,3 +139,26 @@ export const listTenantUsers = query({
       .collect();
   },
 });
+
+// List audit logs for a tenant
+export const listAuditLogs = query({
+  args: {
+    tenantId: v.string(),
+    action: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let logs = await ctx.db
+      .query("auditLogs")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .order("desc")
+      .collect();
+
+    // Filter by action prefix if provided (e.g., "student" matches "student.created", "student.updated")
+    if (args.action) {
+      logs = logs.filter((l) => l.action.startsWith(args.action!));
+    }
+
+    // Limit to 200 most recent entries
+    return logs.slice(0, 200);
+  },
+});

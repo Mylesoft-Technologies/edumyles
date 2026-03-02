@@ -220,6 +220,66 @@ export default defineSchema({
     .index("by_tenant", ["tenantId"])
     .index("by_tenant_teacher", ["tenantId", "teacherId"]),
 
+  admissionApplications: defineTable({
+    tenantId: v.string(),
+    applicationId: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    dateOfBirth: v.string(),
+    gender: v.string(),
+    requestedGrade: v.string(),
+    guardianName: v.string(),
+    guardianPhone: v.string(),
+    guardianEmail: v.string(),
+    documents: v.optional(v.array(v.string())),
+    status: v.string(), // draft | submitted | under_review | accepted | rejected | waitlisted | enrolled
+    notes: v.optional(v.string()),
+    reviewedBy: v.optional(v.string()),
+    reviewedAt: v.optional(v.number()),
+    submittedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_tenant_status", ["tenantId", "status"])
+    .index("by_application_id", ["tenantId", "applicationId"]),
+
+  guardians: defineTable({
+    tenantId: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+    phone: v.string(),
+    relationship: v.string(), // father | mother | guardian | other
+    studentIds: v.array(v.string()),
+    userId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_tenant_email", ["tenantId", "email"]),
+
+  staff: defineTable({
+    tenantId: v.string(),
+    userId: v.optional(v.string()),
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    role: v.string(),
+    department: v.optional(v.string()),
+    employeeId: v.string(),
+    qualification: v.optional(v.string()),
+    joinDate: v.string(),
+    status: v.string(), // active | inactive | on_leave | terminated
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_tenant_role", ["tenantId", "role"])
+    .index("by_tenant_status", ["tenantId", "status"])
+    .index("by_employee_id", ["tenantId", "employeeId"]),
+
   notifications: defineTable({
     tenantId: v.string(),
     userId: v.string(),
