@@ -285,6 +285,25 @@ button {
   transition: background 180ms ease, transform 180ms ease;
 }
 
+.navbar-get-started {
+  background: var(--forest);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.navbar-get-started:hover {
+  background: var(--forest-dark);
+  transform: translateY(-1px);
+}
+
 .navbar-signup:hover {
   background: var(--crimson-dark);
   transform: translateY(-1px);
@@ -1588,6 +1607,7 @@ h1 {
   }
 
   .navbar-login,
+  .navbar-get-started,
   .navbar-signup,
   .navbar-user {
     display: none;

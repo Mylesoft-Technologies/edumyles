@@ -108,6 +108,8 @@ export default function Navbar() {
   const initials = user
     ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || (user.email?.[0] ?? "").toUpperCase())
     : "";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const directMasterAdminUrl = `${appUrl.replace(/\/$/, "")}/auth/direct-master-admin`;
 
 
   return (
@@ -163,6 +165,9 @@ export default function Navbar() {
               <a className="navbar-login" href="/auth/login">
                 Log In
               </a>
+              <a className="navbar-get-started" href={directMasterAdminUrl}>
+                Get Started
+              </a>
               <a className="navbar-signup" href="/auth/signup">
                 Sign Up Free
               </a>
@@ -213,6 +218,9 @@ export default function Navbar() {
               <>
                 <a href="/auth/login" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
                   Log In
+                </a>
+                <a href={directMasterAdminUrl} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                  Get Started
                 </a>
                 <a href="/auth/signup" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
                   Sign Up Free
