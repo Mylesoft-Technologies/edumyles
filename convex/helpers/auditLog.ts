@@ -31,10 +31,10 @@ export async function logAction(
     tenantId: params.tenantId,
     userId: params.userId,
     action: params.action,
-    targetId: params.targetId,
-    targetType: params.targetType,
+    ...(params.targetId !== undefined && { targetId: params.targetId }),
+    ...(params.targetType !== undefined && { targetType: params.targetType }),
     details: params.details ?? {},
-    ipAddress: params.ipAddress,
+    ...(params.ipAddress !== undefined && { ipAddress: params.ipAddress }),
     createdAt: Date.now(),
   });
 }
