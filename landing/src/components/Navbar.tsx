@@ -108,8 +108,10 @@ export default function Navbar() {
   const initials = user
     ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || (user.email?.[0] ?? "").toUpperCase())
     : "";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const directMasterAdminUrl = `${appUrl.replace(/\/$/, "")}/auth/direct-master-admin`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const directMasterAdminUrl = appUrl
+    ? `${appUrl.replace(/\/$/, "")}/auth/direct-master-admin`
+    : "/auth/signup";
 
 
   return (
