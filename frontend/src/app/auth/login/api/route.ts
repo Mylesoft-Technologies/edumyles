@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
-
-    if (!email || typeof email !== "string") {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
-    }
+    const { email, provider } = await req.json();
 
     const clientId = process.env.NEXT_PUBLIC_WORKOS_CLIENT_ID;
     const redirectUri =
@@ -22,18 +15,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Build the WorkOS AuthKit authorization URL
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
       response_type: "code",
-      provider: "authkit",
-      login_hint: email,
-      screen_hint: "sign-in",
     });
 
-    const authUrl = `https://api.workos.com/user-management/authorize?${params.toString()}`;
+    if (provider) {
+      // SSO login (Google, Microsoft)
+      params.set("provider", provider);
+      params.set("screen_hint", "sign-in");
+    } else if (email) {
+      // Email/magic link login
+      params.set("provider", "authkit");
+      params.set("login_hint", email);
+      params.set("screen_hint", "sign-in");
+    } else {
+      return NextResponse.json(
+        { error: "Email or provider is required" },
+        { status: 400 }
+      );
+    }
 
+    const authUrl = `https://api.workos.com/user-management/authorize?${params.toString()}`;
     return NextResponse.json({ authUrl });
   } catch {
     return NextResponse.json(
