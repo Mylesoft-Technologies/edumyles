@@ -218,7 +218,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_tenant", ["tenantId"])
-    .index("by_tenant_teacher", ["tenantId", "teacherId"]),
+    .index("by_tenant_teacher", ["tenantId", "teacherId"])
+    .index("by_tenant_grade", ["tenantId", "level"]),
 
   admissionApplications: defineTable({
     tenantId: v.string(),
@@ -279,6 +280,47 @@ export default defineSchema({
     .index("by_tenant_role", ["tenantId", "role"])
     .index("by_tenant_status", ["tenantId", "status"])
     .index("by_employee_id", ["tenantId", "employeeId"]),
+
+  feeStructures: defineTable({
+    tenantId: v.string(),
+    name: v.string(),
+    amount: v.number(),
+    academicYear: v.string(),
+    grade: v.string(),
+    frequency: v.string(), // one_time | monthly | termly | yearly
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_tenant_grade", ["tenantId", "grade"])
+    .index("by_tenant_academic_year", ["tenantId", "academicYear"]),
+
+  invoices: defineTable({
+    tenantId: v.string(),
+    studentId: v.string(),
+    feeStructureId: v.string(),
+    amount: v.number(),
+    status: v.string(), // pending | paid | partially_paid | cancelled
+    dueDate: v.string(),
+    issuedAt: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_tenant_student", ["tenantId", "studentId"])
+    .index("by_tenant_status", ["tenantId", "status"]),
+
+  payments: defineTable({
+    tenantId: v.string(),
+    invoiceId: v.string(),
+    amount: v.number(),
+    method: v.string(),
+    reference: v.string(),
+    status: v.string(),
+    processedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_invoice", ["invoiceId"]),
 
   notifications: defineTable({
     tenantId: v.string(),

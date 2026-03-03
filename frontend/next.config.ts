@@ -11,8 +11,6 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL ?? "",
     NEXT_PUBLIC_ROOT_DOMAIN: process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "edumyles.com",
-    MASTER_ADMIN_EMAIL: process.env.MASTER_ADMIN_EMAIL ?? "",
-    MASTER_TENANT_ID: process.env.MASTER_TENANT_ID ?? "PLATFORM",
   },
   images: {
     remotePatterns: [

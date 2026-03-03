@@ -193,7 +193,7 @@ export default function LandingPage() {
             academics, HR, and communication.
           </p>
           <div className="actions">
-            <a className="btn btn-primary" href="/auth/signup">
+            <a className="btn btn-primary" href="http://localhost:3000/dashboard">
               Sign Up Free
             </a>
             <a className="btn btn-secondary" href="/concierge">
@@ -339,7 +339,7 @@ export default function LandingPage() {
           <div className="module-tab-text">
             <h3>{activeCategory.label}</h3>
             <p>{activeCategory.description}</p>
-            <a className="btn btn-primary" href="/auth/signup">
+            <a className="btn btn-primary" href="http://localhost:3000/dashboard">
               Try It Free
             </a>
           </div>
@@ -465,7 +465,7 @@ export default function LandingPage() {
             Join 50+ schools across East Africa already running smarter with
             one unified platform.
           </p>
-          <a className="btn btn-primary" href="/auth/signup">
+          <a className="btn btn-primary" href="http://localhost:3000/dashboard">
             Activate Free Trial
           </a>
         </div>

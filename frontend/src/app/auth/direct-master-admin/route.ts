@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import crypto from "crypto";
 
 const convex = new ConvexHttpClient(
     process.env.NEXT_PUBLIC_CONVEX_URL ?? ""
@@ -14,6 +15,14 @@ const convex = new ConvexHttpClient(
  * No WorkOS authentication is required.
  */
 export async function GET(req: NextRequest) {
+    // SECURITY: Block this route in production
+    if (process.env.NODE_ENV === "production" && process.env.ALLOW_BYPASS !== "true") {
+        return NextResponse.json(
+            { error: "Access denied: Development bypass is disabled in production" },
+            { status: 403 }
+        );
+    }
+
     const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
     if (!convexUrl) {
         return NextResponse.json(
@@ -27,8 +36,8 @@ export async function GET(req: NextRequest) {
     const tenantId = process.env.MASTER_TENANT_ID ?? "PLATFORM";
     const userId = "master-admin-bypass";
 
-    // Generate a random session token
-    const sessionToken = generateSessionToken();
+    // Generate a cryptographically secure session token
+    const sessionToken = crypto.randomBytes(32).toString("hex");
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 
     try {
@@ -71,14 +80,4 @@ export async function GET(req: NextRequest) {
     });
 
     return response;
-}
-
-function generateSessionToken(): string {
-    const chars =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let token = "";
-    for (let i = 0; i < 64; i++) {
-        token += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return token;
 }

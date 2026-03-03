@@ -37,7 +37,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const authUrl = `https://api.workos.com/user-management/authorize?${params.toString()}`;
     return NextResponse.json({ authUrl });
   } catch {
     return NextResponse.json(

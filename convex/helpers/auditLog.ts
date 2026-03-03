@@ -19,23 +19,25 @@ export async function logAction(
   ctx: MutationCtx,
   params: {
     tenantId: string;
-    userId: string;
+    actorId: string;
+    actorEmail: string;
     action: AuditAction;
-    targetId?: string;
-    targetType?: string;
-    details?: Record<string, unknown>;
-    ipAddress?: string;
+    entityType: string;
+    entityId: string;
+    before?: any;
+    after?: any;
   }
 ): Promise<void> {
   await ctx.db.insert("auditLogs", {
     tenantId: params.tenantId,
-    userId: params.userId,
+    actorId: params.actorId,
+    actorEmail: params.actorEmail,
     action: params.action,
-    ...(params.targetId !== undefined && { targetId: params.targetId }),
-    ...(params.targetType !== undefined && { targetType: params.targetType }),
-    details: params.details ?? {},
-    ...(params.ipAddress !== undefined && { ipAddress: params.ipAddress }),
-    createdAt: Date.now(),
+    entityType: params.entityType,
+    entityId: params.entityId,
+    before: params.before,
+    after: params.after,
+    timestamp: Date.now(),
   });
 }
 
@@ -43,6 +45,7 @@ export async function logImpersonation(
   ctx: MutationCtx,
   params: {
     adminId: string;
+    adminEmail: string;
     targetUserId: string;
     tenantId: string;
     action: "impersonation.started" | "impersonation.ended";
@@ -50,10 +53,11 @@ export async function logImpersonation(
 ): Promise<void> {
   await logAction(ctx, {
     tenantId: params.tenantId,
-    userId: params.adminId,
+    actorId: params.adminId,
+    actorEmail: params.adminEmail,
     action: params.action,
-    targetId: params.targetUserId,
-    targetType: "user",
-    details: { impersonated: params.targetUserId },
+    entityType: "user",
+    entityId: params.targetUserId,
+    after: { impersonated: params.targetUserId },
   });
 }

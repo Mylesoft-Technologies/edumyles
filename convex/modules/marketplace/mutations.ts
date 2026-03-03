@@ -131,11 +131,12 @@ export const installModule = mutation({
     // Audit log
     await logAction(ctx, {
       tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "module.installed",
-      targetId: args.moduleId,
-      targetType: "module",
-      details: { moduleId: args.moduleId, tier },
+      entityType: "module",
+      entityId: args.moduleId,
+      after: { moduleId: args.moduleId, tier },
     });
 
     return { success: true, moduleId: args.moduleId };
@@ -193,11 +194,12 @@ export const uninstallModule = mutation({
     // Audit log
     await logAction(ctx, {
       tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "module.uninstalled",
-      targetId: args.moduleId,
-      targetType: "module",
-      details: { moduleId: args.moduleId },
+      entityType: "module",
+      entityId: args.moduleId,
+      after: { moduleId: args.moduleId },
     });
 
     return { success: true, moduleId: args.moduleId };
@@ -238,10 +240,12 @@ export const updateModuleConfig = mutation({
 
     await logAction(ctx, {
       tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "module.config_updated",
-      targetId: args.moduleId,
-      details: { config: args.config },
+      entityType: "module",
+      entityId: args.moduleId,
+      after: { config: args.config },
     });
 
     return { success: true };
@@ -302,10 +306,12 @@ export const requestModuleAccess = mutation({
 
     await logAction(ctx, {
       tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "module.access_requested",
-      targetId: args.moduleId,
-      details: { reason: args.reason },
+      entityType: "module",
+      entityId: args.moduleId,
+      after: { reason: args.reason },
     });
 
     return { success: true };
@@ -401,10 +407,12 @@ export const toggleModuleStatus = mutation({
 
     await logAction(ctx, {
       tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "module.status_toggled",
-      targetId: args.moduleId,
-      details: { status: args.status },
+      entityType: "module",
+      entityId: args.moduleId,
+      after: { status: args.status },
     });
 
     return { success: true };

@@ -1,99 +1,77 @@
-import { mutation } from "../../_generated/server";
 import { v } from "convex/values";
+import { mutation } from "../../_generated/server";
 import { requireTenantContext } from "../../helpers/tenantGuard";
 import { requirePermission } from "../../helpers/authorize";
 import { requireModule } from "../../helpers/moduleGuard";
 import { logAction } from "../../helpers/auditLog";
 
-/**
- * Create a new student record.
- */
 export const createStudent = mutation({
     args: {
+        admissionNumber: v.optional(v.string()),
         firstName: v.string(),
         lastName: v.string(),
         dateOfBirth: v.string(),
         gender: v.string(),
         classId: v.optional(v.string()),
-        admissionNumber: v.optional(v.string()),
+        status: v.optional(v.string()),
         guardianName: v.optional(v.string()),
         guardianEmail: v.optional(v.string()),
         guardianPhone: v.optional(v.string()),
         guardianRelationship: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenantCtx = await requireTenantContext(ctx);
-        requirePermission(tenantCtx, "students:write");
-        await requireModule(ctx, tenantCtx.tenantId, "sis");
+        const tenant = await requireTenantContext(ctx);
+        await requireModule(ctx, tenant.tenantId, "sis");
+        requirePermission(tenant, "students:write");
 
-        const { tenantId } = tenantCtx;
-        const now = Date.now();
-
-        // Auto-generate admission number if not provided
-        const admissionNumber =
-            args.admissionNumber ||
-            `ADM-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-
-        // Check for duplicate admission number
-        const existing = await ctx.db
-            .query("students")
-            .withIndex("by_admission", (q) =>
-                q.eq("tenantId", tenantId).eq("admissionNumber", admissionNumber)
-            )
-            .first();
-
-        if (existing) {
-            throw new Error("DUPLICATE_ADMISSION_NUMBER: This admission number already exists");
-        }
+        const admNo = args.admissionNumber || `ADM-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
         const studentId = await ctx.db.insert("students", {
-            tenantId,
+            tenantId: tenant.tenantId,
+            admissionNumber: admNo,
             firstName: args.firstName,
             lastName: args.lastName,
             dateOfBirth: args.dateOfBirth,
             gender: args.gender,
             classId: args.classId,
-            admissionNumber,
-            status: "active",
-            enrolledAt: now,
-            createdAt: now,
-            updatedAt: now,
+            status: args.status || "active",
+            guardianUserId: undefined,
+            enrolledAt: Date.now(),
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
         });
 
-        // Create guardian record if provided
-        if (args.guardianName && args.guardianEmail && args.guardianPhone) {
+        if (args.guardianName) {
             await ctx.db.insert("guardians", {
-                tenantId,
-                firstName: args.guardianName.split(" ")[0] || args.guardianName,
+                tenantId: tenant.tenantId,
+                firstName: args.guardianName.split(" ")[0] || "Guardian",
                 lastName: args.guardianName.split(" ").slice(1).join(" ") || "",
-                email: args.guardianEmail,
-                phone: args.guardianPhone,
+                email: args.guardianEmail || "",
+                phone: args.guardianPhone || "",
                 relationship: args.guardianRelationship || "guardian",
-                studentIds: [studentId],
-                createdAt: now,
-                updatedAt: now,
+                studentIds: [studentId.toString()],
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
             });
         }
 
         await logAction(ctx, {
-            tenantId,
-            userId: tenantCtx.userId,
+            tenantId: tenant.tenantId,
+            actorId: tenant.userId,
+            actorEmail: tenant.email,
             action: "student.created",
-            targetId: studentId,
-            targetType: "student",
-            details: { admissionNumber, firstName: args.firstName, lastName: args.lastName },
+            entityType: "student",
+            entityId: studentId,
+            after: { ...args, admissionNumber: admNo },
         });
 
-        return { success: true, studentId, admissionNumber };
+        return studentId;
     },
 });
 
-/**
- * Update an existing student record.
- */
 export const updateStudent = mutation({
     args: {
-        studentId: v.id("students"),
+        id: v.id("students"),
         firstName: v.optional(v.string()),
         lastName: v.optional(v.string()),
         dateOfBirth: v.optional(v.string()),
@@ -102,111 +80,36 @@ export const updateStudent = mutation({
         status: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenantCtx = await requireTenantContext(ctx);
-        requirePermission(tenantCtx, "students:write");
+        const tenant = await requireTenantContext(ctx);
+        await requireModule(ctx, tenant.tenantId, "sis");
+        requirePermission(tenant, "students:write");
 
-        const student = await ctx.db.get(args.studentId);
-        if (!student || student.tenantId !== tenantCtx.tenantId) {
-            throw new Error("STUDENT_NOT_FOUND");
+        const { id, ...updates } = args;
+        const existing = await ctx.db.get(id);
+        if (!existing || existing.tenantId !== tenant.tenantId) {
+            throw new Error("Student not found or access denied");
         }
 
-        const updates: Record<string, unknown> = { updatedAt: Date.now() };
-        if (args.firstName !== undefined) updates.firstName = args.firstName;
-        if (args.lastName !== undefined) updates.lastName = args.lastName;
-        if (args.dateOfBirth !== undefined) updates.dateOfBirth = args.dateOfBirth;
-        if (args.gender !== undefined) updates.gender = args.gender;
-        if (args.classId !== undefined) updates.classId = args.classId;
-        if (args.status !== undefined) updates.status = args.status;
-
-        await ctx.db.patch(args.studentId, updates);
-
-        await logAction(ctx, {
-            tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
-            action: "student.updated",
-            targetId: args.studentId,
-            targetType: "student",
-            details: updates,
-        });
-
-        return { success: true };
-    },
-});
-
-/**
- * Transfer a student to a different class.
- */
-export const transferStudent = mutation({
-    args: {
-        studentId: v.id("students"),
-        toClassId: v.string(),
-    },
-    handler: async (ctx, args) => {
-        const tenantCtx = await requireTenantContext(ctx);
-        requirePermission(tenantCtx, "students:write");
-
-        const student = await ctx.db.get(args.studentId);
-        if (!student || student.tenantId !== tenantCtx.tenantId) {
-            throw new Error("STUDENT_NOT_FOUND");
-        }
-
-        const fromClassId = student.classId;
-
-        await ctx.db.patch(args.studentId, {
-            classId: args.toClassId,
+        await ctx.db.patch(id, {
+            ...updates,
             updatedAt: Date.now(),
         });
 
         await logAction(ctx, {
-            tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
+            tenantId: tenant.tenantId,
+            actorId: tenant.userId,
+            actorEmail: tenant.email,
             action: "student.updated",
-            targetId: args.studentId,
-            targetType: "student",
-            details: { transfer: true, fromClassId, toClassId: args.toClassId },
+            entityType: "student",
+            entityId: id,
+            before: existing,
+            after: updates,
         });
 
-        return { success: true };
+        return id;
     },
 });
 
-/**
- * Graduate a student (mark as graduated).
- */
-export const graduateStudent = mutation({
-    args: {
-        studentId: v.id("students"),
-    },
-    handler: async (ctx, args) => {
-        const tenantCtx = await requireTenantContext(ctx);
-        requirePermission(tenantCtx, "students:write");
-
-        const student = await ctx.db.get(args.studentId);
-        if (!student || student.tenantId !== tenantCtx.tenantId) {
-            throw new Error("STUDENT_NOT_FOUND");
-        }
-
-        await ctx.db.patch(args.studentId, {
-            status: "graduated",
-            updatedAt: Date.now(),
-        });
-
-        await logAction(ctx, {
-            tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
-            action: "student.updated",
-            targetId: args.studentId,
-            targetType: "student",
-            details: { graduated: true },
-        });
-
-        return { success: true };
-    },
-});
-
-/**
- * Create a new class.
- */
 export const createClass = mutation({
     args: {
         name: v.string(),
@@ -217,75 +120,51 @@ export const createClass = mutation({
         academicYear: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenantCtx = await requireTenantContext(ctx);
-        requirePermission(tenantCtx, "settings:write");
-        await requireModule(ctx, tenantCtx.tenantId, "sis");
+        const tenant = await requireTenantContext(ctx);
+        await requireModule(ctx, tenant.tenantId, "sis");
+        requirePermission(tenant, "settings:write");
 
         const classId = await ctx.db.insert("classes", {
-            tenantId: tenantCtx.tenantId,
-            name: args.name,
-            level: args.level,
-            stream: args.stream,
-            teacherId: args.teacherId,
-            capacity: args.capacity,
-            academicYear: args.academicYear,
+            tenantId: tenant.tenantId,
+            ...args,
             createdAt: Date.now(),
         });
 
         await logAction(ctx, {
-            tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
+            tenantId: tenant.tenantId,
+            actorId: tenant.userId,
+            actorEmail: tenant.email,
             action: "class.created",
-            targetId: classId,
-            targetType: "class",
-            details: { name: args.name },
+            entityType: "class",
+            entityId: classId,
+            after: args,
         });
 
-        return { success: true, classId };
+        return classId;
     },
 });
 
-/**
- * Update a class.
- */
-export const updateClass = mutation({
+export const createGuardian = mutation({
     args: {
-        classId: v.id("classes"),
-        name: v.optional(v.string()),
-        level: v.optional(v.string()),
-        stream: v.optional(v.string()),
-        teacherId: v.optional(v.string()),
-        capacity: v.optional(v.number()),
-        academicYear: v.optional(v.string()),
+        firstName: v.string(),
+        lastName: v.string(),
+        phone: v.string(),
+        email: v.string(),
+        relationship: v.string(),
+        studentIds: v.array(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenantCtx = await requireTenantContext(ctx);
-        requirePermission(tenantCtx, "settings:write");
+        const tenant = await requireTenantContext(ctx);
+        await requireModule(ctx, tenant.tenantId, "sis");
+        requirePermission(tenant, "students:write");
 
-        const classRecord = await ctx.db.get(args.classId);
-        if (!classRecord || classRecord.tenantId !== tenantCtx.tenantId) {
-            throw new Error("CLASS_NOT_FOUND");
-        }
-
-        const updates: Record<string, unknown> = {};
-        if (args.name !== undefined) updates.name = args.name;
-        if (args.level !== undefined) updates.level = args.level;
-        if (args.stream !== undefined) updates.stream = args.stream;
-        if (args.teacherId !== undefined) updates.teacherId = args.teacherId;
-        if (args.capacity !== undefined) updates.capacity = args.capacity;
-        if (args.academicYear !== undefined) updates.academicYear = args.academicYear;
-
-        await ctx.db.patch(args.classId, updates);
-
-        await logAction(ctx, {
-            tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
-            action: "class.updated",
-            targetId: args.classId,
-            targetType: "class",
-            details: updates,
+        const guardianId = await ctx.db.insert("guardians", {
+            tenantId: tenant.tenantId,
+            ...args,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
         });
 
-        return { success: true };
+        return guardianId;
     },
 });

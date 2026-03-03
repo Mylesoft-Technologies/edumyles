@@ -131,7 +131,7 @@ export default function SignUpForm() {
 
             <p className="auth-footer-text">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="auth-link">Sign in</Link>
+                <Link href="http://localhost:3000/dashboard" className="auth-link">Sign in</Link>
             </p>
 
             <p className="auth-legal">
