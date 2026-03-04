@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Email or provider is required" }, { status: 400 });
         }
 
-        // Use the SSO endpoint instead of user-management endpoint
-        const authUrl = "https://api.workos.com/sso/authorize?" + params.toString();
+        // Use WorkOS AuthKit (User Management) endpoint for individual user auth
+        const authUrl = "https://api.workos.com/user_management/authorize?" + params.toString();
         console.log("Generated WorkOS signup URL:", authUrl);
         return NextResponse.json({ authUrl });
     } catch {
