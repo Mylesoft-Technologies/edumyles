@@ -119,9 +119,8 @@ export default function FeaturesPage() {
           <p className="eyebrow">Features</p>
           <h1>Everything your school needs. One platform.</h1>
           <p className="subtext">
-            11 integrated modules covering student management, finance,
-            operations, HR, and communication — purpose-built for East African
-            schools.
+            11 integrated modules covering student management, finance, operations, HR, and communication — all working
+            together to empower schools across Africa with intuitive, affordable technology.
           </p>
           <div className="actions">
             <Link className="btn btn-primary" href="/contact">

@@ -96,9 +96,8 @@ export default function SolutionsPage() {
           <p className="eyebrow">Solutions</p>
           <h1>Built for every type of school.</h1>
           <p className="subtext">
-            Whether you run a single primary school or a network of campuses,
-            EduMyles adapts to your needs with the right modules and the right
-            pricing.
+            Whether you run a single primary school or a network of campuses, EduMyles adapts to your journey — helping
+            you transform schools, one mile at a time.
           </p>
         </div>
       </section>
