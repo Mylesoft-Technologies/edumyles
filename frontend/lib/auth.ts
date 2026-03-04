@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { api } from "../../convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const SESSION_COOKIE_NAME = "edumyles_session";
 
 function redirectToLogin(nextPath: string): never {
   const next = encodeURIComponent(nextPath);
@@ -12,7 +13,9 @@ function redirectToLogin(nextPath: string): never {
 
 export async function requireSession(nextPath: string) {
   const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("edumyles-session")?.value;
+  const sessionToken =
+    cookieStore.get(SESSION_COOKIE_NAME)?.value ??
+    cookieStore.get("edumyles-session")?.value;
 
   if (!sessionToken) {
     redirectToLogin(nextPath);
