@@ -1,0 +1,376 @@
+"use client";
+
+import { PageHeader } from "@/components/shared/PageHeader";
+import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Book, 
+  Users, 
+  AlertTriangle, 
+  TrendingUp, 
+  Clock,
+  DollarSign,
+  Plus,
+  Search,
+  Download,
+  Eye,
+  Edit,
+  Trash2
+} from "lucide-react";
+import { format } from "date-fns";
+import { useState } from "react";
+import { toast } from "@/components/ui/use-toast";
+
+interface LibraryStats {
+  totalBooks: number;
+  availableBooks: number;
+  borrowedBooks: number;
+  overdueBooks: number;
+  totalFines: number;
+  activeBorrows: number;
+}
+
+export default function LibraryDashboardPage() {
+  const { user, isLoading } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const books = useQuery(
+    api.modules.library.queries.listBooks,
+    user ? { category: selectedCategory === "all" ? undefined : selectedCategory } : "skip"
+  );
+
+  const activeBorrows = useQuery(
+    api.modules.library.queries.listActiveBorrows,
+    user ? {} : "skip"
+  );
+
+  const overdueBorrows = useQuery(
+    api.modules.library.queries.getOverdueBorrows,
+    user ? {} : "skip"
+  );
+
+  const lowStockBooks = useQuery(
+    api.modules.library.queries.getLowStockBooks,
+    user ? { threshold: 3 } : "skip"
+  );
+
+  const createBook = useMutation(api.modules.library.mutations.createBook);
+  const borrowBook = useMutation(api.modules.library.mutations.borrowBook);
+  const returnBook = useMutation(api.modules.library.mutations.returnBook);
+
+  const handleCreateBook = async () => {
+    try {
+      await createBook({
+        title: "New Book",
+        author: "Author Name",
+        category: "Fiction",
+        quantity: 5,
+        isbn: "978-0-123456-78-9",
+      });
+      
+      toast({
+        title: "Success",
+        description: "Book created successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create book",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const calculateLibraryStats = (): LibraryStats => {
+    const totalBooks = books?.length || 0;
+    const availableBooks = books?.reduce((sum, book) => sum + book.availableQuantity, 0) || 0;
+    const totalQuantity = books?.reduce((sum, book) => sum + book.quantity, 0) || 0;
+    const borrowedBooks = totalQuantity - availableBooks;
+    const overdueBooks = overdueBorrows?.length || 0;
+    const activeBorrows = activeBorrows?.length || 0;
+    
+    // Calculate total fines from overdue books
+    const totalFines = overdueBorrows?.reduce((sum, borrow) => {
+      const daysOverdue = Math.ceil((Date.now() - borrow.dueDate) / (24 * 60 * 60 * 1000));
+      return sum + (daysOverdue * 10); // 10 cents per day
+    }, 0) || 0;
+
+    return {
+      totalBooks,
+      availableBooks,
+      borrowedBooks,
+      overdueBooks,
+      totalFines,
+      activeBorrows,
+    };
+  };
+
+  const libraryStats = calculateLibraryStats();
+
+  const filteredBooks = books?.filter(book =>
+    book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    book.isbn?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  if (isLoading) return <LoadingSkeleton variant="page" />;
+
+  return (
+    <div>
+      <PageHeader
+        title="Library Management"
+        description="Manage books, circulation, and fine tracking"
+      />
+
+      <div className="space-y-6">
+        {/* Statistics Overview */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Books</CardTitle>
+              <Book className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{libraryStats.totalBooks}</div>
+              <p className="text-xs text-muted-foreground">In catalog</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Available</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{libraryStats.availableBooks}</div>
+              <p className="text-xs text-muted-foreground">Ready to borrow</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Borrows</CardTitle>
+              <Users className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{libraryStats.activeBorrows}</div>
+              <p className="text-xs text-muted-foreground">Currently borrowed</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{libraryStats.overdueBooks}</div>
+              <p className="text-xs text-muted-foreground">Need attention</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Button className="w-full justify-start" variant="outline" onClick={handleCreateBook}>
+                <Book className="h-4 w-4 mr-2" />
+                Add New Book
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Generate Report
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <DollarSign className="h-4 w-4 mr-2" />
+                Collect Fines
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Alerts */}
+        {(lowStockBooks && lowStockBooks.length > 0) || (overdueBorrows && overdueBorrows.length > 0) ? (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-800">
+                <AlertTriangle className="h-5 w-5" />
+                Library Alerts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {lowStockBooks && lowStockBooks.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="destructive">Low Stock</Badge>
+                    <span className="text-orange-700">
+                      {lowStockBooks.length} book{lowStockBooks.length > 1 ? 's' : ''} running low on copies
+                    </span>
+                  </div>
+                )}
+                {overdueBorrows && overdueBorrows.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="destructive">Overdue</Badge>
+                    <span className="text-orange-700">
+                      {overdueBorrows.length} book{overdueBorrows.length > 1 ? 's' : ''} overdue for return
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {/* Books Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Books Catalog ({filteredBooks.length})
+              </div>
+              <Button size="sm" onClick={handleCreateBook}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Book
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Filters */}
+            <div className="grid gap-4 md:grid-cols-2 mb-6">
+              <div className="space-y-2">
+                <Label htmlFor="search">Search Books</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Search by title, author, or ISBN..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="fiction">Fiction</SelectItem>
+                    <SelectItem value="non-fiction">Non-Fiction</SelectItem>
+                    <SelectItem value="reference">Reference</SelectItem>
+                    <SelectItem value="textbook">Textbook</SelectItem>
+                    <SelectItem value="children">Children</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Books List */}
+            <div className="space-y-4">
+              {filteredBooks.slice(0, 10).map((book) => (
+                <div key={book._id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">{book.title}</h4>
+                        <Badge variant={book.availableQuantity > 0 ? "default" : "secondary"}>
+                          {book.availableQuantity > 0 ? `Available (${book.availableQuantity})` : "Out of Stock"}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Author</p>
+                          <p className="font-medium">{book.author}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Category</p>
+                          <p className="font-medium capitalize">{book.category}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <p className="text-sm text-muted-foreground">ISBN</p>
+                          <p className="font-medium">{book.isbn || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total Copies</p>
+                          <p className="font-medium">{book.quantity}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {filteredBooks.length > 10 && (
+                <Button variant="outline" className="w-full">
+                  View All Books ({filteredBooks.length - 10} more)
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {activeBorrows?.slice(0, 5).map((borrow) => (
+                <div key={borrow._id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Book #{borrow.bookId.slice(-6)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Borrowed by {borrow.borrowerId} • Due {format(new Date(borrow.dueDate), "PPP")}
+                    </p>
+                  </div>
+                  <Badge 
+                    variant={borrow.dueDate < Date.now() ? "destructive" : "default"}
+                  >
+                    {borrow.dueDate < Date.now() ? "Overdue" : "Active"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
