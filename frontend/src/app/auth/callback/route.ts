@@ -154,6 +154,35 @@ async function handleAuthResult(
   } else if (signupState.schoolName) {
     // New signup — default to school_admin for the account creator
     role = "school_admin";
+    
+    // Create the user record for new signup
+    await convex.mutation(api.users.upsertUser, {
+      tenantId,
+      workosUserId: profile.id,
+      email: profile.email,
+      firstName: profile.first_name || "",
+      lastName: profile.last_name || "",
+      role: "school_admin",
+      permissions: [], // Default permissions
+      eduMylesUserId: `EDU-${profile.id}`, // Generate eduMyles user ID
+      organizationId: "" as any, // Will be set by Convex if needed
+    });
+  } else {
+    // Existing user signing in but not found in database - create with default role
+    role = "school_admin";
+    
+    // Create the user record
+    await convex.mutation(api.users.upsertUser, {
+      tenantId,
+      workosUserId: profile.id,
+      email: profile.email,
+      firstName: profile.first_name || "",
+      lastName: profile.last_name || "",
+      role: "school_admin",
+      permissions: [], // Default permissions
+      eduMylesUserId: `EDU-${profile.id}`, // Generate eduMyles user ID
+      organizationId: "" as any, // Will be set by Convex if needed
+    });
   }
 
   // Generate session token
@@ -172,6 +201,16 @@ async function handleAuthResult(
 
   // Determine redirect based on role
   const dashboardPath = getRoleDashboard(role);
+  
+  // Debug logging
+  console.log("Auth callback debug:", {
+    email,
+    tenantId,
+    role,
+    dashboardPath,
+    existingUser: !!existingUser,
+    signupState: signupState.schoolName ? "signup" : "signin"
+  });
 
   const response = NextResponse.redirect(new URL(dashboardPath, req.url));
 
