@@ -335,4 +335,112 @@ export default defineSchema({
     .index("by_user", ["userId", "createdAt"])
     .index("by_user_unread", ["userId", "isRead"])
     .index("by_tenant", ["tenantId", "createdAt"]),
+
+  subjects: defineTable({
+    tenantId: v.string(),
+    name: v.string(),
+    code: v.string(),
+    department: v.optional(v.string()),
+    description: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_tenant_code", ["tenantId", "code"]),
+
+  assignments: defineTable({
+    tenantId: v.string(),
+    classId: v.string(),
+    subjectId: v.string(),
+    teacherId: v.string(),
+    title: v.string(),
+    description: v.string(),
+    dueDate: v.string(),
+    maxPoints: v.number(),
+    status: v.string(), // active | archived | draft
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_class", ["classId"])
+    .index("by_teacher", ["teacherId", "createdAt"]),
+
+  submissions: defineTable({
+    tenantId: v.string(),
+    assignmentId: v.string(),
+    studentId: v.string(),
+    content: v.optional(v.string()),
+    fileUrl: v.optional(v.string()),
+    status: v.string(), // pending | submitted | graded | late
+    grade: v.optional(v.number()),
+    feedback: v.optional(v.string()),
+    submittedAt: v.optional(v.number()),
+    gradedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_assignment", ["assignmentId"])
+    .index("by_student", ["studentId"]),
+
+  grades: defineTable({
+    tenantId: v.string(),
+    studentId: v.string(),
+    classId: v.string(),
+    subjectId: v.string(),
+    term: v.string(),
+    academicYear: v.string(),
+    score: v.number(),
+    grade: v.string(),
+    remarks: v.optional(v.string()),
+    recordedBy: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_student", ["studentId", "term"])
+    .index("by_class_subject", ["classId", "subjectId", "term"]),
+
+  attendance: defineTable({
+    tenantId: v.string(),
+    classId: v.string(),
+    studentId: v.string(),
+    date: v.string(), // YYYY-MM-DD
+    status: v.string(), // present | absent | late | excused
+    remarks: v.optional(v.string()),
+    recordedBy: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_class_date", ["classId", "date"])
+    .index("by_student_date", ["studentId", "date"]),
+
+  timetables: defineTable({
+    tenantId: v.string(),
+    classId: v.string(),
+    subjectId: v.string(),
+    teacherId: v.string(),
+    dayOfWeek: v.number(), // 1-7
+    startTime: v.string(), // HH:mm
+    endTime: v.string(), // HH:mm
+    room: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_class", ["classId"])
+    .index("by_teacher", ["teacherId"]),
+
+  reportCards: defineTable({
+    tenantId: v.string(),
+    studentId: v.string(),
+    term: v.string(),
+    academicYear: v.string(),
+    gpa: v.optional(v.number()),
+    rank: v.optional(v.number()),
+    fileUrl: v.optional(v.string()),
+    status: v.string(), // generating | ready | published
+    generatedAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_student_term", ["studentId", "term", "academicYear"]),
 });
