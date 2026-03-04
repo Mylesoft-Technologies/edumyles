@@ -47,7 +47,7 @@ export const getMyGrades = query({
         let gradesQuery = ctx.db
             .query("grades")
             .withIndex("by_student", (q) =>
-                q.eq("studentId", student._id)
+                q.eq("studentId", student._id.toString())
             )
             .filter((q) => q.eq(q.field("tenantId"), tenant.tenantId));
 

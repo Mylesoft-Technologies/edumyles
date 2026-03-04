@@ -3,7 +3,7 @@ import { MutationCtx } from "../_generated/server";
 export type AuditAction =
   | "user.created" | "user.updated" | "user.deleted" | "user.login" | "user.logout"
   | "student.created" | "student.updated" | "student.deleted"
-  | "payment.initiated" | "payment.completed" | "payment.failed"
+  | "payment.initiated" | "payment.completed" | "payment.failed" | "payment.recorded" | "payment.bulk_invoices"
   | "grade.entered" | "grade.updated"
   | "attendance.marked"
   | "payroll.processed" | "payroll.approved"
@@ -15,7 +15,8 @@ export type AuditAction =
   | "staff.created" | "staff.updated" | "staff.role_assigned"
   | "class.created" | "class.updated"
   | "assignment.submitted" | "assignment.graded"
-  | "alumni.profile_updated" | "alumni.transcript_requested" | "alumni.event_rsvp";
+  | "alumni.profile_updated" | "alumni.transcript_requested" | "alumni.event_rsvp"
+  | "timetable.slot_created" | "timetable.slot_updated" | "timetable.slot_deleted" | "timetable.substitute_assigned";
 
 export async function logAction(
   ctx: MutationCtx,

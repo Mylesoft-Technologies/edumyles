@@ -113,13 +113,12 @@ export const getSponsorshipReport = query({
         const termGrades = await ctx.db
           .query("grades")
           .withIndex("by_student", (q: any) => q.eq("studentId", studentId))
-          .filter((q: any) =>
-            q.and(
-              q.eq(q.field("tenantId"), tenant.tenantId),
-              args.term ? q.eq(q.field("term"), args.term) : true,
-              args.academicYear ? q.eq(q.field("academicYear"), args.academicYear) : true
-            )
-          )
+          .filter((q: any) => {
+            const filters = [q.eq(q.field("tenantId"), tenant.tenantId)];
+            if (args.term) filters.push(q.eq(q.field("term"), args.term));
+            if (args.academicYear) filters.push(q.eq(q.field("academicYear"), args.academicYear));
+            return q.and(...filters);
+          })
           .collect();
 
         const avgScore = termGrades.length
@@ -238,8 +237,10 @@ export const getPartnerAnnouncements = query({
     requirePermission(tenant, "students:read");
 
     return await ctx.db
-      .query("notifications")
-      .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
+      .query("announcements")
+      .withIndex("by_tenant_status", (q: any) =>
+        q.eq("tenantId", tenant.tenantId).eq("status", "published")
+      )
       .filter((q: any) =>
         q.or(
           q.eq(q.field("audience"), "all"),

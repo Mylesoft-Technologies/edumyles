@@ -10,6 +10,9 @@ export const submitAssignment = mutation({
         attachments: v.array(v.string()),
     },
     handler: async (ctx, args) => {
+        if (args.attachments.length === 0) {
+            throw new Error("At least one attachment is required");
+        }
         const tenant = await requireTenantContext(ctx);
         await requireModule(ctx, tenant.tenantId, "academics");
 
