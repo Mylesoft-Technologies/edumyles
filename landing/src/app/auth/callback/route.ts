@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 
     response.cookies.set("edumyles_session", sessionToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: "lax",
       path: "/",
       maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       }),
       {
         httpOnly: false,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: "lax",
         path: "/",
         maxAge: 30 * 24 * 60 * 60,

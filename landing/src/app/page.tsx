@@ -97,7 +97,10 @@ function LandingPageContent() {
   useEffect(() => {
     const error = searchParams.get("auth_error");
     if (error) {
-      setAuthError(decodeURIComponent(error));
+      const decoded = decodeURIComponent(error);
+      // Basic sanitization to avoid rendering raw HTML-like characters
+      const safeError = decoded.replace(/[<>]/g, "");
+      setAuthError(safeError);
       // Clear error from URL
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("auth_error");
@@ -110,7 +113,7 @@ function LandingPageContent() {
     const userCookie = document.cookie
       .split("; ")
       .find((row) => row.startsWith("edumyles_user="));
-    
+
     if (userCookie) {
       try {
         const cookieValue = userCookie.split("=").slice(1).join("=");
@@ -125,8 +128,8 @@ function LandingPageContent() {
   }, []);
 
   const handleLogout = () => {
-    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
     setUser(null);
   };
 
@@ -139,7 +142,7 @@ function LandingPageContent() {
         <div className="hero-content">
           <p className="eyebrow">EduMyles</p>
           <h1>Transforming schools, one mile at a time.</h1>
-          
+
           {/* Auth Error Display */}
           {authError && (
             <div className="auth-error-banner" style={{
@@ -167,7 +170,7 @@ function LandingPageContent() {
               <strong>Welcome back, {user.firstName || user.email.split('@')[0]}!</strong>
               <br />
               <span style={{ fontSize: '14px' }}>You are logged in as {user.email}</span>
-              <button 
+              <button
                 onClick={handleLogout}
                 style={{
                   marginLeft: '12px',
@@ -190,14 +193,15 @@ function LandingPageContent() {
             that simplifies administration, enhances learning outcomes, and connects every stakeholder in
             the education journey.
           </p>
+          {/* Deployment trigger: 2026-03-04-12:02 */}
           <div className="actions">
             {user ? (
-              <a className="btn btn-primary" href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`}>
+              <a className="btn btn-primary" href="/user-panels">
                 Go to Dashboard
               </a>
             ) : (
-              <a className="btn btn-primary" href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`}>
-                Sign Up Free
+              <a className="btn btn-primary" href="/user-panels">
+                Get Started
               </a>
             )}
             <a className="btn btn-secondary" href="/concierge">
@@ -312,7 +316,7 @@ function LandingPageContent() {
           <div className="module-tab-text">
             <h3>{activeCategory.label}</h3>
             <p>{activeCategory.description}</p>
-            <a className="btn btn-primary" href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`}>
+            <a className="btn btn-primary" href="/user-panels">
               {user ? "Explore in Dashboard" : "Try It Free"}
             </a>
           </div>
@@ -365,7 +369,7 @@ function LandingPageContent() {
             },
             {
               name: "Kampala International",
-              location: "Uganda", 
+              location: "Uganda",
               result: "25% fee collection improvement",
               quote: "Mobile money integration has been a game-changer for parents.",
             },
@@ -501,7 +505,7 @@ function LandingPageContent() {
                   <li key={i}>{feature}</li>
                 ))}
               </ul>
-              <a className="btn btn-primary" href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`}>
+              <a className="btn btn-primary" href="/user-panels">
                 Get Started
               </a>
             </div>
@@ -524,7 +528,7 @@ function LandingPageContent() {
             Join 50+ schools across East Africa already running smarter with
             one unified platform.
           </p>
-          <a className="btn btn-primary" href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`}>
+          <a className="btn btn-primary" href="/user-panels">
             {user ? "Go to Dashboard" : "Activate Free Trial"}
           </a>
         </div>
