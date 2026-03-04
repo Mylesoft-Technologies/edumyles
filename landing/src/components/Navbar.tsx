@@ -109,9 +109,7 @@ export default function Navbar() {
     ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || (user.email?.[0] ?? "").toUpperCase())
     : "";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const directMasterAdminUrl = appUrl
-    ? `${appUrl.replace(/\/$/, "")}/auth/direct-master-admin`
-    : "/auth/signup";
+  const directMasterAdminUrl = "/user-panels";
 
   const handleLogout = () => {
     document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
