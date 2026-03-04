@@ -113,10 +113,10 @@ function LandingPageContent() {
     const userCookie = document.cookie
       .split("; ")
       .find((row) => row.startsWith("edumyles_user="));
-    
+
     if (userCookie) {
       try {
-        const cookieValue = userCookie.split("=")[1];
+        const cookieValue = userCookie.split("=").slice(1).join("=");
         if (cookieValue) {
           const userData = JSON.parse(decodeURIComponent(cookieValue));
           setUser(userData);
@@ -128,8 +128,8 @@ function LandingPageContent() {
   }, []);
 
   const handleLogout = () => {
-    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
     setUser(null);
   };
 
@@ -142,7 +142,7 @@ function LandingPageContent() {
         <div className="hero-content">
           <p className="eyebrow">EduMyles</p>
           <h1>Transforming schools, one mile at a time.</h1>
-          
+
           {/* Auth Error Display */}
           {authError && (
             <div className="auth-error-banner" style={{
@@ -170,7 +170,7 @@ function LandingPageContent() {
               <strong>Welcome back, {user.firstName || user.email.split('@')[0]}!</strong>
               <br />
               <span style={{ fontSize: '14px' }}>You are logged in as {user.email}</span>
-              <button 
+              <button
                 onClick={handleLogout}
                 style={{
                   marginLeft: '12px',
@@ -195,9 +195,15 @@ function LandingPageContent() {
           </p>
           {/* Deployment trigger: 2026-03-04-12:02 */}
           <div className="actions">
-            <a className="btn btn-primary" href="/user-panels">
-              Get Started
-            </a>
+            {user ? (
+              <a className="btn btn-primary" href="/user-panels">
+                Go to Dashboard
+              </a>
+            ) : (
+              <a className="btn btn-primary" href="/user-panels">
+                Get Started
+              </a>
+            )}
             <a className="btn btn-secondary" href="/concierge">
               Contact Sales
             </a>
@@ -363,7 +369,7 @@ function LandingPageContent() {
             },
             {
               name: "Kampala International",
-              location: "Uganda", 
+              location: "Uganda",
               result: "25% fee collection improvement",
               quote: "Mobile money integration has been a game-changer for parents.",
             },

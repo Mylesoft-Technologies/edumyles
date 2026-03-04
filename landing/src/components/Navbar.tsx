@@ -113,15 +113,15 @@ export default function Navbar() {
   const directMasterAdminUrl = "/user-panels";
 
   const handleLogout = () => {
-    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
     setUser(null);
     window.location.href = "/";
   };
 
   const handleMobileLogout = () => {
-    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
     setUser(null);
     setMobileMenuOpen(false);
     window.location.href = "/";

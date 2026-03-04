@@ -78,12 +78,13 @@ export async function GET(request: NextRequest) {
       "base64url",
     );
 
-    // Set session cookie and redirect to home
-    const response = NextResponse.redirect(`${baseUrl}/`);
+    // Set session cookie and redirect to main application
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const response = NextResponse.redirect(`${appUrl}/dashboard`);
 
     response.cookies.set("edumyles_session", sessionToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: "lax",
       path: "/",
       maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
       }),
       {
         httpOnly: false,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: "lax",
         path: "/",
         maxAge: 30 * 24 * 60 * 60,
