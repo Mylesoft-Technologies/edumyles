@@ -209,6 +209,32 @@ export const getMyReportCards = query({
     },
 });
 
+export const getMySubmission = query({
+    args: {
+        assignmentId: v.id("assignments"),
+        userId: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const tenant = await requireTenantContext(ctx);
+        await requireModule(ctx, tenant.tenantId, "academics");
+
+        const submission = await ctx.db
+            .query("submissions")
+            .withIndex("by_student", (q) =>
+                q.eq("studentId", args.userId)
+            )
+            .filter((q) => 
+                q.and(
+                    q.eq(q.field("tenantId"), tenant.tenantId),
+                    q.eq(q.field("assignmentId"), args.assignmentId)
+                )
+            )
+            .first();
+
+        return submission;
+    },
+});
+
 export const getAnnouncements = query({
     args: {},
     handler: async (ctx) => {

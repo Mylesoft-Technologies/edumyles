@@ -1,0 +1,333 @@
+name: Project Automation
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main, develop, staging]
+  issues:
+    types: [opened, closed, edited]
+  schedule:
+    # Run daily at 9:00 AM UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'update-progress'
+        type: choice
+        options:
+          - update-progress
+          - generate-issues
+          - sync-board
+
+jobs:
+  # Update progress tracking
+  update-progress:
+    name: Update Progress Tracking
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'update-progress')
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history for analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate progress report
+        run: node scripts/progress-tracker.js report
+
+      - name: Update documentation
+        run: node scripts/progress-tracker.js update-docs
+
+      - name: Commit progress updates
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'update-progress')
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/
+          git diff --staged --quiet || git commit -m "📊 Update progress tracking [skip ci]"
+          git push
+
+      - name: Comment PR with progress
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const progressPath = 'docs/implementation-progress.json';
+            
+            if (fs.existsSync(progressPath)) {
+              const progress = JSON.parse(fs.readFileSync(progressPath, 'utf8'));
+              
+              const comment = `## 📊 Implementation Progress Update\n\n` +
+                `- **Overall Completion**: ${progress.summary.overallCompletion}%\n` +
+                `- **Phases Complete**: ${progress.summary.completedPhases}/${progress.summary.totalPhases}\n` +
+                `- **Modules Complete**: ${progress.summary.completedModules}/${progress.summary.totalModules}\n\n` +
+                `### Recent Changes\n` +
+                `This PR may affect the following components:\n` +
+                `${progress.phases.map(p => 
+                  p.components.filter(c => c.exists).length > 0 ? 
+                    `- **Phase ${p.number}**: ${p.title}` : ''
+                ).filter(Boolean).join('\n')}\n\n` +
+                `---\n*Progress tracking updated automatically*`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  # Sync project board
+  sync-board:
+    name: Sync Project Board
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'issues' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'sync-board')
+    permissions:
+      issues: write
+      projects: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Process pull request
+        if: github.event_name == 'pull_request'
+        run: |
+          node scripts/project-board-automation.js process-pr ${{ github.event.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+
+      - name: Handle issue events
+        if: github.event_name == 'issues'
+        run: |
+          if [ "${{ github.event.action }}" = "closed" ]; then
+            node scripts/project-board-automation.js move ${{ github.event.issue.number }} "Done"
+          elif [ "${{ github.event.action }}" = "opened" ]; then
+            node scripts/project-board-automation.js move ${{ github.event.issue.number }} "Backlog"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+
+  # Generate implementation issues
+  generate-issues:
+    name: Generate Implementation Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'generate-issues'
+    permissions:
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate issue files
+        run: node scripts/generate-issues.js
+
+      - name: Create GitHub issues
+        run: |
+          # Install GitHub CLI
+          type -p gh >/dev/null || (sudo apt-get update && sudo apt-get install -y gh)
+          
+          # Login to GitHub
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          
+          # Create issues from generated files
+          for file in .github/generated-issues/*.md; do
+            if [ -f "$file" ]; then
+              echo "Creating issue from $file"
+              gh issue create --title "$(grep '^# ' "$file" | head -1 | sed 's/^# //')" \
+                --body "$(cat "$file")" \
+                --label "automated,implementation" || true
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Weekly progress summary
+  weekly-summary:
+    name: Weekly Progress Summary
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate weekly report
+        run: |
+          node scripts/progress-tracker.js report > weekly-report.json
+          
+          # Create summary issue
+          node scripts/project-board-automation.js report > board-report.json
+          
+          # Combine reports and create summary
+          node -e "
+            const fs = require('fs');
+            const progress = JSON.parse(fs.readFileSync('weekly-report.json', 'utf8'));
+            const board = JSON.parse(fs.readFileSync('board-report.json', 'utf8'));
+            
+            const summary = \`# 📊 Weekly Progress Summary - ${new Date().toLocaleDateString()}
+            
+            ## Overall Progress
+            - **Completion**: \${progress.summary.overallCompletion}%
+            - **Phases Complete**: \${progress.summary.completedPhases}/\${progress.summary.totalPhases}
+            - **Modules Complete**: \${progress.summary.completedModules}/\${progress.summary.totalModules}
+            
+            ## This Week's Highlights
+            \${progress.recommendations.map(rec => 
+              \`- **\${rec.type.charAt(0).toUpperCase() + rec.type.slice(1)}**: \${rec.message}\`
+            ).join('\\n')}
+            
+            ## Next Week's Focus
+            \${progress.nextMilestones.map(milestone => 
+              \`- **Phase \${milestone.phase}**: \${milestone.title} (\${milestone.completionPercentage}% complete)\`
+            ).join('\\n')}
+            
+            ## Repository Stats
+            - **Total Commits**: \${progress.metadata.gitStats.totalCommits}
+            - **Contributors**: \${progress.metadata.gitStats.contributors}
+            - **Last Updated**: \${new Date().toLocaleString()}
+            
+            ---
+            *This report is generated automatically every week*\`;
+            
+            fs.writeFileSync('weekly-summary.md', summary);
+          "
+
+      - name: Create weekly summary issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            if (fs.existsSync('weekly-summary.md')) {
+              const summary = fs.readFileSync('weekly-summary.md', 'utf8');
+              
+              // Close last week's summary if it exists
+              const issues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: 'weekly-summary',
+                state: 'open'
+              });
+              
+              if (issues.data.length > 0) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issues.data[0].number,
+                  state: 'closed'
+                });
+              }
+              
+              // Create new weekly summary
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `📊 Weekly Progress Summary - ${new Date().toLocaleDateString()}`,
+                body: summary,
+                labels: ['weekly-summary', 'automated']
+              });
+            }
+
+  # Dependency check
+  dependency-check:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for blocking dependencies
+        run: |
+          node scripts/progress-tracker.js analyze | grep -E "(blocked|dependency)" || true
+
+      - name: Comment on blocking issues
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            
+            try {
+              const analysis = execSync('node scripts/progress-tracker.js analyze', { encoding: 'utf8' });
+              
+              if (analysis.includes('blocked')) {
+                const comment = `## ⚠️ Dependency Warning\n\n` +
+                  `This PR may be blocked by incomplete dependencies. Please ensure all prerequisite phases and modules are complete before merging.\n\n` +
+                  `Check the [progress analysis](https://github.com/${{ github.repository }}/blob/main/docs/PROJECT_PROGRESS_ANALYSIS.md) for details.`;
+                
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              }
+            } catch (error) {
+              console.log('Could not analyze dependencies');
+            }

@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTestCtx, createMockTenantContext } from './convex/test-utils';
-
-// Mock requireModule function
-const mockRequireModule = vi.fn();
+import { createTestCtx } from './convex/test-utils';
 
 describe('Module Guard Tests', () => {
   let mockCtx: any;
@@ -24,9 +21,6 @@ describe('Module Guard Tests', () => {
       getUserId: vi.fn().mockResolvedValue('test-user-id'),
       getTokenIdentifier: vi.fn().mockResolvedValue('test@example.com'),
     };
-
-    // Reset mock
-    mockRequireModule.mockReset();
   });
 
   describe('Module Installation Validation', () => {
@@ -34,8 +28,8 @@ describe('Module Guard Tests', () => {
       const tenantId = 'tenant-1';
       const moduleId = 'academics';
 
-      // Mock installed module lookup
       const installedModule = {
+        _id: 'module-id',
         tenantId,
         moduleId,
         status: 'active',
@@ -44,43 +38,110 @@ describe('Module Guard Tests', () => {
         config: {},
       };
 
-      mockDb.query.mockReturnValue({
-        withIndex: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              first: vi.fn().mockResolvedValue(installedModule),
+      const tenant = {
+        tenantId,
+        name: 'Test School',
+        plan: 'standard',
+        status: 'active',
+      };
+
+      const organization = {
+        tenantId,
+        tier: 'standard',
+        isActive: true,
+      };
+
+      mockDb.query.mockImplementation((table: string) => {
+        if (table === 'installedModules') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  first: vi.fn().mockResolvedValue(installedModule),
+                }),
+              }),
             }),
-          }),
-        }),
+          };
+        }
+        if (table === 'tenants') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(tenant),
+              }),
+            }),
+          };
+        }
+        if (table === 'organizations') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(organization),
+            }),
+          };
+        }
+        return {
+          withIndex: vi.fn(),
+        };
       });
 
-      mockRequireModule.mockResolvedValue(true);
-
-      const result = await mockRequireModule(mockCtx, tenantId, moduleId);
-
-      expect(result).toBe(true);
-      expect(mockRequireModule).toHaveBeenCalledWith(mockCtx, tenantId, moduleId);
+      const { requireModule } = await import("../../../../convex/helpers/moduleGuard");
+      
+      await expect(requireModule(mockCtx, tenantId, moduleId)).resolves.not.toThrow();
     });
 
     it('should deny access when module is not installed', async () => {
       const tenantId = 'tenant-1';
       const moduleId = 'library';
 
-      mockDb.query.mockReturnValue({
-        withIndex: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              first: vi.fn().mockResolvedValue(null),
+      const tenant = {
+        tenantId,
+        name: 'Test School',
+        plan: 'standard',
+        status: 'active',
+      };
+
+      const organization = {
+        tenantId,
+        tier: 'standard',
+        isActive: true,
+      };
+
+      mockDb.query.mockImplementation((table: string) => {
+        if (table === 'installedModules') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  first: vi.fn().mockResolvedValue(null),
+                }),
+              }),
             }),
-          }),
-        }),
+          };
+        }
+        if (table === 'tenants') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(tenant),
+              }),
+            }),
+          };
+        }
+        if (table === 'organizations') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(organization),
+            }),
+          };
+        }
+        return {
+          withIndex: vi.fn(),
+        };
       });
 
-      mockRequireModule.mockImplementation(() => {
-        throw new Error('MODULE_NOT_INSTALLED');
-      });
+      const { requireModule } = await import("../../../../convex/helpers/moduleGuard");
 
-      await expect(mockRequireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_NOT_INSTALLED');
+      await expect(requireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_NOT_INSTALLED');
     });
 
     it('should deny access when module is inactive', async () => {
@@ -88,6 +149,7 @@ describe('Module Guard Tests', () => {
       const moduleId = 'transport';
 
       const inactiveModule = {
+        _id: 'module-id',
         tenantId,
         moduleId,
         status: 'inactive',
@@ -96,21 +158,55 @@ describe('Module Guard Tests', () => {
         config: {},
       };
 
-      mockDb.query.mockReturnValue({
-        withIndex: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              first: vi.fn().mockResolvedValue(inactiveModule),
+      const tenant = {
+        tenantId,
+        name: 'Test School',
+        plan: 'standard',
+        status: 'active',
+      };
+
+      const organization = {
+        tenantId,
+        tier: 'standard',
+        isActive: true,
+      };
+
+      mockDb.query.mockImplementation((table: string) => {
+        if (table === 'installedModules') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  first: vi.fn().mockResolvedValue(inactiveModule),
+                }),
+              }),
             }),
-          }),
-        }),
+          };
+        }
+        if (table === 'tenants') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(tenant),
+              }),
+            }),
+          };
+        }
+        if (table === 'organizations') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(organization),
+            }),
+          };
+        }
+        return {
+          withIndex: vi.fn(),
+        };
       });
 
-      mockRequireModule.mockImplementation(() => {
-        throw new Error('MODULE_INACTIVE');
-      });
+      const { requireModule } = await import("../../../../convex/helpers/moduleGuard");
 
-      await expect(mockRequireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_INACTIVE');
+      await expect(requireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_INACTIVE');
     });
   });
 
@@ -119,7 +215,6 @@ describe('Module Guard Tests', () => {
       const tenantId = 'tenant-1';
       const moduleId = 'academics';
 
-      // Mock tenant with standard tier
       const tenant = {
         tenantId,
         name: 'Test School',
@@ -134,13 +229,13 @@ describe('Module Guard Tests', () => {
       };
 
       const installedModule = {
+        _id: 'module-id',
         tenantId,
         moduleId,
         status: 'active',
         installedAt: Date.now(),
       };
 
-      // Mock tenant lookup
       mockDb.query.mockImplementation((table: string) => {
         if (table === 'tenants') {
           return {
@@ -154,9 +249,7 @@ describe('Module Guard Tests', () => {
         if (table === 'organizations') {
           return {
             withIndex: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                first: vi.fn().mockResolvedValue(organization),
-              }),
+              first: vi.fn().mockResolvedValue(organization),
             }),
           };
         }
@@ -176,18 +269,15 @@ describe('Module Guard Tests', () => {
         };
       });
 
-      mockRequireModule.mockResolvedValue(true);
+      const { requireModule } = await import("../../../../convex/helpers/moduleGuard");
 
-      const result = await mockRequireModule(mockCtx, tenantId, moduleId);
-
-      expect(result).toBe(true);
+      await expect(requireModule(mockCtx, tenantId, moduleId)).resolves.not.toThrow();
     });
 
     it('should deny access to modules outside tenant tier', async () => {
       const tenantId = 'tenant-1';
-      const moduleId = 'advanced_analytics'; // Enterprise-only module
+      const moduleId = 'advanced_analytics';
 
-      // Mock tenant with starter tier
       const tenant = {
         tenantId,
         name: 'Test School',
@@ -201,7 +291,14 @@ describe('Module Guard Tests', () => {
         isActive: true,
       };
 
-      // Mock tenant lookup
+      const installedModule = {
+        _id: 'module-id',
+        tenantId,
+        moduleId,
+        status: 'active',
+        installedAt: Date.now(),
+      };
+
       mockDb.query.mockImplementation((table: string) => {
         if (table === 'tenants') {
           return {
@@ -215,8 +312,17 @@ describe('Module Guard Tests', () => {
         if (table === 'organizations') {
           return {
             withIndex: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(organization),
+            }),
+          };
+        }
+        if (table === 'installedModules') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                first: vi.fn().mockResolvedValue(organization),
+                eq: vi.fn().mockReturnValue({
+                  first: vi.fn().mockResolvedValue(installedModule),
+                }),
               }),
             }),
           };
@@ -226,20 +332,19 @@ describe('Module Guard Tests', () => {
         };
       });
 
-      mockRequireModule.mockImplementation(() => {
-        throw new Error('MODULE_NOT_AVAILABLE_FOR_TIER');
-      });
+      const { requireModule } = await import("../../../../convex/helpers/moduleGuard");
 
-      await expect(mockRequireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_NOT_AVAILABLE_FOR_TIER');
+      await expect(requireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_NOT_AVAILABLE_FOR_TIER');
     });
   });
 
   describe('Module Dependencies', () => {
     it('should validate module dependencies are met', async () => {
       const tenantId = 'tenant-1';
-      const moduleId = 'timetable'; // Depends on academics module
+      const moduleId = 'timetable';
 
       const academicsModule = {
+        _id: 'academics-id',
         tenantId,
         moduleId: 'academics',
         status: 'active',
@@ -247,6 +352,7 @@ describe('Module Guard Tests', () => {
       };
 
       const timetableModule = {
+        _id: 'timetable-id',
         tenantId,
         moduleId: 'timetable',
         status: 'active',
@@ -254,16 +360,42 @@ describe('Module Guard Tests', () => {
         dependencies: ['academics'],
       };
 
-      // Mock dependency check
+      const tenant = {
+        tenantId,
+        name: 'Test School',
+        plan: 'standard',
+        status: 'active',
+      };
+
+      const organization = {
+        tenantId,
+        tier: 'standard',
+        isActive: true,
+      };
+
       mockDb.query.mockImplementation((table: string) => {
         if (table === 'installedModules') {
           return {
             withIndex: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockReturnValue({
-                  collect: vi.fn().mockResolvedValue([academicsModule, timetableModule]),
-                }),
+                collect: vi.fn().mockResolvedValue([academicsModule, timetableModule]),
               }),
+            }),
+          };
+        }
+        if (table === 'tenants') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(tenant),
+              }),
+            }),
+          };
+        }
+        if (table === 'organizations') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(organization),
             }),
           };
         }
@@ -272,11 +404,9 @@ describe('Module Guard Tests', () => {
         };
       });
 
-      mockRequireModule.mockResolvedValue(true);
+      const { requireModule } = await import("../../../../convex/helpers/moduleGuard");
 
-      const result = await mockRequireModule(mockCtx, tenantId, moduleId);
-
-      expect(result).toBe(true);
+      await expect(requireModule(mockCtx, tenantId, moduleId)).resolves.not.toThrow();
     });
 
     it('should deny access when dependencies are not met', async () => {
@@ -284,6 +414,7 @@ describe('Module Guard Tests', () => {
       const moduleId = 'timetable';
 
       const timetableModule = {
+        _id: 'timetable-id',
         tenantId,
         moduleId: 'timetable',
         status: 'active',
@@ -291,16 +422,42 @@ describe('Module Guard Tests', () => {
         dependencies: ['academics'],
       };
 
-      // Mock dependency check (academics not installed)
+      const tenant = {
+        tenantId,
+        name: 'Test School',
+        plan: 'standard',
+        status: 'active',
+      };
+
+      const organization = {
+        tenantId,
+        tier: 'standard',
+        isActive: true,
+      };
+
       mockDb.query.mockImplementation((table: string) => {
         if (table === 'installedModules') {
           return {
             withIndex: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockReturnValue({
-                  collect: vi.fn().mockResolvedValue([timetableModule]), // Only timetable, no academics
-                }),
+                collect: vi.fn().mockResolvedValue([timetableModule]),
               }),
+            }),
+          };
+        }
+        if (table === 'tenants') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(tenant),
+              }),
+            }),
+          };
+        }
+        if (table === 'organizations') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(organization),
             }),
           };
         }
@@ -309,11 +466,9 @@ describe('Module Guard Tests', () => {
         };
       });
 
-      mockRequireModule.mockImplementation(() => {
-        throw new Error('MODULE_DEPENDENCIES_NOT_MET');
-      });
+      const { requireModule } = await import("../../../../convex/helpers/moduleGuard");
 
-      await expect(mockRequireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_DEPENDENCIES_NOT_MET');
+      await expect(requireModule(mockCtx, tenantId, moduleId)).rejects.toThrow('MODULE_DEPENDENCIES_NOT_MET');
     });
   });
 
@@ -323,6 +478,7 @@ describe('Module Guard Tests', () => {
       const moduleId = 'communications';
 
       const configuredModule = {
+        _id: 'module-id',
         tenantId,
         moduleId,
         status: 'active',
@@ -344,9 +500,9 @@ describe('Module Guard Tests', () => {
         }),
       });
 
-      mockRequireModule.mockResolvedValue(configuredModule.config);
+      const { getModuleConfig } = await import('../../convex/helpers/moduleGuard');
 
-      const result = await mockRequireModule(mockCtx, tenantId, moduleId);
+      const result = await getModuleConfig(mockCtx, tenantId, moduleId);
 
       expect(result).toEqual(configuredModule.config);
       expect(result.smsEnabled).toBe(true);
@@ -358,6 +514,7 @@ describe('Module Guard Tests', () => {
       const moduleId = 'library';
 
       const moduleWithoutConfig = {
+        _id: 'module-id',
         tenantId,
         moduleId,
         status: 'active',
@@ -375,9 +532,9 @@ describe('Module Guard Tests', () => {
         }),
       });
 
-      mockRequireModule.mockResolvedValue({});
+      const { getModuleConfig } = await import('../../convex/helpers/moduleGuard');
 
-      const result = await mockRequireModule(mockCtx, tenantId, moduleId);
+      const result = await getModuleConfig(mockCtx, tenantId, moduleId);
 
       expect(result).toEqual({});
     });
@@ -389,6 +546,7 @@ describe('Module Guard Tests', () => {
       const moduleId = 'ecommerce';
 
       const inactiveModule = {
+        _id: 'module-id',
         tenantId,
         moduleId,
         status: 'inactive',
@@ -396,14 +554,50 @@ describe('Module Guard Tests', () => {
         config: {},
       };
 
-      mockDb.query.mockReturnValue({
-        withIndex: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              first: vi.fn().mockResolvedValue(inactiveModule),
+      const tenant = {
+        tenantId,
+        name: 'Test School',
+        plan: 'enterprise',
+        status: 'active',
+      };
+
+      const organization = {
+        tenantId,
+        tier: 'enterprise',
+        isActive: true,
+      };
+
+      mockDb.query.mockImplementation((table: string) => {
+        if (table === 'installedModules') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  first: vi.fn().mockResolvedValue(inactiveModule),
+                }),
+              }),
             }),
-          }),
-        }),
+          };
+        }
+        if (table === 'tenants') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(tenant),
+              }),
+            }),
+          };
+        }
+        if (table === 'organizations') {
+          return {
+            withIndex: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(organization),
+            }),
+          };
+        }
+        return {
+          withIndex: vi.fn(),
+        };
       });
 
       mockDb.patch.mockResolvedValue({
@@ -411,22 +605,9 @@ describe('Module Guard Tests', () => {
         status: 'active',
       });
 
-      // Simulate activation
-      mockRequireModule.mockImplementation(async (ctx, tenantId, moduleId) => {
-        const module = await ctx.db
-          .query('installedModules')
-          .withIndex('by_tenant_module', (q: any) => q.eq('tenantId', tenantId).eq('moduleId', moduleId))
-          .collect()
-          .then(modules => modules[0]);
+      const { activateModule } = await import('../../convex/helpers/moduleGuard');
 
-        if (module && module.status === 'inactive') {
-          await ctx.db.patch(module._id, { status: 'active' });
-          return true;
-        }
-        throw new Error('MODULE_NOT_ACTIVE');
-      });
-
-      const result = await mockRequireModule(mockCtx, tenantId, moduleId);
+      const result = await activateModule(mockCtx, tenantId, moduleId);
 
       expect(result).toBe(true);
       expect(mockDb.patch).toHaveBeenCalledWith('module-id', { status: 'active' });
@@ -437,6 +618,7 @@ describe('Module Guard Tests', () => {
       const moduleId = 'transport';
 
       const activeModule = {
+        _id: 'module-id',
         tenantId,
         moduleId,
         status: 'active',
@@ -459,22 +641,9 @@ describe('Module Guard Tests', () => {
         status: 'inactive',
       });
 
-      // Simulate deactivation
-      mockRequireModule.mockImplementation(async (ctx, tenantId, moduleId) => {
-        const module = await ctx.db
-          .query('installedModules')
-          .withIndex('by_tenant_module', (q: any) => q.eq('tenantId', tenantId).eq('moduleId', moduleId))
-          .collect()
-          .then((modules: any[]) => modules[0]);
+      const { deactivateModule } = await import('../../convex/helpers/moduleGuard');
 
-        if (module && module.status === 'active') {
-          await ctx.db.patch(module._id, { status: 'inactive' });
-          return true;
-        }
-        return false;
-      });
-
-      const result = await mockRequireModule(mockCtx, tenantId, moduleId);
+      const result = await deactivateModule(mockCtx, tenantId, moduleId);
 
       expect(result).toBe(true);
       expect(mockDb.patch).toHaveBeenCalledWith('module-id', { status: 'inactive' });

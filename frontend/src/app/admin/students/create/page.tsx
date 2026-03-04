@@ -101,6 +101,7 @@ export default function CreateStudentPage() {
     const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            // Validate file size (5MB limit)
             if (file.size > 5 * 1024 * 1024) {
                 toast({
                     title: "Error",
@@ -109,20 +110,27 @@ export default function CreateStudentPage() {
                 });
                 return;
             }
-            
+
+            // Validate file type
             if (!file.type.startsWith('image/')) {
                 toast({
-                    title: "Error", 
-                    description: "Please upload an image file",
+                    title: "Error",
+                    description: "Please upload an image file (JPG, PNG, or WebP)",
                     variant: "destructive"
                 });
                 return;
             }
-            
-            setPhotoFile(file);
+
+            // Create preview
             const reader = new FileReader();
-            reader.onload = (e) => setPhotoPreview(e.target?.result as string);
+            reader.onload = (e) => {
+                const result = e.target?.result;
+                if (typeof result === 'string') {
+                    setPhotoPreview(result);
+                }
+            };
             reader.readAsDataURL(file);
+            setPhotoFile(file);
         }
     };
 
@@ -228,15 +236,31 @@ export default function CreateStudentPage() {
                                     onChange={handlePhotoUpload}
                                     className="hidden"
                                 />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="w-full"
-                                >
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    {photoPreview ? 'Change Photo' : 'Upload Photo'}
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full"
+                                    >
+                                        <Upload className="h-4 w-4 mr-2" />
+                                        {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                                    </Button>
+                                    {photoPreview && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => {
+                                                setPhotoPreview(null);
+                                                setPhotoFile(null);
+                                                setForm((prev) => ({ ...prev, photoUrl: undefined }));
+                                            }}
+                                            className="w-full"
+                                        >
+                                            Remove Photo
+                                        </Button>
+                                    )}
+                                </div>
                                 <p className="text-xs text-muted-foreground mt-1">
                                     JPG, PNG up to 5MB
                                 </p>

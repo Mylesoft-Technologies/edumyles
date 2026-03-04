@@ -91,6 +91,27 @@ export const getAssignments = query({
 });
 
 /**
+ * Get a specific assignment by ID.
+ */
+export const getAssignment = query({
+  args: {
+    assignmentId: v.id("assignments"),
+  },
+  handler: async (ctx, args) => {
+    const tenant = await requireTenantContext(ctx);
+    await requireModule(ctx, tenant.tenantId, "academics");
+
+    const assignment = await ctx.db.get(args.assignmentId);
+    
+    if (!assignment || assignment.tenantId !== tenant.tenantId) {
+      return null;
+    }
+
+    return assignment;
+  },
+});
+
+/**
  * Get all submissions for a specific assignment.
  */
 export const getSubmissions = query({
