@@ -195,7 +195,7 @@ export const createOrderFromCart = mutation({
                 )
                 .first();
             if (wallet && wallet.balanceCents >= totalCents) {
-                await ctx.db.insert("walletTransactions", {
+                const walletTransactionId = await ctx.db.insert("walletTransactions", {
                     tenantId: tenant.tenantId,
                     walletId: wallet._id,
                     type: "spend",
@@ -210,7 +210,7 @@ export const createOrderFromCart = mutation({
                 await ctx.db.patch(orderId, {
                     status: "paid",
                     paymentMethod: "ewallet",
-                    walletTransactionId: wallet._id,
+                    walletTransactionId,
                     updatedAt: now,
                 });
             }
