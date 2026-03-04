@@ -53,12 +53,12 @@ export const getSponsoredStudents = query({
     const studentIds = [...new Set(sponsorships.map((s: any) => s.studentId))];
     if (studentIds.length === 0) return [];
 
-    const students = await ctx.db
-      .query("students")
-      .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
-      .collect();
+    const sponsored = (
+      await Promise.all(
+        studentIds.map((id) => ctx.db.get(id as Id<"students">))
+      )
+    ).filter((s): s is NonNullable<typeof s> => s != null && s.tenantId === tenant.tenantId);
 
-    const sponsored = students.filter((s: any) => studentIds.includes(s._id.toString()));
     return sponsored.map((s: any) => {
       const sponsorship = sponsorships.find((sp: any) => sp.studentId === s._id.toString());
       return {
@@ -102,50 +102,48 @@ export const getSponsorshipReport = query({
       return { students: [], totalInvestedCents, summary: {} };
     }
 
-    const grades = await ctx.db
-      .query("grades")
-      .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
-      .collect();
+    const sponsoredStudents = (
+      await Promise.all(
+        studentIds.map((id) => ctx.db.get(id as Id<"students">))
+      )
+    ).filter((s): s is NonNullable<typeof s> => s != null && s.tenantId === tenant.tenantId);
 
-    const attendance = await ctx.db
-      .query("attendance")
-      .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
-      .collect();
+    const studentsWithReport = await Promise.all(
+      sponsoredStudents.map(async (s: any) => {
+        const sid = s._id.toString();
+        const gradesForStudent = await ctx.db
+          .query("grades")
+          .withIndex("by_student", (q: any) => q.eq("studentId", sid))
+          .filter((q: any) => q.eq(q.field("tenantId"), tenant.tenantId))
+          .collect();
+        const termGrades = gradesForStudent.filter(
+          (g: any) => (!args.term || g.term === args.term) && (!args.academicYear || g.academicYear === args.academicYear)
+        );
+        const attendanceForStudent = await ctx.db
+          .query("attendance")
+          .withIndex("by_student_date", (q: any) => q.eq("studentId", sid))
+          .filter((q: any) => q.eq(q.field("tenantId"), tenant.tenantId))
+          .collect();
+        const presentCount = attendanceForStudent.filter((a: any) => a.status === "present").length;
+        const totalSessions = attendanceForStudent.length;
+        const attendanceRate = totalSessions ? (presentCount / totalSessions) * 100 : null;
+        const avgScore = termGrades.length
+          ? termGrades.reduce((a: number, g: any) => a + g.score, 0) / termGrades.length
+          : null;
 
-    const students = await ctx.db
-      .query("students")
-      .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
-      .collect();
-
-    const sponsoredStudents = students.filter((s: any) => studentIds.includes(s._id.toString()));
-
-    const studentsWithReport = sponsoredStudents.map((s: any) => {
-      const sid = s._id.toString();
-      const termGrades = grades.filter(
-        (g: any) => g.studentId === sid && (!args.term || g.term === args.term) && (!args.academicYear || g.academicYear === args.academicYear)
-      );
-      const avgScore = termGrades.length
-        ? termGrades.reduce((a: number, g: any) => a + g.score, 0) / termGrades.length
-        : null;
-      const termAttendance = attendance.filter(
-        (a: any) => a.studentId === sid
-      );
-      const presentCount = termAttendance.filter((a: any) => a.status === "present").length;
-      const totalSessions = termAttendance.length;
-      const attendanceRate = totalSessions ? (presentCount / totalSessions) * 100 : null;
-
-      return {
-        studentId: sid,
-        firstName: s.firstName,
-        lastName: s.lastName,
-        admissionNumber: s.admissionNumber,
-        classId: s.classId,
-        status: s.status,
-        averageScore: avgScore,
-        attendanceRate,
-        gradesCount: termGrades.length,
-      };
-    });
+        return {
+          studentId: sid,
+          firstName: s.firstName,
+          lastName: s.lastName,
+          admissionNumber: s.admissionNumber,
+          classId: s.classId,
+          status: s.status,
+          averageScore: avgScore,
+          attendanceRate,
+          gradesCount: termGrades.length,
+        };
+      })
+    );
 
     const summary = {
       totalStudents: studentsWithReport.length,
@@ -212,7 +210,7 @@ export const getPartnerPayments = query({
 });
 
 /**
- * Relevant school updates / announcements for partners (notifications).
+ * Relevant school updates / announcements for partners (notifications addressed to this partner).
  */
 export const getPartnerAnnouncements = query({
   args: {},
@@ -222,7 +220,8 @@ export const getPartnerAnnouncements = query({
 
     return await ctx.db
       .query("notifications")
-      .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
+      .withIndex("by_user", (q: any) => q.eq("userId", tenant.userId))
+      .filter((q: any) => q.eq(q.field("tenantId"), tenant.tenantId))
       .order("desc")
       .take(50);
   },
