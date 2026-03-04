@@ -35,7 +35,7 @@ export default function TeacherDashboardPage() {
         description="Here's what's happening in your classes today."
       />
 
-      <div className="grid gap-4理论 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
