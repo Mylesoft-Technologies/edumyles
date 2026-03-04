@@ -200,7 +200,7 @@ function LandingPageContent() {
                 Go to Dashboard
               </a>
             ) : (
-              <a className="btn btn-primary" href="/user-panels">
+              <a className="btn btn-primary" href="/auth/login">
                 Get Started
               </a>
             )}
@@ -316,7 +316,7 @@ function LandingPageContent() {
           <div className="module-tab-text">
             <h3>{activeCategory.label}</h3>
             <p>{activeCategory.description}</p>
-            <a className="btn btn-primary" href="/user-panels">
+            <a className="btn btn-primary" href="/auth/login">
               {user ? "Explore in Dashboard" : "Try It Free"}
             </a>
           </div>
@@ -505,7 +505,7 @@ function LandingPageContent() {
                   <li key={i}>{feature}</li>
                 ))}
               </ul>
-              <a className="btn btn-primary" href="/user-panels">
+              <a className="btn btn-primary" href="/auth/login">
                 Get Started
               </a>
             </div>
@@ -528,7 +528,7 @@ function LandingPageContent() {
             Join 50+ schools across East Africa already running smarter with
             one unified platform.
           </p>
-          <a className="btn btn-primary" href="/user-panels">
+          <a className="btn btn-primary" href="/auth/login">
             {user ? "Go to Dashboard" : "Activate Free Trial"}
           </a>
         </div>
