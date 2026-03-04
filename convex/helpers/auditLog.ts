@@ -14,6 +14,7 @@ export type AuditAction =
   | "admission.submitted" | "admission.status_updated" | "admission.enrolled"
   | "staff.created" | "staff.updated" | "staff.role_assigned"
   | "class.created" | "class.updated"
+  | "assignment.submitted" | "assignment.graded"
   | "alumni.profile_updated" | "alumni.transcript_requested" | "alumni.event_rsvp";
 
 export async function logAction(
