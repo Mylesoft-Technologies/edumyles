@@ -1,87 +1,85 @@
 import { v } from "convex/values";
 import { query } from "../../_generated/server";
 import { requireTenantContext } from "../../helpers/tenantGuard";
-import { requirePermission } from "../../helpers/authorize";
 import { requireModule } from "../../helpers/moduleGuard";
 
-export const getWallet = query({
-    args: { ownerId: v.string(), ownerType: v.optional(v.string()) },
-    handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "ewallet");
-        requirePermission(tenant, "ewallet:read");
+export const getMyWalletBalance = query({
+  args: {},
+  handler: async (ctx) => {
+    const tenant = await requireTenantContext(ctx);
+    await requireModule(ctx, tenant.tenantId, "ewallet");
 
-        const wallet = await ctx.db
-            .query("wallets")
-            .withIndex("by_owner", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("ownerId", args.ownerId)
-            )
-            .first();
+    const balance = await ctx.db
+      .query("ewalletBalances")
+      .withIndex("by_user", (q) => q.eq("userId", tenant.userId))
+      .first();
 
-        if (!wallet || wallet.tenantId !== tenant.tenantId) return null;
-        return wallet;
-    },
+    if (!balance || balance.tenantId !== tenant.tenantId) {
+      // Create initial balance if none exists
+      const newBalance = await ctx.db.insert("ewalletBalances", {
+        tenantId: tenant.tenantId,
+        userId: tenant.userId,
+        balanceCents: 0,
+        lastUpdated: Date.now(),
+        currency: "KES",
+      });
+      
+      return {
+        balanceCents: 0,
+        currency: "KES",
+      };
+    }
+
+    return {
+      balanceCents: balance.balanceCents,
+      currency: balance.currency,
+    };
+  },
 });
 
-export const getWalletBalance = query({
-    args: { ownerId: v.string() },
-    handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "ewallet");
-        requirePermission(tenant, "ewallet:read");
+export const getMyTransactionHistory = query({
+  args: {
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+    type: v.optional(v.union(v.literal("credit"), v.literal("debit"), v.literal("refund"))),
+  },
+  handler: async (ctx, args) => {
+    const tenant = await requireTenantContext(ctx);
+    await requireModule(ctx, tenant.tenantId, "ewallet");
 
-        const wallet = await ctx.db
-            .query("wallets")
-            .withIndex("by_owner", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("ownerId", args.ownerId)
-            )
-            .first();
+    let transactionsQuery = ctx.db
+      .query("ewalletTransactions")
+      .withIndex("by_user", (q) => q.eq("userId", tenant.userId))
+      .filter((q) => q.eq(q.field("tenantId"), tenant.tenantId));
 
-        if (!wallet) return { balanceCents: 0, currency: "KES" };
-        return { balanceCents: wallet.balanceCents, currency: wallet.currency };
-    },
+    if (args.type) {
+      transactionsQuery = transactionsQuery.filter((q) => q.eq(q.field("type"), args.type));
+    }
+
+    const transactions = await transactionsQuery
+      .order("desc")
+      .take(args.limit || 50)
+      .skip(args.offset || 0)
+      .collect();
+
+    return transactions;
+  },
 });
 
-export const listWalletTransactions = query({
-    args: {
-        walletId: v.optional(v.string()),
-        ownerId: v.optional(v.string()),
-        limit: v.optional(v.number()),
-    },
-    handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "ewallet");
-        requirePermission(tenant, "ewallet:read");
+export const getTransactionById = query({
+  args: {
+    transactionId: v.id("ewalletTransactions"),
+  },
+  handler: async (ctx, args) => {
+    const tenant = await requireTenantContext(ctx);
+    await requireModule(ctx, tenant.tenantId, "ewallet");
 
-        if (args.walletId) {
-            const list = await ctx.db
-                .query("walletTransactions")
-                .withIndex("by_wallet", (q) => q.eq("walletId", args.walletId!))
-                .order("desc")
-                .take(args.limit ?? 50);
-            return list.filter((t) => t.tenantId === tenant.tenantId);
-        }
+    const transaction = await ctx.db.get(args.transactionId);
+    
+    if (!transaction || transaction.tenantId !== tenant.tenantId) {
+      return null;
+    }
 
-        if (args.ownerId) {
-            const wallet = await ctx.db
-                .query("wallets")
-                .withIndex("by_owner", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("ownerId", args.ownerId!)
-                )
-                .first();
-            if (!wallet) return [];
-            const list = await ctx.db
-                .query("walletTransactions")
-                .withIndex("by_wallet", (q) => q.eq("walletId", wallet._id))
-                .order("desc")
-                .take(args.limit ?? 50);
-            return list;
-        }
-
-        return await ctx.db
-            .query("walletTransactions")
-            .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId))
-            .order("desc")
-            .take(args.limit ?? 50);
-    },
+    return transaction;
+  },
 });

@@ -150,6 +150,123 @@ export const recordPayment = mutation({
     },
 });
 
+export const generateReceipt = mutation({
+  args: {
+    paymentId: v.id("payments"),
+    format: v.union(v.literal("pdf"), v.literal("html")),
+  },
+  handler: async (ctx, args) => {
+    const tenant = await requireTenantContext(ctx);
+    await requireModule(ctx, tenant.tenantId, "finance");
+    requirePermission(tenant, "finance:read");
+
+    // Get payment with related invoice and student data
+    const payment = await ctx.db.get(args.paymentId);
+    if (!payment || payment.tenantId !== tenant.tenantId) {
+      throw new Error("Payment not found");
+    }
+
+    const invoice = await ctx.db.get(payment.invoiceId as any);
+    if (!invoice || invoice.tenantId !== tenant.tenantId) {
+      throw new Error("Invoice not found");
+    }
+
+    const student = await ctx.db.get(invoice.studentId as any);
+    if (!student || student.tenantId !== tenant.tenantId) {
+      throw new Error("Student not found");
+    }
+
+    // Generate receipt data
+    const receiptData = {
+      receiptNumber: `RCP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      paymentId: payment._id,
+      invoiceNumber: invoice.invoiceNumber,
+      issueDate: new Date().toISOString(),
+      studentName: `${student.firstName} ${student.lastName}`,
+      admissionNumber: student.admissionNumber,
+      class: student.classId,
+      amount: payment.amount,
+      method: payment.method,
+      reference: payment.reference,
+      processedAt: payment.processedAt,
+      tenantInfo: {
+        name: tenant.organizationName || "School Name",
+        address: tenant.address || "School Address",
+        phone: tenant.phone || "School Phone",
+        email: tenant.email || "School Email",
+      },
+      items: [
+        {
+          description: `School Fees - ${invoice.academicYear}`,
+          amount: invoice.amount,
+        }
+      ],
+      subtotal: invoice.amount,
+      tax: 0, // Can be calculated based on tax rules
+      total: invoice.amount,
+      status: "PAID",
+    };
+
+    return receiptData;
+  },
+});
+
+export const updatePaymentStatus = mutation({
+  args: {
+    paymentId: v.id("payments"),
+    status: v.union(v.literal("pending"), v.literal("processing"), v.literal("completed"), v.literal("failed"), v.literal("refunded")),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const tenant = await requireTenantContext(ctx);
+    await requireModule(ctx, tenant.tenantId, "finance");
+    requirePermission(tenant, "finance:write");
+
+    const payment = await ctx.db.get(args.paymentId);
+    if (!payment || payment.tenantId !== tenant.tenantId) {
+      throw new Error("Payment not found");
+    }
+
+    const updateData: any = {
+      status: args.status,
+      updatedAt: Date.now(),
+    };
+
+    if (args.status === "completed") {
+      updateData.processedAt = Date.now();
+    }
+
+    if (args.notes) {
+      updateData.notes = args.notes;
+    }
+
+    await ctx.db.patch(args.paymentId, updateData);
+
+    // Update invoice status if payment is completed
+    if (args.status === "completed") {
+      const invoice = await ctx.db.get(payment.invoiceId as any);
+      if (invoice && invoice.tenantId === tenant.tenantId) {
+        await ctx.db.patch(payment.invoiceId as any, {
+          status: "paid",
+          updatedAt: Date.now(),
+        });
+      }
+    }
+
+    await logAction(ctx, {
+      tenantId: tenant.tenantId,
+      actorId: tenant.userId,
+      actorEmail: tenant.email,
+      action: "payment.status_updated",
+      entityType: "payment",
+      entityId: args.paymentId,
+      after: { status: args.status, notes: args.notes },
+    });
+
+    return payment._id;
+  },
+});
+
 // Used by payment actions to store pending callback (e.g. M-Pesa CheckoutRequestID)
 export const savePaymentCallback = internalMutation({
     args: {

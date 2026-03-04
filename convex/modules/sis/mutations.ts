@@ -7,7 +7,7 @@ import { logAction } from "../../helpers/auditLog";
 
 export const createStudent = mutation({
     args: {
-        admissionNo: v.optional(v.string()),
+        admissionNumber: v.optional(v.string()),
         firstName: v.string(),
         lastName: v.string(),
         dateOfBirth: v.string(),
@@ -18,17 +18,18 @@ export const createStudent = mutation({
         guardianEmail: v.optional(v.string()),
         guardianPhone: v.optional(v.string()),
         guardianRelationship: v.optional(v.string()),
+        photoUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const tenant = await requireTenantContext(ctx);
         await requireModule(ctx, tenant.tenantId, "sis");
         requirePermission(tenant, "students:write");
 
-        const admNo = args.admissionNo || `ADM-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+        const admNo = args.admissionNumber || `ADM-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
         const studentId = await ctx.db.insert("students", {
             tenantId: tenant.tenantId,
-            admissionNo: admNo,
+            admissionNumber: admNo,
             firstName: args.firstName,
             lastName: args.lastName,
             dateOfBirth: args.dateOfBirth,
@@ -36,6 +37,7 @@ export const createStudent = mutation({
             classId: args.classId,
             status: args.status || "active",
             guardianUserId: undefined,
+            photoUrl: args.photoUrl,
             enrolledAt: Date.now(),
             createdAt: Date.now(),
             updatedAt: Date.now(),

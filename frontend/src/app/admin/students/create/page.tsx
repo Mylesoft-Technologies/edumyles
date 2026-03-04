@@ -26,7 +26,14 @@ const validateStudentForm = (form: any) => {
   else {
     const dob = new Date(form.dateOfBirth);
     const today = new Date();
-    const age = today.getFullYear() - dob.getFullYear();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    
+    // Adjust age if birthday hasn't occurred yet this year
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
     if (age < 4 || age > 25) errors.push("Student age should be between 4 and 25 years");
   }
   
@@ -34,9 +41,9 @@ const validateStudentForm = (form: any) => {
     errors.push("Invalid guardian email format");
   }
   
-  if (form.guardianPhone && !/^\+?[1-9]\d{1,14}$/.test(form.guardianPhone.replace(/\s/g, ""))) {
-    errors.push("Invalid phone number format");
-  }
+  if (form.guardianPhone && !/^(\+?254|0)[17]\d{8}$/.test(form.guardianPhone.replace(/\s/g, ""))) {
+      errors.push("Invalid phone number format. Use +254XXXXXXXX or 07XXXXXXXX");
+    }
   
   return errors;
 };
@@ -94,6 +101,7 @@ export default function CreateStudentPage() {
     const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            // Validate file size (5MB limit)
             if (file.size > 5 * 1024 * 1024) {
                 toast({
                     title: "Error",
@@ -102,20 +110,27 @@ export default function CreateStudentPage() {
                 });
                 return;
             }
-            
+
+            // Validate file type
             if (!file.type.startsWith('image/')) {
                 toast({
-                    title: "Error", 
-                    description: "Please upload an image file",
+                    title: "Error",
+                    description: "Please upload an image file (JPG, PNG, or WebP)",
                     variant: "destructive"
                 });
                 return;
             }
-            
-            setPhotoFile(file);
+
+            // Create preview
             const reader = new FileReader();
-            reader.onload = (e) => setPhotoPreview(e.target?.result as string);
+            reader.onload = (e) => {
+                const result = e.target?.result;
+                if (typeof result === 'string') {
+                    setPhotoPreview(result);
+                }
+            };
             reader.readAsDataURL(file);
+            setPhotoFile(file);
         }
     };
 
@@ -221,15 +236,31 @@ export default function CreateStudentPage() {
                                     onChange={handlePhotoUpload}
                                     className="hidden"
                                 />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="w-full"
-                                >
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    {photoPreview ? 'Change Photo' : 'Upload Photo'}
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full"
+                                    >
+                                        <Upload className="h-4 w-4 mr-2" />
+                                        {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                                    </Button>
+                                    {photoPreview && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => {
+                                                setPhotoPreview(null);
+                                                setPhotoFile(null);
+                                                setForm((prev) => ({ ...prev, photoUrl: undefined }));
+                                            }}
+                                            className="w-full"
+                                        >
+                                            Remove Photo
+                                        </Button>
+                                    )}
+                                </div>
                                 <p className="text-xs text-muted-foreground mt-1">
                                     JPG, PNG up to 5MB
                                 </p>
