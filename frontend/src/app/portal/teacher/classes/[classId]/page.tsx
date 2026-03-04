@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Calendar, Users, ClipboardList, BookOpen, FileText, Plus } from "lucide-react";
+import { Calendar, Users, ClipboardList, BookOpen } from "lucide-react";
 
 export default function ClassDetailsPage({ params }: { params: Promise<{ classId: string }> }) {
     const { classId } = use(params);
@@ -142,4 +142,5 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     );
 }
 
-
+// Helper icons
+import { FileText, Plus } from "lucide-react";

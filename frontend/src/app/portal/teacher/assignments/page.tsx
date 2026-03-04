@@ -24,7 +24,7 @@ export default function AssignmentsPage() {
     // For now, we'll suggest selecting a class or show a list from a new teacher assignments query if it existed.
     // Let's assume we implement a simple list for the first class for now or show an empty state.
 
-    const assignments = useQuery(api.modules.academics.queries.getAssignments,
+    const assignments = useQuery(api.modules.academics.getAssignments,
         classes?.[0]?._id ? { tenantId: user?.tenantId || "", classId: classes[0]._id } : "skip"
     );
 
