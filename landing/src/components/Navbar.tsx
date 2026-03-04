@@ -111,18 +111,13 @@ export default function Navbar() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
   const handleLogout = () => {
-    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    setUser(null);
-    window.location.href = "/";
+    // Use server-side logout to properly clear httpOnly cookies
+    window.location.href = "/auth/logout";
   };
 
   const handleMobileLogout = () => {
-    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    setUser(null);
     setMobileMenuOpen(false);
-    window.location.href = "/";
+    window.location.href = "/auth/logout";
   };
 
   return (

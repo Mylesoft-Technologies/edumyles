@@ -128,9 +128,8 @@ function LandingPageContent() {
   }, []);
 
   const handleLogout = () => {
-    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    setUser(null);
+    // Use server-side logout to properly clear httpOnly cookies
+    window.location.href = "/auth/logout";
   };
 
   return (
@@ -195,15 +194,9 @@ function LandingPageContent() {
           </p>
           {/* Deployment trigger: 2026-03-04-12:02 */}
           <div className="actions">
-            {user ? (
-              <a className="btn btn-primary" href="/user-panels">
-                Go to Dashboard
-              </a>
-            ) : (
-              <a className="btn btn-primary" href="/auth/login">
-                Get Started
-              </a>
-            )}
+            <a className="btn btn-primary" href="/auth/login">
+              Get Started
+            </a>
             <a className="btn btn-secondary" href="/concierge">
               Contact Sales
             </a>
