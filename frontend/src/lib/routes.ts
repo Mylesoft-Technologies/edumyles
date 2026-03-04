@@ -51,6 +51,8 @@ export const adminNavItems: NavItem[] = [
   { label: "Library", href: "/admin/library", icon: Library, module: "library" },
   { label: "Transport", href: "/admin/transport", icon: Bus, module: "transport" },
   { label: "Communications", href: "/admin/communications", icon: MessageSquare, module: "communications" },
+  { label: "eWallet", href: "/admin/ewallet", icon: Wallet, module: "ewallet" },
+  { label: "eCommerce", href: "/admin/ecommerce", icon: ShoppingCart, module: "ecommerce" },
   { label: "Marketplace", href: "/admin/marketplace", icon: ShoppingCart },
   { label: "Settings", href: "/admin/settings", icon: Settings },
   { label: "Audit Log", href: "/admin/audit", icon: FileText },
@@ -96,6 +98,7 @@ export const partnerNavItems: NavItem[] = [
   { label: "Reports", href: "/portal/partner/reports", icon: FileText },
   { label: "Payments", href: "/portal/partner/payments", icon: DollarSign },
   { label: "Messages", href: "/portal/partner/messages", icon: MessageSquare },
+  { label: "Profile", href: "/portal/partner/profile", icon: Building2 },
 ];
 
 export function getNavItemsForRole(role: string): NavItem[] {

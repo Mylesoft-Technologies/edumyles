@@ -86,6 +86,7 @@ export default function Navbar() {
   const [user, setUser] = useState<UserInfo | null>(null);
 
   const pathname = usePathname();
+  const isUserPanelsPage = pathname === "/user-panels";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -109,10 +110,22 @@ export default function Navbar() {
     ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || (user.email?.[0] ?? "").toUpperCase())
     : "";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const directMasterAdminUrl = appUrl
-    ? `${appUrl.replace(/\/$/, "")}/auth/direct-master-admin`
-    : "/auth/signup";
+  const directMasterAdminUrl = "/user-panels";
 
+  const handleLogout = () => {
+    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    setUser(null);
+    window.location.href = "/";
+  };
+
+  const handleMobileLogout = () => {
+    document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    setUser(null);
+    setMobileMenuOpen(false);
+    window.location.href = "/";
+  };
 
   return (
     <>
@@ -158,21 +171,29 @@ export default function Navbar() {
                 <div className="navbar-avatar">{initials}</div>
                 <span className="navbar-username">{user.firstName || user.email.split("@")[0]}</span>
               </div>
-              <a className="navbar-login" href="http://localhost:3000/dashboard">
+              <button
+                type="button"
+                className="navbar-login"
+                onClick={handleLogout}
+              >
                 Log Out
-              </a>
+              </button>
             </>
           ) : (
             <>
-              <a className="navbar-login" href="http://localhost:3000/dashboard">
-                Log In
-              </a>
-              <a className="navbar-get-started" href={directMasterAdminUrl}>
-                Get Started
-              </a>
-              <a className="navbar-signup" href="http://localhost:3000/dashboard">
-                Sign Up Free
-              </a>
+              {!isUserPanelsPage && (
+                <>
+                  <a className="navbar-login" href={`${appUrl || 'http://localhost:3000'}/dashboard`}>
+                    Log In
+                  </a>
+                  <a className="navbar-get-started" href={directMasterAdminUrl}>
+                    Get Started
+                  </a>
+                  <a className="navbar-signup" href={`${appUrl || 'http://localhost:3000'}/dashboard`}>
+                    Sign Up Free
+                  </a>
+                </>
+              )}
             </>
           )}
 
@@ -212,21 +233,29 @@ export default function Navbar() {
                   <div className="navbar-avatar">{initials}</div>
                   <span>{user.firstName || user.email.split("@")[0]}</span>
                 </div>
-                <a href="http://localhost:3000/dashboard" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleMobileLogout}
+                >
                   Log Out
-                </a>
+                </button>
               </>
             ) : (
               <>
-                <a href="http://localhost:3000/dashboard" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
-                  Log In
-                </a>
-                <a href={directMasterAdminUrl} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
-                  Get Started
-                </a>
-                <a href="http://localhost:3000/dashboard" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
-                  Sign Up Free
-                </a>
+                {!isUserPanelsPage && (
+                  <>
+                    <a href={`${appUrl || 'http://localhost:3000'}/dashboard`} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                      Log In
+                    </a>
+                    <a href={directMasterAdminUrl} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                      Get Started
+                    </a>
+                    <a href={`${appUrl || 'http://localhost:3000'}/dashboard`} className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
+                      Sign Up Free
+                    </a>
+                  </>
+                )}
               </>
             )}
 
