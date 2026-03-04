@@ -96,6 +96,7 @@ export const partnerNavItems: NavItem[] = [
   { label: "Reports", href: "/portal/partner/reports", icon: FileText },
   { label: "Payments", href: "/portal/partner/payments", icon: DollarSign },
   { label: "Messages", href: "/portal/partner/messages", icon: MessageSquare },
+  { label: "Profile", href: "/portal/partner/profile", icon: Building2 },
 ];
 
 export function getNavItemsForRole(role: string): NavItem[] {
