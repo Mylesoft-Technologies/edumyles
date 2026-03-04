@@ -39,23 +39,22 @@ export async function GET(req: NextRequest) {
     }
 
     // Exchange code for user profile via WorkOS User Management API
-    const tokenRes = await fetch(
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          client_secret: apiKey,
-          grant_type: "authorization_code",
-          code,
-        }),
-      }
-    );
+    const tokenRes = await fetch("https://api.workos.com/user_management/authenticate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        client_id: clientId,
+        client_secret: apiKey,
+        grant_type: "authorization_code",
+        code,
+      }),
+    });
 
     if (!tokenRes.ok) {
       // Fallback to SSO token endpoint for backward compatibility
+      const ssoTokenRes = await fetch("https://api.workos.com/sso/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,7 +130,7 @@ async function handleAuthResult(
   // Fallback: derive tenant from email domain
   if (!tenantId) {
     const domain = email.split("@")[1] ?? "";
-    const slug = domain.split(".")[0];
+    const slug = domain.split(".")[0] || "default";
     const org = await convex.query(api.organizations.getOrgBySubdomain, {
       subdomain: slug,
     });
@@ -146,6 +145,7 @@ async function handleAuthResult(
   // Look up user to get their actual role
   const existingUser = await convex.query(api.users.getUserByWorkosId, {
     tenantId,
+    workosUserId: profile.id,
   });
 
   if (existingUser) {

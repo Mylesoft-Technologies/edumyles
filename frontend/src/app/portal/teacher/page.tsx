@@ -6,27 +6,42 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ClipboardList, Calendar, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "convex/react";
+import { api } from "../../../../../convex/_generated/api";
 
 export default function TeacherDashboardPage() {
-  const { isLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
-  if (isLoading) return <LoadingSkeleton variant="page" />;
+  const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
+    user?.tenantId && user?.eduMylesUserId ? {
+      tenantId: user.tenantId,
+      teacherId: user.eduMylesUserId
+    } : "skip"
+  );
+
+  if (authLoading || classes === undefined) return <LoadingSkeleton variant="page" />;
+
+  const stats = [
+    { label: "My Classes", value: classes?.length.toString() || "0", icon: BookOpen },
+    { label: "Pending Grades", value: "0", icon: ClipboardList },
+    { label: "Today's Classes", value: "0", icon: Calendar },
+    { label: "Assignments Due", value: "0", icon: FileText },
+  ];
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Teacher Dashboard"
-        description="Your classes, grades, and schedule overview"
+        title={`Welcome back, ${user?.firstName || "Teacher"}`}
+        description="Here's what's happening in your classes today."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="My Classes" value="--" icon={BookOpen} />
-        <StatCard label="Pending Grades" value="--" icon={ClipboardList} />
-        <StatCard label="Today's Classes" value="--" icon={Calendar} />
-        <StatCard label="Assignments Due" value="--" icon={FileText} />
+      <div className="grid gap-4理论 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Today&apos;s Schedule</CardTitle>
