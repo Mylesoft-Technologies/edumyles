@@ -71,9 +71,9 @@ const validateCSVData = (data: any[]) => {
         
         // Validate phone format
         if (row["Guardian Phone"] && row["Guardian Phone"].trim()) {
-            const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+            const phoneRegex = /^(\+?254|0)[17]\d{8}$/;
             if (!phoneRegex.test(row["Guardian Phone"].replace(/\s/g, ""))) {
-                errors.push(`Row ${rowNumber}: Invalid phone number format`);
+                errors.push(`Row ${rowNumber}: Invalid phone number format. Use +254XXXXXXXX or 07XXXXXXXX`);
             }
         }
     });
@@ -81,18 +81,18 @@ const validateCSVData = (data: any[]) => {
     return errors;
 };
 
-// Parse CSV data
+// Parse CSV data with proper RFC 4180 compliance
 const parseCSV = (text: string): any[] => {
     const lines = text.split("\n").filter(line => line.trim());
     if (lines.length < 2) {
         throw new Error("CSV file must contain at least a header row and one data row");
     }
     
-    const headers = lines[0].split(",").map(h => h.trim());
+    const headers = parseCSVLine(lines[0]);
     const data = [];
     
     for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(",").map(v => v.trim());
+        const values = parseCSVLine(lines[i]);
         const row: any = {};
         
         headers.forEach((header, index) => {
@@ -103,6 +103,40 @@ const parseCSV = (text: string): any[] => {
     }
     
     return data;
+};
+
+// Parse a single CSV line handling quoted fields and commas within quotes
+const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                // Escaped quote within quoted field
+                current += '"';
+                i++; // Skip the escaped quote
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            // Field separator
+            result.push(current.trim());
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+    
+    // Add the last field
+    result.push(current.trim());
+    
+    return result;
 };
 
 export default function BulkImportPage() {

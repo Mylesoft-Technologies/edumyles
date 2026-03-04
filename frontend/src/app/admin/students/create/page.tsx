@@ -26,7 +26,14 @@ const validateStudentForm = (form: any) => {
   else {
     const dob = new Date(form.dateOfBirth);
     const today = new Date();
-    const age = today.getFullYear() - dob.getFullYear();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    
+    // Adjust age if birthday hasn't occurred yet this year
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
     if (age < 4 || age > 25) errors.push("Student age should be between 4 and 25 years");
   }
   
@@ -34,9 +41,9 @@ const validateStudentForm = (form: any) => {
     errors.push("Invalid guardian email format");
   }
   
-  if (form.guardianPhone && !/^\+?[1-9]\d{1,14}$/.test(form.guardianPhone.replace(/\s/g, ""))) {
-    errors.push("Invalid phone number format");
-  }
+  if (form.guardianPhone && !/^(\+?254|0)[17]\d{8}$/.test(form.guardianPhone.replace(/\s/g, ""))) {
+      errors.push("Invalid phone number format. Use +254XXXXXXXX or 07XXXXXXXX");
+    }
   
   return errors;
 };

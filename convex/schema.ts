@@ -235,7 +235,7 @@ export default defineSchema({
     status: v.string(),
     userId: v.optional(v.string()),
     guardianUserId: v.optional(v.string()),
-    userId: v.optional(v.string()),
+    photoUrl: v.optional(v.string()),
     enrolledAt: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
