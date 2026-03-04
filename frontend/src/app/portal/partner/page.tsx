@@ -4,37 +4,96 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { StatCard } from "@/components/shared/StatCard";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { GraduationCap, DollarSign, FileText, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+function formatCurrency(cents: number, currency: string) {
+  return `${currency} ${(cents / 100).toLocaleString()}`;
+}
 
 export default function PartnerDashboardPage() {
   const { isLoading } = useAuth();
+  const profile = useQuery(api.modules.portal.partner.queries.getPartnerProfile, {});
+  const sponsored = useQuery(api.modules.portal.partner.queries.getSponsoredStudents, {});
+  const report = useQuery(api.modules.portal.partner.queries.getSponsorshipReport, {});
+  const paymentsData = useQuery(api.modules.portal.partner.queries.getPartnerPayments, {});
 
-  if (isLoading) return <LoadingSkeleton variant="page" />;
+  if (isLoading || profile === undefined || sponsored === undefined) {
+    return <LoadingSkeleton variant="page" />;
+  }
+
+  if (!profile) {
+    return (
+      <div>
+        <PageHeader title="Partner Dashboard" description="Partner access" />
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-muted-foreground">
+              No active partner profile is linked to your account. Please contact your school to set up sponsorship access.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const totalInvestedCents = report?.totalInvestedCents ?? 0;
+  const totalInvestedCurrency = sponsored?.[0]?.sponsorshipCurrency ?? "KES";
+  const reportsCount = report?.students?.length ?? 0;
+  const paymentRecordsCount = paymentsData?.payments?.length ?? 0;
 
   return (
     <div>
       <PageHeader
         title="Partner Dashboard"
-        description="Monitor your sponsored students and track reports"
+        description={`${profile.organizationName} — monitor sponsored students and reports`}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Sponsored Students" value="--" icon={GraduationCap} />
-        <StatCard label="Total Invested" value="--" icon={DollarSign} />
-        <StatCard label="Reports Available" value="--" icon={FileText} />
-        <StatCard label="Messages" value="--" icon={MessageSquare} />
+        <StatCard
+          label="Sponsored Students"
+          value={sponsored?.length?.toString() ?? "0"}
+          icon={GraduationCap}
+        />
+        <StatCard
+          label="Total Invested"
+          value={formatCurrency(totalInvestedCents, totalInvestedCurrency)}
+          icon={DollarSign}
+        />
+        <StatCard
+          label="Students in Report"
+          value={reportsCount.toString()}
+          icon={FileText}
+        />
+        <StatCard
+          label="Payment Records"
+          value={paymentRecordsCount.toString()}
+          icon={MessageSquare}
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Student Performance</CardTitle>
+            <CardTitle>Performance Summary</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Aggregated performance data for your sponsored students will appear here.
-            </p>
+          <CardContent className="space-y-2">
+            {report?.summary?.averageScore != null ? (
+              <p className="text-sm text-muted-foreground">
+                Average score (reported students): {report.summary.averageScore.toFixed(1)}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Aggregate performance for your sponsored students appears in Reports.
+              </p>
+            )}
+            <Button asChild variant="outline" size="sm">
+              <Link href="/portal/partner/reports">View reports</Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -42,10 +101,13 @@ export default function PartnerDashboardPage() {
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Recent updates about your sponsored students will appear here.
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              You sponsor {sponsored?.length ?? 0} student(s). View their academic and attendance reports in Students, and payment history in Payments.
             </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/portal/partner/students">View students</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
