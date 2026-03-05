@@ -51,11 +51,12 @@ export const createTenant = mutation({
 
     await logAction(ctx, {
       tenantId: tenantCtx.tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "tenant.created",
-      targetId: tenantId,
-      targetType: "tenant",
-      details: { name: args.name, subdomain: args.subdomain, plan: args.plan },
+      entityType: "tenant",
+      entityId: tenantId,
+      after: { name: args.name, subdomain: args.subdomain, plan: args.plan },
     });
 
     return { id, tenantId };
@@ -87,11 +88,12 @@ export const suspendTenant = mutation({
 
     await logAction(ctx, {
       tenantId: tenantCtx.tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "tenant.suspended",
-      targetId: args.tenantId,
-      targetType: "tenant",
-      details: { reason: args.reason },
+      entityType: "tenant",
+      entityId: args.tenantId,
+      after: { reason: args.reason },
     });
   },
 });
@@ -116,11 +118,12 @@ export const activateTenant = mutation({
 
     await logAction(ctx, {
       tenantId: tenantCtx.tenantId,
-      userId: tenantCtx.userId,
+      actorId: tenantCtx.userId,
+      actorEmail: tenantCtx.email!,
       action: "tenant.created",
-      targetId: args.tenantId,
-      targetType: "tenant",
-      details: { action: "activated" },
+      entityType: "tenant",
+      entityId: args.tenantId,
+      after: { status: "active" },
     });
   },
 });

@@ -50,6 +50,7 @@ export default function ECommercePage() {
             key: "name",
             header: "Product Name",
             sortable: true,
+            cell: (row: Product) => row.name,
         },
         {
             key: "category",
@@ -91,6 +92,7 @@ export default function ECommercePage() {
             key: "orderNumber",
             header: "Order #",
             sortable: true,
+            cell: (row: Order) => row.orderNumber,
         },
         {
             key: "total",

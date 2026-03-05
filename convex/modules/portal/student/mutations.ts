@@ -40,7 +40,8 @@ export const submitAssignment = mutation({
 
         // Convert dueDate string (YYYY-MM-DD) to epoch for comparison if needed, 
         // but schema says dueDate is v.string(). If it's ISO, string comparison works.
-        const status = (assignment.dueDate < new Date().toISOString().split('T')[0]) ? "late" : "submitted";
+        const today = new Date().toISOString().split('T')[0]!;
+        const status = ((assignment as any).dueDate < today) ? "late" : "submitted";
 
         let submissionId;
         if (existingSubmission) {

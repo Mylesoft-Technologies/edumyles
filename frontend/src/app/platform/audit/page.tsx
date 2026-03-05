@@ -15,12 +15,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 type AuditLog = {
     _id: string;
     tenantId: string;
-    userId: string;
+    actorId: string;
     action: string;
-    targetId?: string;
-    targetType?: string;
-    details: any;
-    createdAt: number;
+    entityId: string;
+    entityType: string;
+    after?: any;
+    before?: any;
+    timestamp: number;
     tenantName: string;
     userName: string;
     userEmail: string;
@@ -66,7 +67,7 @@ export default function AuditLogPage() {
 
     const columns: Column<AuditLog>[] = [
         {
-            key: "createdAt",
+            key: "timestamp",
             header: "Time",
             sortable: true,
             cell: (row) => (
@@ -74,11 +75,11 @@ export default function AuditLogPage() {
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <span className="text-sm text-muted-foreground cursor-help">
-                                {formatRelativeTime(row.createdAt)}
+                                {formatRelativeTime(row.timestamp)}
                             </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>{formatDateTime(row.createdAt)}</p>
+                            <p>{formatDateTime(row.timestamp)}</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
@@ -110,12 +111,12 @@ export default function AuditLogPage() {
             cell: (row) => <span className="text-sm">{row.tenantName}</span>,
         },
         {
-            key: "target",
+            key: "entityType",
             header: "Target",
             cell: (row) => (
-                row.targetType ? (
+                row.entityType ? (
                     <span className="text-sm text-muted-foreground">
-                        {row.targetType}: {row.targetId ?? "—"}
+                        {row.entityType}: {row.entityId ?? "—"}
                     </span>
                 ) : (
                     <span className="text-sm text-muted-foreground">—</span>
@@ -123,10 +124,10 @@ export default function AuditLogPage() {
             ),
         },
         {
-            key: "details",
+            key: "after",
             header: "Details",
             cell: (row) => {
-                const details = row.details;
+                const details = row.after || row.before;
                 if (!details || Object.keys(details).length === 0) return <span className="text-sm text-muted-foreground">—</span>;
                 const summary = Object.entries(details)
                     .slice(0, 2)
@@ -172,7 +173,7 @@ export default function AuditLogPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All actions</SelectItem>
-                        {(actionTypes ?? []).map((action) => (
+                        {(actionTypes as any[]).map((action) => (
                             <SelectItem key={action} value={action}>
                                 {action}
                             </SelectItem>

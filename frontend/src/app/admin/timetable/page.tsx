@@ -88,7 +88,7 @@ export default function TimetablePage() {
                                 <SelectValue placeholder="Select a class" />
                             </SelectTrigger>
                             <SelectContent>
-                                {classes?.map((c) => (
+                                {(classes as any[])?.map((c) => (
                                     <SelectItem key={c._id} value={c._id}>
                                         {c.name}
                                     </SelectItem>
@@ -146,7 +146,7 @@ export default function TimetablePage() {
                                         No conflicts detected on {DAYS[checkConflictsDay - 1]}.
                                     </div>
                                 ) : (
-                                    conflicts.map((conflict, i) => (
+                                    (conflicts as any[]).map((conflict, i) => (
                                         <Alert variant="destructive" key={i}>
                                             <AlertCircle className="h-4 w-4" />
                                             <AlertTitle className="capitalize">

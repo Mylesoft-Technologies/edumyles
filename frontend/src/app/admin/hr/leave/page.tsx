@@ -41,13 +41,13 @@ export default function LeaveRequestsPage() {
 
     if (isLoading) return <LoadingSkeleton variant="page" />;
 
-    const staffMap = new Map(staff?.map((s) => [s._id, `${s.firstName} ${s.lastName}`]) ?? []);
+    const staffMap = new Map((staff as any[])?.map((s) => [s._id, `${s.firstName} ${s.lastName}`]) ?? []);
 
     const columns: Column<LeaveRequest>[] = [
         {
             key: "staffName",
             header: "Staff Member",
-            cell: (row: LeaveRequest) => staffMap.get(row.staffId) ?? "Loading...",
+            cell: (row: LeaveRequest) => staffMap.get(row.staffId as any) ?? "Loading...",
             sortable: true,
         },
         {

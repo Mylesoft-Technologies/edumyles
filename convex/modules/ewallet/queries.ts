@@ -74,3 +74,16 @@ export const getTransactionById = query({
     return transaction;
   },
 });
+export const listWalletTransactions = query({
+  args: {},
+  handler: async (ctx) => {
+    const tenant = await requireTenantContext(ctx);
+    await requireModule(ctx, tenant.tenantId, "ewallet");
+
+    return await ctx.db
+      .query("walletTransactions")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId))
+      .order("desc")
+      .collect();
+  },
+});

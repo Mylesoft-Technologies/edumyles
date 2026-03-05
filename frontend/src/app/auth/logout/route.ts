@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const response = NextResponse.redirect(new URL("/auth/login", req.url));
+  const response = NextResponse.redirect(new URL("/", req.url));
 
   response.cookies.set("edumyles_session", "", {
     httpOnly: true,

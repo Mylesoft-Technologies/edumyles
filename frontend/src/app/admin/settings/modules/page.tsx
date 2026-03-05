@@ -101,7 +101,7 @@ export default function ModuleSettingsPage() {
 
   const handleToggle = (moduleId: string, currentStatus: string) => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
-    const mod = installedModules.find((m) => m.moduleId === moduleId);
+    const mod = (installedModules as any[]).find((m) => m.moduleId === moduleId);
     setConfirmState({
       open: true,
       moduleId,
@@ -149,7 +149,7 @@ export default function ModuleSettingsPage() {
 
       <Card>
         <CardContent className="divide-y p-0">
-          {installedModules.map((mod) => {
+          {(installedModules as any[]).map((mod) => {
             const Icon = MODULE_ICONS[mod.moduleId] ?? Package;
             const isActive = mod.status === "active";
 

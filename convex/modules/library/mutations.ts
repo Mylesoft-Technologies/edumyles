@@ -132,7 +132,7 @@ export const returnBook = mutation({
         const book = await ctx.db.get(borrow.bookId as any);
         if (book) {
             await ctx.db.patch(borrow.bookId as any, {
-                availableQuantity: book.availableQuantity + 1,
+                availableQuantity: (book as any).availableQuantity + 1,
                 updatedAt: now,
             });
         }

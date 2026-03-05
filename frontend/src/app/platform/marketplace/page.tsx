@@ -125,7 +125,7 @@ export default function PlatformMarketplacePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {registry.map((mod) => (
+                {(registry as any[]).map((mod) => (
                   <TableRow key={mod.moduleId}>
                     <TableCell>
                       <Link

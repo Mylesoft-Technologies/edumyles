@@ -33,7 +33,7 @@ export default function PlatformModuleEditPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editVersion, setEditVersion] = useState("");
 
-  const mod = registry?.find((m) => m.moduleId === moduleId);
+  const mod = (registry as any[])?.find((m) => m.moduleId === moduleId);
 
   // Sync version input with server data when module first loads or moduleId changes
   useEffect(() => {

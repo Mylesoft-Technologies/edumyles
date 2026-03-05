@@ -35,11 +35,13 @@ export default function BookCatalogPage() {
             key: "title",
             header: "Title",
             sortable: true,
+            cell: (row: Book) => row.title,
         },
         {
             key: "author",
             header: "Author",
             sortable: true,
+            cell: (row: Book) => row.author,
         },
         {
             key: "isbn",
@@ -50,6 +52,7 @@ export default function BookCatalogPage() {
             key: "category",
             header: "Category",
             sortable: true,
+            cell: (row: Book) => row.category,
         },
         {
             key: "available",

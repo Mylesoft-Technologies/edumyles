@@ -18,7 +18,7 @@ import { toast } from "@/components/ui/use-toast";
 const generateCSVTemplate = () => {
     const headers = [
         "First Name",
-        "Last Name", 
+        "Last Name",
         "Date of Birth (YYYY-MM-DD)",
         "Gender (male/female/other)",
         "Class ID",
@@ -28,7 +28,7 @@ const generateCSVTemplate = () => {
         "Guardian Phone",
         "Guardian Relationship (father/mother/guardian/other)"
     ];
-    
+
     const csvContent = headers.join(",") + "\n";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -43,16 +43,16 @@ const generateCSVTemplate = () => {
 const validateCSVData = (data: any[]) => {
     const errors: string[] = [];
     const requiredFields = ["First Name", "Last Name", "Date of Birth (YYYY-MM-DD)"];
-    
+
     data.forEach((row, index) => {
         const rowNumber = index + 2; // +2 because header is row 1
-        
+
         requiredFields.forEach(field => {
             if (!row[field] || row[field].trim() === "") {
                 errors.push(`Row ${rowNumber}: ${field} is required`);
             }
         });
-        
+
         // Validate date format
         if (row["Date of Birth (YYYY-MM-DD)"]) {
             const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -60,7 +60,7 @@ const validateCSVData = (data: any[]) => {
                 errors.push(`Row ${rowNumber}: Invalid date format. Use YYYY-MM-DD`);
             }
         }
-        
+
         // Validate email format
         if (row["Guardian Email"] && row["Guardian Email"].trim()) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,7 +68,7 @@ const validateCSVData = (data: any[]) => {
                 errors.push(`Row ${rowNumber}: Invalid guardian email format`);
             }
         }
-        
+
         // Validate phone format
         if (row["Guardian Phone"] && row["Guardian Phone"].trim()) {
             const phoneRegex = /^(\+?254|0)[17]\d{8}$/;
@@ -77,7 +77,7 @@ const validateCSVData = (data: any[]) => {
             }
         }
     });
-    
+
     return errors;
 };
 
@@ -87,21 +87,21 @@ const parseCSV = (text: string): any[] => {
     if (lines.length < 2) {
         throw new Error("CSV file must contain at least a header row and one data row");
     }
-    
-    const headers = parseCSVLine(lines[0]);
+
+    const headers = parseCSVLine(lines[0] || "");
     const data = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
+        const values = parseCSVLine(lines[i] || "");
         const row: any = {};
-        
+
         headers.forEach((header, index) => {
             row[header] = values[index] || "";
         });
-        
+
         data.push(row);
     }
-    
+
     return data;
 };
 
@@ -110,11 +110,11 @@ const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
     let current = "";
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
         const char = line[i];
         const nextChar = line[i + 1];
-        
+
         if (char === '"') {
             if (inQuotes && nextChar === '"') {
                 // Escaped quote within quoted field
@@ -132,10 +132,10 @@ const parseCSVLine = (line: string): string[] => {
             current += char;
         }
     }
-    
+
     // Add the last field
     result.push(current.trim());
-    
+
     return result;
 };
 
@@ -146,13 +146,13 @@ export default function BulkImportPage() {
     const [errors, setErrors] = useState<string[]>([]);
     const [previewMode, setPreviewMode] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    
+
     const createStudent = useMutation(api.modules.sis.mutations.createStudent);
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        
+
         if (!file.name.endsWith(".csv")) {
             toast({
                 title: "Error",
@@ -161,7 +161,7 @@ export default function BulkImportPage() {
             });
             return;
         }
-        
+
         if (file.size > 10 * 1024 * 1024) { // 10MB limit
             toast({
                 title: "Error",
@@ -170,14 +170,14 @@ export default function BulkImportPage() {
             });
             return;
         }
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const text = e.target?.result as string;
                 const data = parseCSV(text);
                 const validationErrors = validateCSVData(data);
-                
+
                 if (validationErrors.length > 0) {
                     setErrors(validationErrors);
                     setCsvData([]);
@@ -207,24 +207,24 @@ export default function BulkImportPage() {
             });
             return;
         }
-        
+
         setImporting(true);
         setErrors([]);
-        
+
         try {
             let successCount = 0;
             let failureCount = 0;
             const importErrors: string[] = [];
-            
+
             for (let i = 0; i < csvData.length; i++) {
                 const row = csvData[i];
                 const rowNumber = i + 2; // +2 because header is row 1
-                
+
                 try {
                     // Generate admission number if not provided
-                    const admissionNumber = row["Admission Number"] || 
+                    const admissionNumber = row["Admission Number"] ||
                         `${new Date().getFullYear()}/ST/${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-                    
+
                     await createStudent({
                         firstName: row["First Name"]?.trim(),
                         lastName: row["Last Name"]?.trim(),
@@ -237,14 +237,14 @@ export default function BulkImportPage() {
                         guardianPhone: row["Guardian Phone"]?.trim() || undefined,
                         guardianRelationship: row["Guardian Relationship (father/mother/guardian/other)"]?.toLowerCase() || "guardian",
                     });
-                    
+
                     successCount++;
                 } catch (err) {
                     failureCount++;
                     importErrors.push(`Row ${rowNumber}: ${err instanceof Error ? err.message : "Import failed"}`);
                 }
             }
-            
+
             if (failureCount === 0) {
                 toast({
                     title: "Success",
@@ -297,7 +297,7 @@ export default function BulkImportPage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-sm text-muted-foreground mb-4">
-                            Download the CSV template and fill it with student information. 
+                            Download the CSV template and fill it with student information.
                             Required fields are marked with asterisks.
                         </p>
                         <Button onClick={generateCSVTemplate} variant="outline" className="w-full sm:w-auto">
@@ -336,7 +336,7 @@ export default function BulkImportPage() {
                                     Choose CSV File
                                 </Button>
                             </div>
-                            
+
                             {errors.length > 0 && (
                                 <div className="rounded-md bg-destructive/10 p-3">
                                     <div className="flex items-start gap-2">
@@ -403,7 +403,7 @@ export default function BulkImportPage() {
                                     </tbody>
                                 </table>
                             </div>
-                            
+
                             <div className="flex gap-3 mt-4">
                                 <Button
                                     onClick={handleImport}

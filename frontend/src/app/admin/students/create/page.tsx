@@ -18,42 +18,42 @@ import { toast } from "@/components/ui/use-toast";
 
 // Form validation schema
 const validateStudentForm = (form: any) => {
-  const errors: string[] = [];
-  
-  if (!form.firstName?.trim()) errors.push("First name is required");
-  if (!form.lastName?.trim()) errors.push("Last name is required");
-  if (!form.dateOfBirth) errors.push("Date of birth is required");
-  else {
-    const dob = new Date(form.dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDiff = today.getMonth() - dob.getMonth();
-    
-    // Adjust age if birthday hasn't occurred yet this year
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-      age--;
+    const errors: string[] = [];
+
+    if (!form.firstName?.trim()) errors.push("First name is required");
+    if (!form.lastName?.trim()) errors.push("Last name is required");
+    if (!form.dateOfBirth) errors.push("Date of birth is required");
+    else {
+        const dob = new Date(form.dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+
+        // Adjust age if birthday hasn't occurred yet this year
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+
+        if (age < 4 || age > 25) errors.push("Student age should be between 4 and 25 years");
     }
-    
-    if (age < 4 || age > 25) errors.push("Student age should be between 4 and 25 years");
-  }
-  
-  if (form.guardianEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.guardianEmail)) {
-    errors.push("Invalid guardian email format");
-  }
-  
-  if (form.guardianPhone && !/^(\+?254|0)[17]\d{8}$/.test(form.guardianPhone.replace(/\s/g, ""))) {
-      errors.push("Invalid phone number format. Use +254XXXXXXXX or 07XXXXXXXX");
+
+    if (form.guardianEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.guardianEmail)) {
+        errors.push("Invalid guardian email format");
     }
-  
-  return errors;
+
+    if (form.guardianPhone && !/^(\+?254|0)[17]\d{8}$/.test(form.guardianPhone.replace(/\s/g, ""))) {
+        errors.push("Invalid phone number format. Use +254XXXXXXXX or 07XXXXXXXX");
+    }
+
+    return errors;
 };
 
 // Generate admission number
 const generateAdmissionNumber = (classId?: string) => {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  const classCode = classId ? classId.slice(-2).toUpperCase() : 'ST';
-  return `${year}/${classCode}/${random}`;
+    const year = new Date().getFullYear();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const classCode = classId ? classId.slice(-2).toUpperCase() : 'ST';
+    return `${year}/${classCode}/${random}`;
 };
 
 export default function CreateStudentPage() {
@@ -87,11 +87,11 @@ export default function CreateStudentPage() {
 
     const updateField = (field: string, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
-        
+
         // Auto-generate admission number when class is selected and admission number is empty
         if (field === 'classId' && value && !form.admissionNumber) {
-            setForm((prev) => ({ 
-                ...prev, 
+            setForm((prev) => ({
+                ...prev,
                 [field]: value,
                 admissionNumber: generateAdmissionNumber(value)
             }));
@@ -164,7 +164,7 @@ export default function CreateStudentPage() {
             };
 
             await createStudent(studentData);
-            
+
             toast({
                 title: "Success",
                 description: "Student enrolled successfully!",
@@ -217,9 +217,9 @@ export default function CreateStudentPage() {
                         <div className="flex items-center gap-4">
                             <div className="relative">
                                 {photoPreview ? (
-                                    <img 
-                                        src={photoPreview} 
-                                        alt="Student photo" 
+                                    <img
+                                        src={photoPreview}
+                                        alt="Student photo"
                                         className="w-20 h-20 rounded-full object-cover border-2 border-border"
                                     />
                                 ) : (
@@ -322,7 +322,7 @@ export default function CreateStudentPage() {
                                     <SelectValue placeholder="Select a class" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {classes?.map((c) => (
+                                    {(classes as any[])?.map((c) => (
                                         <SelectItem key={c._id} value={c._id}>
                                             {c.name}
                                         </SelectItem>

@@ -13,12 +13,13 @@ import { useState } from "react";
 
 type AuditLogEntry = {
     _id: string;
-    userId: string;
+    actorId: string;
     action: string;
-    targetId?: string;
-    targetType?: string;
-    details: Record<string, unknown>;
-    createdAt: number;
+    entityId?: string;
+    entityType?: string;
+    after?: any;
+    before?: any;
+    timestamp: number;
 };
 
 const actionColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -56,7 +57,7 @@ export default function AuditLogPage() {
         {
             key: "timestamp",
             header: "Timestamp",
-            cell: (row) => new Date(row.createdAt).toLocaleString(),
+            cell: (row) => new Date(row.timestamp).toLocaleString(),
             sortable: true,
         },
         {
@@ -69,29 +70,29 @@ export default function AuditLogPage() {
             ),
         },
         {
-            key: "targetType",
+            key: "entityType",
             header: "Entity Type",
-            cell: (row) => row.targetType ?? "—",
+            cell: (row) => row.entityType ?? "—",
         },
         {
-            key: "targetId",
+            key: "entityId",
             header: "Entity ID",
             cell: (row) => (
-                <span className="font-mono text-xs">{row.targetId ? row.targetId.substring(0, 16) + "..." : "—"}</span>
+                <span className="font-mono text-xs">{row.entityId ? row.entityId.substring(0, 16) + "..." : "—"}</span>
             ),
         },
         {
-            key: "userId",
+            key: "actorId",
             header: "Actor",
             cell: (row) => (
-                <span className="font-mono text-xs">{row.userId.substring(0, 12)}...</span>
+                <span className="font-mono text-xs">{row.actorId.substring(0, 12)}...</span>
             ),
         },
         {
-            key: "details",
+            key: "after",
             header: "Details",
             cell: (row) => {
-                const details = row.details;
+                const details = row.after || row.before;
                 if (!details || Object.keys(details).length === 0) return "—";
                 return (
                     <span className="text-xs text-muted-foreground max-w-[200px] truncate block">
@@ -131,7 +132,7 @@ export default function AuditLogPage() {
                 columns={columns}
                 searchable
                 searchPlaceholder="Search audit logs..."
-                searchKey={(row) => `${row.action} ${row.targetType ?? ""} ${row.targetId ?? ""}`}
+                searchKey={(row) => `${row.action} ${row.entityType ?? ""} ${row.entityId ?? ""}`}
                 emptyTitle="No audit logs found"
                 emptyDescription="Actions performed in the system will be logged here."
             />

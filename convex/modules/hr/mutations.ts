@@ -137,7 +137,7 @@ export const createContract = mutation({
         requirePermission(tenant, "staff:write");
 
         const staff = await ctx.db.get(args.staffId as any);
-        if (!staff || staff.tenantId !== tenant.tenantId) throw new Error("Staff not found");
+        if (!staff || (staff as any).tenantId !== tenant.tenantId) throw new Error("Staff not found");
 
         const id = await ctx.db.insert("staffContracts", {
             tenantId: tenant.tenantId,

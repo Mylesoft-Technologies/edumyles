@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     // --- Exchange authorization code for user profile ----------------------
     const { user, organizationId } =
       await workos.userManagement.authenticateWithCode({
-        clientId: process.env.WORKOS_CLIENT_ID!,
+        clientId: process.env.WORKOS_CLIENT_ID || process.env.NEXT_PUBLIC_WORKOS_CLIENT_ID!,
         code,
       });
 

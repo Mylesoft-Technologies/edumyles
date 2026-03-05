@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
       const crypto = await import("crypto");
       const [t, v] = sig.split(",").reduce((acc, part) => {
         const [k, val] = part.split("=");
-        if (k === "t") acc[0] = val;
-        else if (k === "v1") acc[1] = val;
+        if (k === "t") acc[0] = val || "";
+        else if (k === "v1") acc[1] = val || "";
         return acc;
       }, ["", ""] as string[]);
       if (t && v) {

@@ -62,11 +62,12 @@ export const createPlatformAdmin = mutation({
 
         await logAction(ctx, {
             tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
+            actorId: tenantCtx.userId,
+            actorEmail: tenantCtx.email!,
             action: "user.created",
-            targetId: userId,
-            targetType: "user",
-            details: { email: args.email, role: args.role },
+            entityType: "user",
+            entityId: userId,
+            after: { email: args.email, role: args.role },
         });
 
         return { id, userId };
@@ -94,11 +95,13 @@ export const updatePlatformAdminRole = mutation({
 
         await logAction(ctx, {
             tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
+            actorId: tenantCtx.userId,
+            actorEmail: tenantCtx.email!,
             action: "user.updated",
-            targetId: user.eduMylesUserId,
-            targetType: "user",
-            details: { previousRole: user.role, newRole: args.role },
+            entityType: "user",
+            entityId: user.eduMylesUserId,
+            before: { role: user.role },
+            after: { role: args.role },
         });
     },
 });
@@ -124,11 +127,12 @@ export const deactivatePlatformAdmin = mutation({
 
         await logAction(ctx, {
             tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
+            actorId: tenantCtx.userId,
+            actorEmail: tenantCtx.email!,
             action: "user.deleted",
-            targetId: user.eduMylesUserId,
-            targetType: "user",
-            details: { email: user.email, action: "deactivated" },
+            entityType: "user",
+            entityId: user.eduMylesUserId,
+            after: { status: "deactivated" },
         });
     },
 });

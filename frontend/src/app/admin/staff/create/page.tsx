@@ -31,7 +31,9 @@ export default function CreateStaffPage() {
         role: "teacher",
         department: "",
         qualification: "",
+        employeeId: `EMP-${Math.floor(Math.random() * 10000)}`,
         joinDate: new Date().toISOString().split("T")[0],
+        status: "active",
     });
 
     const updateField = (field: string, value: string) =>
@@ -55,7 +57,9 @@ export default function CreateStaffPage() {
                 role: form.role,
                 department: form.department || undefined,
                 qualification: form.qualification || undefined,
-                joinDate: form.joinDate,
+                employeeId: form.employeeId || "",
+                joinDate: form.joinDate || "",
+                status: form.status,
             });
 
             router.push("/admin/staff");
@@ -139,8 +143,23 @@ export default function CreateStaffPage() {
                             <Input id="qualification" value={form.qualification} onChange={(e) => updateField("qualification", e.target.value)} placeholder="e.g. B.Ed, M.Sc" />
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="employeeId">Employee ID *</Label>
+                            <Input id="employeeId" value={form.employeeId} onChange={(e) => updateField("employeeId", e.target.value)} required />
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="joinDate">Join Date</Label>
                             <Input id="joinDate" type="date" value={form.joinDate} onChange={(e) => updateField("joinDate", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Status</Label>
+                            <Select value={form.status} onValueChange={(v) => updateField("status", v)}>
+                                <SelectTrigger id="status"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                    <SelectItem value="on_leave">On Leave</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardContent>
                 </Card>

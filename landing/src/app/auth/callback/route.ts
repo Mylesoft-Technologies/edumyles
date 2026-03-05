@@ -108,11 +108,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const dashboardPath = getRoleDashboardPath(role);
-    const appOrigin =
-      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || baseUrl;
-    const redirectTarget = `${appOrigin}${dashboardPath}`;
-    const response = NextResponse.redirect(redirectTarget);
+    const dashboard = getRoleDashboardPath(role);
+    
+    // Redirect to frontend app if configured, otherwise use relative path
+    const frontendUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const redirectUrl = frontendUrl ? `${frontendUrl}${dashboard}` : dashboard;
+    
+    const response = NextResponse.redirect(new URL(redirectUrl, request.url));
 
     response.cookies.set("edumyles_session", sessionToken, {
       httpOnly: true,
@@ -150,7 +152,7 @@ export async function GET(request: NextRequest) {
       path: "/",
     });
 
-    console.log(`[auth/callback] ${email} → ${role} → ${redirectTarget}`);
+    console.log(`[auth/callback] ${email} → ${role} → ${redirectUrl}`);
     return response;
   } catch (err) {
     console.error("[auth/callback]", err);

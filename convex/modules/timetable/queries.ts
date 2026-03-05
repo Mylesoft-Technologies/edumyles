@@ -156,6 +156,7 @@ export const getConflicts = query({
             for (let j = i + 1; j < filtered.length; j++) {
                 const si = filtered[i];
                 const sj = filtered[j];
+                if (!si || !sj) continue;
                 if (!timeOverlap(si, sj)) continue;
 
                 if (si.teacherId === sj.teacherId) {

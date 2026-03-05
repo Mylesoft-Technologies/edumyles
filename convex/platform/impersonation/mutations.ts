@@ -25,6 +25,7 @@ export const startImpersonation = mutation({
 
     await logImpersonation(ctx, {
       adminId: tenantCtx.userId,
+      adminEmail: tenantCtx.email!,
       targetUserId: args.targetUserId,
       tenantId: tenantCtx.tenantId,
       action: "impersonation.started",
@@ -55,6 +56,7 @@ export const endImpersonation = mutation({
 
     await logImpersonation(ctx, {
       adminId: tenantCtx.userId,
+      adminEmail: tenantCtx.email!,
       targetUserId: args.targetUserId,
       tenantId: tenantCtx.tenantId,
       action: "impersonation.ended",

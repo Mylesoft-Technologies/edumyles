@@ -58,6 +58,7 @@ export default function TransportPage() {
             key: "name",
             header: "Route Name",
             sortable: true,
+            cell: (row: Route) => row.name,
         },
         {
             key: "stops",
@@ -71,6 +72,7 @@ export default function TransportPage() {
             key: "plateNumber",
             header: "Plate Number",
             sortable: true,
+            cell: (row: Vehicle) => row.plateNumber,
         },
         {
             key: "capacity",

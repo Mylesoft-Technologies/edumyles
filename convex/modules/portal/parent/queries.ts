@@ -148,16 +148,13 @@ export const getFeeBalance = query({
       )
       .collect();
 
-    const payments = await ctx.db
+    const allPayments = await ctx.db
       .query("payments")
       .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId))
-      .filter((q) =>
-        q.in(
-          q.field("invoiceId"),
-          invoices.map((i) => i._id.toString())
-        )
-      )
       .collect();
+
+    const invoiceIds = new Set(invoices.map((i) => i._id.toString()));
+    const payments = allPayments.filter((p) => invoiceIds.has(p.invoiceId));
 
     const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.amount, 0);
     const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
@@ -181,27 +178,21 @@ export const getPaymentHistory = query({
       return [];
     }
 
-    const invoices = await ctx.db
+    const studentIds = new Set(children.map((c: any) => c._id.toString()));
+    const allInvoices = await ctx.db
       .query("invoices")
       .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId))
-      .filter((q) =>
-        q.in(
-          q.field("studentId"),
-          children.map((c: any) => c._id.toString())
-        )
-      )
       .collect();
 
-    const payments = await ctx.db
+    const invoices = allInvoices.filter((i) => studentIds.has(i.studentId));
+
+    const invoiceIds = new Set(invoices.map((i) => i._id.toString()));
+    const allPayments = await ctx.db
       .query("payments")
       .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId))
-      .filter((q) =>
-        q.in(
-          q.field("invoiceId"),
-          invoices.map((i) => i._id.toString())
-        )
-      )
       .collect();
+
+    const payments = allPayments.filter((p) => invoiceIds.has(p.invoiceId));
 
     return payments;
   },
@@ -261,22 +252,20 @@ export const getChildrenFeeOverview = query({
 
     const studentIds = children.map((c: any) => c._id.toString());
 
-    const invoices = await ctx.db
+    const allInvoices = await ctx.db
       .query("invoices")
       .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
-      .filter((q: any) => q.in(q.field("studentId"), studentIds))
       .collect();
 
-    const payments = await ctx.db
+    const invoices = allInvoices.filter((i: any) => studentIds.includes(i.studentId));
+
+    const invoiceIds = new Set(invoices.map((i: any) => i._id.toString()));
+    const allPayments = await ctx.db
       .query("payments")
       .withIndex("by_tenant", (q: any) => q.eq("tenantId", tenant.tenantId))
-      .filter((q: any) =>
-        q.in(
-          q.field("invoiceId"),
-          invoices.map((i: any) => i._id.toString())
-        )
-      )
       .collect();
+
+    const payments = allPayments.filter((p: any) => invoiceIds.has(p.invoiceId));
 
     return children.map((child: any) => {
       const childInvoices = invoices.filter(

@@ -39,6 +39,8 @@ const STATUS_BADGE: Record<string, { variant: "default" | "secondary" | "destruc
   rejected: { variant: "destructive", label: "Rejected" },
 };
 
+const DEFAULT_BADGE = STATUS_BADGE.pending;
+
 export function RequestList({
   requests,
   onApprove,
@@ -69,7 +71,7 @@ export function RequestList({
       </TableHeader>
       <TableBody>
         {requests.map((request) => {
-          const badge = STATUS_BADGE[request.status] ?? STATUS_BADGE["pending"];
+          const badge = (STATUS_BADGE[request.status] ?? DEFAULT_BADGE)!;
           return (
             <TableRow key={request._id}>
               <TableCell className="font-mono text-xs">

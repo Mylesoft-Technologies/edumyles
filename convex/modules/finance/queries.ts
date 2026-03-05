@@ -120,9 +120,9 @@ export const getReceiptData = query({
         const payment = await ctx.db.get(args.paymentId);
         if (!payment || payment.tenantId !== tenant.tenantId) return null;
         const invoice = await ctx.db.get(payment.invoiceId as any);
-        if (!invoice || invoice.tenantId !== tenant.tenantId) return { payment, invoice: null };
-        const student = await ctx.db.get(invoice.studentId as any);
-        return { payment, invoice, student: student ?? undefined };
+        if (!invoice || (invoice as any).tenantId !== tenant.tenantId) return { payment, invoice: null };
+        const student = await ctx.db.get((invoice as any).studentId as any);
+        return { payment, invoice: invoice as any, student: (student as any) ?? undefined };
     },
 });
 

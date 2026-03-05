@@ -43,6 +43,7 @@ export default function PayrollPage() {
             key: "periodLabel",
             header: "Period",
             sortable: true,
+            cell: (row: PayrollRun) => row.periodLabel,
         },
         {
             key: "dates",

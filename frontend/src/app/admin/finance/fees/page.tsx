@@ -34,6 +34,7 @@ export default function FeeStructuresPage() {
             key: "name",
             header: "Fee Name",
             sortable: true,
+            cell: (row: FeeStructure) => row.name,
         },
         {
             key: "amount",
@@ -45,11 +46,13 @@ export default function FeeStructuresPage() {
             key: "grade",
             header: "Target Grade",
             sortable: true,
+            cell: (row: FeeStructure) => row.grade,
         },
         {
             key: "academicYear",
             header: "Academic Year",
             sortable: true,
+            cell: (row: FeeStructure) => row.academicYear,
         },
         {
             key: "frequency",

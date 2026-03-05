@@ -41,6 +41,7 @@ export default function CommunicationsPage() {
             key: "title",
             header: "Title",
             sortable: true,
+            cell: (row: Announcement) => row.title,
         },
         {
             key: "audience",

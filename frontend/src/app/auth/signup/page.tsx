@@ -1,13 +1,25 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import Link from "next/link";
+import SignUpForm from "./SignUpForm";
 
-/**
- * Auth lives on the landing app (edumyles.vercel.app).
- * Redirect to landing signup when NEXT_PUBLIC_AUTH_BASE_URL is set.
- */
-export default function SignupRedirectPage() {
-  const authBase = process.env.NEXT_PUBLIC_AUTH_BASE_URL;
-  if (authBase) {
-    redirect(`${authBase}/auth/signup`);
-  }
-  redirect("/");
+export const metadata: Metadata = {
+  title: "Sign up — EduMyles",
+  description:
+    "Create your EduMyles account and start managing your school.",
+};
+
+export default function SignUpPage() {
+  return (
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="auth-header">
+          <Link href="/" className="auth-logo">
+            EduMyles
+          </Link>
+          <p>Create your account and start managing your school</p>
+        </div>
+        <SignUpForm />
+      </div>
+    </div>
+  );
 }

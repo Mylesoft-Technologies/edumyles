@@ -3,8 +3,8 @@ import { v } from "convex/values";
 
 export type AuditAction =
   | "user.created" | "user.updated" | "user.deleted" | "user.login" | "user.logout"
-  | "student.created" | "student.updated" | "student.deleted"
-  | "payment.initiated" | "payment.completed" | "payment.failed" | "payment.recorded" | "payment.bulk_invoices"
+  | "student.created" | "student.updated" | "student.deleted" | "student.graduated" | "student.enrolled"
+  | "payment.initiated" | "payment.completed" | "payment.failed" | "payment.recorded" | "payment.bulk_invoices" | "payment.status_updated"
   | "grade.entered" | "grade.updated"
   | "attendance.marked"
   | "payroll.processed" | "payroll.approved"
@@ -18,7 +18,8 @@ export type AuditAction =
   | "assignment.submitted" | "assignment.graded"
   | "communication.email_sent" | "communication.sms_sent"
   | "alumni.profile_updated" | "alumni.transcript_requested" | "alumni.event_rsvp"
-  | "timetable.slot_created" | "timetable.slot_updated" | "timetable.slot_deleted" | "timetable.substitute_assigned";
+  | "timetable.slot_created" | "timetable.slot_updated" | "timetable.slot_deleted" | "timetable.substitute_assigned"
+  | "message.sent";
 
 export async function logAction(
   ctx: MutationCtx,

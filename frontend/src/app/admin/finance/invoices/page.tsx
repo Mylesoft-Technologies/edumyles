@@ -41,7 +41,7 @@ export default function InvoicesPage() {
     if (isLoading) return <LoadingSkeleton variant="page" />;
 
     // Create a map for quick access
-    const studentMap = new Map(students?.map((s) => [s._id, `${s.firstName} ${s.lastName}`]));
+    const studentMap = new Map((students as any[])?.map((s) => [s._id, `${s.firstName} ${s.lastName}`]) ?? []);
 
     const columns: Column<Invoice>[] = [
         {

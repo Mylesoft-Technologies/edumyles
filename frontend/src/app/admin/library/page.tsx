@@ -89,7 +89,7 @@ export default function LibraryDashboardPage() {
                     <CardContent>
                         <div className="space-y-4">
                             {overdue && overdue.length > 0 ? (
-                                overdue.slice(0, 5).map((b) => (
+                                (overdue as any[]).slice(0, 5).map((b) => (
                                     <div key={b._id} className="flex items-center justify-between border-b pb-2 last:border-0">
                                         <div className="text-sm">
                                             <p className="font-medium">Book ID: {b.bookId.slice(-6)}</p>

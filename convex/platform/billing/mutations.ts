@@ -45,11 +45,13 @@ export const updateTenantTier = mutation({
 
         await logAction(ctx, {
             tenantId: tenantCtx.tenantId,
-            userId: tenantCtx.userId,
+            actorId: tenantCtx.userId,
+            actorEmail: tenantCtx.email!,
             action: "settings.updated",
-            targetId: args.tenantId,
-            targetType: "tenant",
-            details: { previousPlan, newPlan: args.plan, type: "tier_change" },
+            entityType: "tenant",
+            entityId: args.tenantId,
+            before: { previousPlan },
+            after: { plan: args.plan },
         });
     },
 });
