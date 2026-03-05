@@ -71,6 +71,15 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_WORKOS_CLIENT_ID || process.env.WORKOS_CLIENT_ID;
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
+  // Debug logging for production
+  console.log("[auth/callback] Environment check:", {
+    hasApiKey: !!apiKey,
+    hasClientId: !!clientId,
+    hasConvexUrl: !!convexUrl,
+    redirectUri: process.env.WORKOS_REDIRECT_URI,
+    publicRedirectUri: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
+  });
+
   if (!apiKey || !clientId) {
     console.error("[auth/callback] Missing WORKOS_API_KEY or WORKOS_CLIENT_ID");
     return NextResponse.redirect(`${baseUrl}/auth/login?error=config_error`);
@@ -155,7 +164,12 @@ export async function GET(request: NextRequest) {
     console.log(`[auth/callback] ${email} → ${role} → ${redirectUrl}`);
     return response;
   } catch (err) {
-    console.error("[auth/callback]", err);
+    console.error("[auth/callback] Full error details:", {
+      error: err,
+      message: err instanceof Error ? err.message : "Unknown error",
+      stack: err instanceof Error ? err.stack : undefined,
+      name: err instanceof Error ? err.name : undefined,
+    });
     const message = err instanceof Error ? err.message : "callback_failed";
     return NextResponse.redirect(
       `${baseUrl}/auth/login?error=${encodeURIComponent(message)}`
