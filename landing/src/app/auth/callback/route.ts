@@ -119,9 +119,9 @@ export async function GET(request: NextRequest) {
 
     const dashboard = getRoleDashboardPath(role);
     
-    // Redirect to the appropriate dashboard route
-    // These routes will redirect to the frontend app
-    const redirectUrl = dashboard;
+    // Redirect to appropriate dashboard route with email parameter
+    // These routes will show temporary dashboards
+    const redirectUrl = `${dashboard}?email=${encodeURIComponent(email)}`;
     
     const response = NextResponse.redirect(new URL(redirectUrl, request.url));
 
