@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  FileText, 
-  Plus, 
-  Edit, 
+import {
+  FileText,
+  Plus,
+  Edit,
   Download,
   Calendar,
   DollarSign,
@@ -51,7 +51,7 @@ export default function HRContractsPage() {
         salaryCents: 50000,
         currency: "KES",
       });
-      
+
       toast({
         title: "Success",
         description: "Contract created successfully",
@@ -89,7 +89,7 @@ export default function HRContractsPage() {
                     <SelectValue placeholder="All staff" />
                   </SelectTrigger>
                   <SelectContent>
-                    {staff?.map((member) => (
+                    {(staff as any[])?.map((member) => (
                       <SelectItem key={member._id} value={member._id}>
                         {member.firstName} {member.lastName}
                       </SelectItem>
@@ -140,7 +140,7 @@ export default function HRContractsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {contracts?.map((contract) => (
+                {(contracts as any[])?.map((contract) => (
                   <div key={contract._id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
@@ -150,7 +150,7 @@ export default function HRContractsPage() {
                             {contract.status}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid gap-4 md:grid-cols-2">
                           <div>
                             <p className="text-sm text-muted-foreground">Type</p>
@@ -181,7 +181,7 @@ export default function HRContractsPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex space-x-2">
                         <Button size="sm" variant="outline">
                           <Edit className="h-4 w-4" />

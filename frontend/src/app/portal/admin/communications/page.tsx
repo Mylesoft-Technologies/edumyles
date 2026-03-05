@@ -32,44 +32,40 @@ export default function CommunicationsPage() {
         <div className="flex space-x-1 border-b">
           <button
             onClick={() => setActiveTab("announcements")}
-            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "announcements"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === "announcements"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
           >
             <MessageSquare className="h-4 w-4 mr-2" />
             Announcements
           </button>
           <button
             onClick={() => setActiveTab("templates")}
-            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "templates"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === "templates"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Mail className="h-4 w-4 mr-2" />
             Templates
           </button>
           <button
             onClick={() => setActiveTab("queue")}
-            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "queue"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === "queue"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Send className="h-4 w-4 mr-2" />
             Message Queue
           </button>
           <button
             onClick={() => setActiveTab("reports")}
-            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "reports"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === "reports"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Filter className="h-4 w-4 mr-2" />
             Delivery Reports
@@ -104,7 +100,7 @@ export default function CommunicationsPage() {
                 <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
                 <p className="text-muted-foreground max-w-md">
-                  Create and manage reusable message templates for SMS, email, and push notifications. Include variables like {{studentName}}, {{grade}}, etc.
+                  Create and manage reusable message templates for SMS, email, and push notifications. Include variables like {"{{studentName}}"}, {"{{grade}}"}, etc.
                 </p>
               </div>
             </CardContent>

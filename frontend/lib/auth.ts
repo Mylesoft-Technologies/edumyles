@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { api } from "../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 const SESSION_COOKIE_NAME = "edumyles_session";

@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Book, 
-  Users, 
-  AlertTriangle, 
+import {
+  Book,
+  Users,
+  AlertTriangle,
   Clock,
   DollarSign,
   CheckCircle,
@@ -64,19 +64,19 @@ export default function LibraryCirculationPage() {
 
     try {
       const dueDate = Date.now() + (14 * 24 * 60 * 60 * 1000); // 14 days from now
-      
+
       await borrowBook({
         bookId: bookId as any,
         borrowerId,
         borrowerType: "student",
         dueDate,
       });
-      
+
       toast({
         title: "Success",
         description: "Book borrowed successfully",
       });
-      
+
       setBookId("");
       setBorrowerId("");
     } catch (error) {
@@ -91,7 +91,7 @@ export default function LibraryCirculationPage() {
   const handleReturnBook = async (borrowId: string) => {
     try {
       await returnBook({ borrowId: borrowId as any });
-      
+
       toast({
         title: "Success",
         description: "Book returned successfully",
@@ -108,17 +108,17 @@ export default function LibraryCirculationPage() {
   const calculateFine = (dueDate: number) => {
     const now = Date.now();
     if (dueDate >= now) return 0;
-    
+
     const daysOverdue = Math.ceil((now - dueDate) / (24 * 60 * 60 * 1000));
     return daysOverdue * 10; // 10 cents per day
   };
 
-  const filteredBorrows = activeBorrows?.filter(borrow => {
+  const filteredBorrows = (activeBorrows as any[])?.filter((borrow: any) => {
     const matchesSearch = borrow.borrowerId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === "all" || 
+    const matchesStatus = selectedStatus === "all" ||
       (selectedStatus === "overdue" && borrow.dueDate < Date.now()) ||
       (selectedStatus === "active" && borrow.dueDate >= Date.now());
-    
+
     return matchesSearch && matchesStatus;
   }) || [];
 
@@ -149,7 +149,7 @@ export default function LibraryCirculationPage() {
                     <SelectValue placeholder="Choose a book..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {books?.filter(book => book.availableQuantity > 0).map((book) => (
+                    {(books as any[])?.filter(book => book.availableQuantity > 0).map((book) => (
                       <SelectItem key={book._id} value={book._id}>
                         {book.title} - {book.author} ({book.availableQuantity} available)
                       </SelectItem>
@@ -167,7 +167,7 @@ export default function LibraryCirculationPage() {
                 />
               </div>
             </div>
-            <Button 
+            <Button
               onClick={handleBorrowBook}
               disabled={!bookId || !borrowerId}
               className="w-full mt-4"
@@ -213,7 +213,7 @@ export default function LibraryCirculationPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                KES {overdueBorrows?.reduce((sum, borrow) => sum + calculateFine(borrow.dueDate), 0) / 100 || 0}
+                KES {(overdueBorrows as any[])?.reduce((sum, borrow) => sum + calculateFine(borrow.dueDate), 0) / 100 || 0}
               </div>
               <p className="text-xs text-muted-foreground">Outstanding fines</p>
             </CardContent>
@@ -282,23 +282,23 @@ export default function LibraryCirculationPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredBorrows.map((borrow) => {
+                {(filteredBorrows as any[]).map((borrow) => {
                   const fine = calculateFine(borrow.dueDate);
                   const isOverdue = borrow.dueDate < Date.now();
-                  
+
                   return (
                     <div key={borrow._id} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2 flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="font-semibold">Book #{borrow.bookId.slice(-6)}</h4>
-                            <Badge 
+                            <Badge
                               variant={isOverdue ? "destructive" : "default"}
                             >
                               {isOverdue ? "Overdue" : "Active"}
                             </Badge>
                           </div>
-                          
+
                           <div className="grid gap-4 md:grid-cols-2">
                             <div>
                               <p className="text-sm text-muted-foreground">Borrower</p>
@@ -334,10 +334,10 @@ export default function LibraryCirculationPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             onClick={() => handleReturnBook(borrow._id)}
                             className="bg-green-600 hover:bg-green-700"
                           >
@@ -365,7 +365,7 @@ export default function LibraryCirculationPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {overdueBorrows.slice(0, 3).map((borrow) => (
+                {(overdueBorrows as any[]).slice(0, 3).map((borrow) => (
                   <div key={borrow._id} className="flex items-center justify-between p-3 bg-white rounded border">
                     <div>
                       <p className="font-medium">Book #{borrow.bookId.slice(-6)}</p>
@@ -373,8 +373,8 @@ export default function LibraryCirculationPage() {
                         {borrow.borrowerId} • {Math.ceil((Date.now() - borrow.dueDate) / (24 * 60 * 60 * 1000))} days overdue
                       </p>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => handleReturnBook(borrow._id)}
                       className="bg-red-600 hover:bg-red-700"
                     >

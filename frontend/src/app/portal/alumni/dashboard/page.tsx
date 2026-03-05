@@ -12,10 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Users, 
-  GraduationCap, 
-  FileText, 
+import {
+  Users,
+  GraduationCap,
+  FileText,
   Calendar,
   MapPin,
   Briefcase,
@@ -139,7 +139,7 @@ export default function AlumniDashboardPage() {
     }
   ];
 
-  const createTranscriptRequest = useMutation(api.modules.alumni.mutations.createTranscriptRequest);
+  const createTranscriptRequest = useMutation(api.modules.portal.alumni.mutations.createTranscriptRequest);
 
   const handleRequestTranscript = async () => {
     try {
@@ -147,12 +147,12 @@ export default function AlumniDashboardPage() {
         type: requestType,
         notes: requestNotes,
       });
-      
+
       toast({
         title: "Success",
         description: "Transcript request submitted successfully",
       });
-      
+
       setRequestNotes("");
     } catch (error) {
       toast({
@@ -198,7 +198,7 @@ export default function AlumniDashboardPage() {
                     Class of {alumniProfile.graduationYear}
                   </p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-4 w-4 text-muted-foreground" />
@@ -214,7 +214,7 @@ export default function AlumniDashboardPage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-2">Achievements</h4>
@@ -227,7 +227,7 @@ export default function AlumniDashboardPage() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Social Links</h4>
                   <div className="flex gap-2">
@@ -294,7 +294,7 @@ export default function AlumniDashboardPage() {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="notes">Additional Notes</Label>
                 <Textarea
@@ -305,7 +305,7 @@ export default function AlumniDashboardPage() {
                   rows={3}
                 />
               </div>
-              
+
               <Button onClick={handleRequestTranscript} className="w-full">
                 <Send className="h-4 w-4 mr-2" />
                 Submit Request
@@ -330,13 +330,13 @@ export default function AlumniDashboardPage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium capitalize">{request.type} Transcript</h4>
-                        <Badge 
+                        <Badge
                           variant={request.status === "approved" ? "default" : "secondary"}
                         >
                           {request.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <p className="text-sm text-muted-foreground">Requested</p>
@@ -353,7 +353,7 @@ export default function AlumniDashboardPage() {
                           </div>
                         )}
                       </div>
-                      
+
                       {request.notes && (
                         <div>
                           <p className="text-sm text-muted-foreground">Notes</p>
@@ -361,7 +361,7 @@ export default function AlumniDashboardPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       {request.status === "approved" && (
                         <Button size="sm" variant="outline">
@@ -455,7 +455,7 @@ export default function AlumniDashboardPage() {
                           Class of {alumni.graduationYear}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <p className="text-sm text-muted-foreground">Course</p>
@@ -478,7 +478,7 @@ export default function AlumniDashboardPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <Button size="sm" variant="outline">
                         <MessageSquare className="h-4 w-4" />
@@ -514,7 +514,7 @@ export default function AlumniDashboardPage() {
                           {event.type}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <p className="text-sm text-muted-foreground">Date</p>
@@ -527,7 +527,7 @@ export default function AlumniDashboardPage() {
                           <p className="font-medium">{event.location}</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">
@@ -535,7 +535,7 @@ export default function AlumniDashboardPage() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <Button size="sm">
                       <Calendar className="h-4 w-4 mr-2" />
                       RSVP

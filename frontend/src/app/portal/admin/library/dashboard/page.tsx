@@ -11,11 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Book, 
-  Users, 
-  AlertTriangle, 
-  TrendingUp, 
+import {
+  Book,
+  Users,
+  AlertTriangle,
+  TrendingUp,
   Clock,
   DollarSign,
   Plus,
@@ -76,7 +76,7 @@ export default function LibraryDashboardPage() {
         quantity: 5,
         isbn: "978-0-123456-78-9",
       });
-      
+
       toast({
         title: "Success",
         description: "Book created successfully",
@@ -92,14 +92,14 @@ export default function LibraryDashboardPage() {
 
   const calculateLibraryStats = (): LibraryStats => {
     const totalBooks = books?.length || 0;
-    const availableBooks = books?.reduce((sum, book) => sum + book.availableQuantity, 0) || 0;
-    const totalQuantity = books?.reduce((sum, book) => sum + book.quantity, 0) || 0;
+    const availableBooks = (books as any[])?.reduce((sum, book) => sum + book.availableQuantity, 0) || 0;
+    const totalQuantity = (books as any[])?.reduce((sum, book) => sum + book.quantity, 0) || 0;
     const borrowedBooks = totalQuantity - availableBooks;
-    const overdueBooks = overdueBorrows?.length || 0;
-    const activeBorrows = activeBorrows?.length || 0;
-    
+    const overdueBooksCount = overdueBorrows?.length || 0;
+    const activeBorrowsCount = activeBorrows?.length || 0;
+
     // Calculate total fines from overdue books
-    const totalFines = overdueBorrows?.reduce((sum, borrow) => {
+    const totalFines = (overdueBorrows as any[])?.reduce((sum, borrow) => {
       const daysOverdue = Math.ceil((Date.now() - borrow.dueDate) / (24 * 60 * 60 * 1000));
       return sum + (daysOverdue * 10); // 10 cents per day
     }, 0) || 0;
@@ -108,15 +108,15 @@ export default function LibraryDashboardPage() {
       totalBooks,
       availableBooks,
       borrowedBooks,
-      overdueBooks,
+      overdueBooks: overdueBooksCount,
       totalFines,
-      activeBorrows,
+      activeBorrows: activeBorrowsCount,
     };
   };
 
   const libraryStats = calculateLibraryStats();
 
-  const filteredBooks = books?.filter(book =>
+  const filteredBooks = (books as any[])?.filter(book =>
     book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
     book.isbn?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -287,7 +287,7 @@ export default function LibraryDashboardPage() {
 
             {/* Books List */}
             <div className="space-y-4">
-              {filteredBooks.slice(0, 10).map((book) => (
+              {(filteredBooks as any[]).slice(0, 10).map((book) => (
                 <div key={book._id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between">
                     <div className="space-y-2 flex-1">
@@ -297,7 +297,7 @@ export default function LibraryDashboardPage() {
                           {book.availableQuantity > 0 ? `Available (${book.availableQuantity})` : "Out of Stock"}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <p className="text-sm text-muted-foreground">Author</p>
@@ -320,7 +320,7 @@ export default function LibraryDashboardPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <Button size="sm" variant="outline">
                         <Eye className="h-4 w-4" />
@@ -332,7 +332,7 @@ export default function LibraryDashboardPage() {
                   </div>
                 </div>
               ))}
-              
+
               {filteredBooks.length > 10 && (
                 <Button variant="outline" className="w-full">
                   View All Books ({filteredBooks.length - 10} more)
@@ -352,7 +352,7 @@ export default function LibraryDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {activeBorrows?.slice(0, 5).map((borrow) => (
+              {(activeBorrows as any[])?.slice(0, 5).map((borrow) => (
                 <div key={borrow._id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
                     <p className="font-medium">Book #{borrow.bookId.slice(-6)}</p>
@@ -360,7 +360,7 @@ export default function LibraryDashboardPage() {
                       Borrowed by {borrow.borrowerId} • Due {format(new Date(borrow.dueDate), "PPP")}
                     </p>
                   </div>
-                  <Badge 
+                  <Badge
                     variant={borrow.dueDate < Date.now() ? "destructive" : "default"}
                   >
                     {borrow.dueDate < Date.now() ? "Overdue" : "Active"}

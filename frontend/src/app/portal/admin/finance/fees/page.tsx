@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  DollarSign, 
-  Plus, 
-  Edit, 
+import {
+  DollarSign,
+  Plus,
+  Edit,
   Trash2,
   CheckCircle,
   Clock,
@@ -61,7 +61,7 @@ export default function FeeStructuresPage() {
 
   const feeStructures = useQuery(
     api.modules.finance.queries.listFeeStructures,
-    user ? { 
+    user ? {
       grade: selectedGrade === "all" ? undefined : selectedGrade,
       academicYear: selectedYear === "all" ? undefined : selectedYear
     } : "skip"
@@ -79,7 +79,7 @@ export default function FeeStructuresPage() {
         grade: "Grade 1",
         frequency: "termly",
       });
-      
+
       toast({
         title: "Success",
         description: "Fee structure created successfully",
@@ -106,7 +106,7 @@ export default function FeeStructuresPage() {
       ];
 
       await generateInvoices({ items: sampleItems });
-      
+
       toast({
         title: "Success",
         description: "Invoices generated successfully",
@@ -122,8 +122,8 @@ export default function FeeStructuresPage() {
 
   const calculateStats = () => {
     const totalStructures = feeStructures?.length || 0;
-    const activeStructures = feeStructures?.filter(f => f.status === "active").length || 0;
-    const totalValue = feeStructures?.reduce((sum, f) => sum + f.amount, 0) || 0;
+    const activeStructures = (feeStructures as any[])?.filter(f => f.status === "active").length || 0;
+    const totalValue = (feeStructures as any[])?.reduce((sum, f) => sum + f.amount, 0) || 0;
     const averageFee = totalStructures > 0 ? totalValue / totalStructures : 0;
 
     return {
@@ -136,7 +136,7 @@ export default function FeeStructuresPage() {
 
   const stats = calculateStats();
 
-  const filteredStructures = feeStructures?.filter(structure =>
+  const filteredStructures = (feeStructures as any[])?.filter(structure =>
     structure.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     structure.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
     structure.academicYear.toLowerCase().includes(searchTerm.toLowerCase())
@@ -321,19 +321,19 @@ export default function FeeStructuresPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredStructures.map((structure) => (
+                {(filteredStructures as any[]).map((structure) => (
                   <div key={structure._id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold">{structure.name}</h4>
-                          <Badge 
+                          <Badge
                             variant={structure.status === "active" ? "default" : "secondary"}
                           >
                             {structure.status}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid gap-4 md:grid-cols-2">
                           <div>
                             <p className="text-sm text-muted-foreground">Amount</p>
@@ -363,7 +363,7 @@ export default function FeeStructuresPage() {
                           <span>Created {format(new Date(structure.createdAt), "PPP")}</span>
                         </div>
                       </div>
-                      
+
                       <div className="flex space-x-2">
                         <Button size="sm" variant="outline">
                           <Edit className="h-4 w-4" />
@@ -398,7 +398,7 @@ export default function FeeStructuresPage() {
                       <h4 className="font-semibold">Early Bird Discount</h4>
                       <Badge variant="default">Active</Badge>
                     </div>
-                    
+
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <p className="text-sm text-muted-foreground">Type</p>
@@ -415,7 +415,7 @@ export default function FeeStructuresPage() {
                       <p className="font-medium">Payment made 30 days before due date</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline">
                       <Edit className="h-4 w-4" />
@@ -431,7 +431,7 @@ export default function FeeStructuresPage() {
                       <h4 className="font-semibold">Sibling Discount</h4>
                       <Badge variant="default">Active</Badge>
                     </div>
-                    
+
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
                         <p className="text-sm text-muted-foreground">Type</p>
@@ -448,7 +448,7 @@ export default function FeeStructuresPage() {
                       <p className="font-medium">2+ siblings enrolled</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline">
                       <Edit className="h-4 w-4" />
@@ -489,7 +489,7 @@ export default function FeeStructuresPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="border rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Discount Approval</h4>
                   <div className="space-y-2">

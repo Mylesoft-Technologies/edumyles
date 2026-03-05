@@ -11,12 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Users, 
-  FileText, 
-  Calendar, 
-  DollarSign, 
-  TrendingUp, 
+import {
+  Users,
+  FileText,
+  Calendar,
+  DollarSign,
+  TrendingUp,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -76,7 +76,7 @@ export default function HRDashboardPage() {
         salaryCents: 50000, // Example: 50,000 cents = $500
         currency: "KES",
       });
-      
+
       toast({
         title: "Success",
         description: "Contract created successfully",
@@ -95,13 +95,13 @@ export default function HRDashboardPage() {
       const now = new Date();
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      
+
       await createPayrollRun({
         periodLabel: `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`,
         startDate: firstDay.toISOString().split('T')[0],
         endDate: lastDay.toISOString().split('T')[0],
       });
-      
+
       toast({
         title: "Success",
         description: "Payroll run created successfully",
@@ -117,24 +117,24 @@ export default function HRDashboardPage() {
 
   const calculatePayrollStats = (): PayrollStats => {
     const totalStaff = staff?.length || 0;
-    const activeStaff = staff?.filter(s => s.status === "active").length || 0;
-    const onLeave = staff?.filter(s => s.status === "on_leave").length || 0;
-    
+    const activeStaff = (staff as any[])?.filter(s => s.status === "active").length || 0;
+    const onLeave = (staff as any[])?.filter(s => s.status === "on_leave").length || 0;
+
     // Calculate payroll statistics
-    const totalPayroll = payrollRuns?.reduce((sum, run) => {
+    const totalPayroll = (payrollRuns as any[])?.reduce((sum, run) => {
       // This would be calculated from actual payslips
       return sum + 100000; // Example calculation
     }, 0) || 0;
-    
-    const thisMonthPayroll = payrollRuns
+
+    const thisMonthPayroll = (payrollRuns as any[])
       ?.filter(run => {
         const runDate = new Date(run.createdAt);
         const now = new Date();
-        return runDate.getMonth() === now.getMonth() && 
-               runDate.getFullYear() === now.getFullYear();
+        return runDate.getMonth() === now.getMonth() &&
+          runDate.getFullYear() === now.getFullYear();
       })
       ?.reduce((sum, run) => sum + 100000, 0) || 0;
-    
+
     const averageSalary = activeStaff > 0 ? totalPayroll / activeStaff / 12 : 0;
 
     return {
@@ -279,7 +279,7 @@ export default function HRDashboardPage() {
 
                 {/* Staff List */}
                 <div className="space-y-3">
-                  {staff?.slice(0, 5).map((staffMember) => (
+                  {(staff as any[])?.slice(0, 5).map((staffMember) => (
                     <div key={staffMember._id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -295,7 +295,7 @@ export default function HRDashboardPage() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge 
+                        <Badge
                           variant={staffMember.status === "active" ? "default" : "secondary"}
                         >
                           {staffMember.status}
@@ -326,7 +326,7 @@ export default function HRDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {contracts?.slice(0, 3).map((contract) => (
+                {(contracts as any[])?.slice(0, 3).map((contract) => (
                   <div key={contract._id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div>
@@ -338,7 +338,7 @@ export default function HRDashboardPage() {
                           KES {(contract.salaryCents / 100).toLocaleString()}/month
                         </p>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={contract.status === "active" ? "default" : "secondary"}
                       >
                         {contract.status}
@@ -352,8 +352,8 @@ export default function HRDashboardPage() {
                   </Button>
                 )}
               </div>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Payroll Management */}
@@ -383,8 +383,8 @@ export default function HRDashboardPage() {
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">Last Run</p>
                   <p className="text-sm font-medium">
-                    {payrollRuns?.[0] ? 
-                      format(new Date(payrollRuns[0].createdAt), "MMM d, yyyy") : 
+                    {payrollRuns?.[0] ?
+                      format(new Date(payrollRuns[0].createdAt), "MMM d, yyyy") :
                       "No runs yet"
                     }
                   </p>
@@ -395,7 +395,7 @@ export default function HRDashboardPage() {
               <div>
                 <h4 className="text-lg font-semibold mb-4">Recent Payroll Runs</h4>
                 <div className="space-y-3">
-                  {payrollRuns?.slice(0, 3).map((run) => (
+                  {(payrollRuns as any[])?.slice(0, 3).map((run) => (
                     <div key={run._id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <p className="font-medium">
@@ -403,7 +403,7 @@ export default function HRDashboardPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <Badge 
+                        <Badge
                           variant={run.status === "approved" ? "default" : "secondary"}
                         >
                           {run.status}

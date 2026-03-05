@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Calculator, 
-  Plus, 
-  Download, 
+import {
+  Calculator,
+  Plus,
+  Download,
   CheckCircle,
   Clock,
   DollarSign,
@@ -49,13 +49,13 @@ export default function HRPayrollPage() {
       const now = new Date();
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      
+
       await createPayrollRun({
         periodLabel: `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`,
         startDate: firstDay.toISOString().split('T')[0],
         endDate: lastDay.toISOString().split('T')[0],
       });
-      
+
       toast({
         title: "Success",
         description: "Payroll run created successfully",
@@ -87,12 +87,12 @@ export default function HRPayrollPage() {
 
   const calculatePayrollStats = () => {
     const totalRuns = payrollRuns?.length || 0;
-    const approvedRuns = payrollRuns?.filter(run => run.status === "approved").length || 0;
-    const draftRuns = payrollRuns?.filter(run => run.status === "draft").length || 0;
-    
+    const approvedRuns = (payrollRuns as any[])?.filter(run => run.status === "approved").length || 0;
+    const draftRuns = (payrollRuns as any[])?.filter(run => run.status === "draft").length || 0;
+
     // Calculate total payroll amount (simplified)
-    const totalPayroll = payslips?.reduce((sum, slip) => sum + slip.netCents, 0) || 0;
-    
+    const totalPayroll = (payslips as any[])?.reduce((sum, slip) => sum + slip.netCents, 0) || 0;
+
     return {
       totalRuns,
       approvedRuns,
@@ -237,19 +237,19 @@ export default function HRPayrollPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {payrollRuns?.map((run) => (
+                {(payrollRuns as any[]).map((run) => (
                   <div key={run._id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold">{run.periodLabel}</h4>
-                          <Badge 
+                          <Badge
                             variant={run.status === "approved" ? "default" : "secondary"}
                           >
                             {run.status}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid gap-4 md:grid-cols-2">
                           <div>
                             <p className="text-sm text-muted-foreground">Period</p>
@@ -272,11 +272,11 @@ export default function HRPayrollPage() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex space-x-2">
                         {run.status === "draft" && (
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             onClick={() => handleApprovePayrollRun(run._id)}
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
@@ -314,7 +314,7 @@ export default function HRPayrollPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {payslips?.slice(0, 5).map((payslip) => (
+                {(payslips as any[])?.slice(0, 5).map((payslip) => (
                   <div key={payslip._id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
@@ -324,7 +324,7 @@ export default function HRPayrollPage() {
                             {payslip.status}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid gap-4 md:grid-cols-2">
                           <div>
                             <p className="text-sm text-muted-foreground">Basic Salary</p>
@@ -355,7 +355,7 @@ export default function HRPayrollPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex space-x-2">
                         <Button size="sm" variant="outline">
                           <Download className="h-4 w-4" />
