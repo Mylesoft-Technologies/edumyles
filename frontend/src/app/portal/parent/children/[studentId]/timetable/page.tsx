@@ -47,8 +47,12 @@ export default function ChildTimetablePage({
     <div className="space-y-4">
       <PageHeader
         title="Timetable"
-        description="Weekly class schedule"
-        backHref={`/portal/parent/children/${studentId}`}
+        description="Class schedule and timetable"
+        breadcrumbs={[
+          { label: "Children", href: "/portal/parent/children" },
+          { label: studentId, href: `/portal/parent/children/${studentId}` },
+          { label: "Timetable" }
+        ]}
       />
 
       {timetable === "skip" || timetable.length === 0 ? (

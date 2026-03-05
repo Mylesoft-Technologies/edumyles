@@ -42,7 +42,10 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
             <PageHeader
                 title={classData.name}
                 description={`${classData.level || "Grade"} ${classData.stream || ""} • ${students.length} Students`}
-                backHref="/portal/teacher/classes"
+                breadcrumbs={[
+                    { label: "Classes", href: "/portal/teacher/classes" },
+                    { label: "Class Details" }
+                ]}
             />
 
             <Tabs defaultValue="overview" className="space-y-4">

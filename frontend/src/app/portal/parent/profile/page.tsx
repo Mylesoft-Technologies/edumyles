@@ -25,7 +25,7 @@ export default function ParentProfilePage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>
-            Name: {user?.firstName} {user?.lastName}
+            Name: {user?.email?.split('@')[0] || 'Parent'}
           </p>
           <p>Email: {user?.email}</p>
           <p>Role: Parent</p>

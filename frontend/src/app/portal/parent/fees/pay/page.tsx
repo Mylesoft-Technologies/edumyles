@@ -179,27 +179,34 @@ export default function ParentPayFeesPage() {
             {/* Payment Method Selection */}
             <div>
               <Label>Payment Method</Label>
-              <RadioGroup 
-                value={payDialog.paymentMethod} 
-                onValueChange={(value: "mpesa" | "card" | "bank_transfer") => 
-                  setPayDialog((d) => ({ ...d, paymentMethod: value }))
-                }
-              >
+              <div className="space-y-2">
                 <div className="flex items-center space-x-4">
-                  <RadioGroupItem value="mpesa" className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setPayDialog((d) => ({ ...d, paymentMethod: "mpesa" }))}
+                    className={`flex items-center space-x-2 p-2 rounded ${payDialog.paymentMethod === "mpesa" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
+                  >
                     <Smartphone className="h-4 w-4" />
                     <span>M-Pesa</span>
-                  </RadioGroupItem>
-                  <RadioGroupItem value="card" className="flex items-center space-x-2">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayDialog((d) => ({ ...d, paymentMethod: "card" }))}
+                    className={`flex items-center space-x-2 p-2 rounded ${payDialog.paymentMethod === "card" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
+                  >
                     <CreditCard className="h-4 w-4" />
                     <span>Card</span>
-                  </RadioGroupItem>
-                  <RadioGroupItem value="bank_transfer" className="flex items-center space-x-2">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayDialog((d) => ({ ...d, paymentMethod: "bank_transfer" }))}
+                    className={`flex items-center space-x-2 p-2 rounded ${payDialog.paymentMethod === "bank_transfer" ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
+                  >
                     <Building className="h-4 w-4" />
                     <span>Bank Transfer</span>
-                  </RadioGroupItem>
+                  </button>
                 </div>
-              </RadioGroup>
+              </div>
             </div>
 
             {/* Payment Details Based on Method */}

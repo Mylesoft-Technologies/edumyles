@@ -57,9 +57,12 @@ export default function CreateAssignmentPage() {
     return (
         <div className="space-y-6 max-w-2xl mx-auto">
             <PageHeader
-                title="New Assignment"
-                description="Create a new assessment for your students."
-                backHref="/portal/teacher/assignments"
+                title="Create Assignment"
+                description="Add a new assignment for your students"
+                breadcrumbs={[
+                    { label: "Assignments", href: "/portal/teacher/assignments" },
+                    { label: "Create" }
+                ]}
             />
 
             <Card>

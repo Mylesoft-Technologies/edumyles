@@ -74,9 +74,12 @@ export default function GradeEntryPage({ params }: { params: Promise<{ classId: 
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Enter Grades"
-                description={`${classData.name} • ${term}`}
-                backHref={`/portal/teacher/classes/${classId}`}
+                title="Grade Entry"
+                description="Record student grades and performance"
+                breadcrumbs={[
+                    { label: "Class Details", href: `/portal/teacher/classes/${classId}` },
+                    { label: "Grade Entry" }
+                ]}
             />
 
             <Card>

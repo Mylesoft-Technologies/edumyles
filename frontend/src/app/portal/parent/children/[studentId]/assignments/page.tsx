@@ -50,7 +50,10 @@ export default function ChildAssignmentsPage({
       <PageHeader
         title="Assignments"
         description="Class assignments for your child"
-        backHref={`/portal/parent/children/${studentId}`}
+        breadcrumbs={[
+          { label: "Child Profile", href: `/portal/parent/children/${studentId}` },
+          { label: "Assignments" }
+        ]}
       />
 
       {assignments === "skip" || assignments.length === 0 ? (

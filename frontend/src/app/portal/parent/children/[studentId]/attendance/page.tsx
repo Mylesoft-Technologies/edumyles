@@ -28,9 +28,12 @@ export default function ChildAttendancePage({
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Attendance"
-        description="Daily attendance records"
-        backHref={`/portal/parent/children/${studentId}`}
+        title="Attendance Records"
+        description="View your child's attendance history"
+        breadcrumbs={[
+          { label: "Child Profile", href: `/portal/parent/children/${studentId}` },
+          { label: "Attendance" }
+        ]}
       />
 
       {attendance.length === 0 ? (
