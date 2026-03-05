@@ -88,19 +88,29 @@ const trustedSchools = [
 function LandingPageContent() {
   const [activeTab, setActiveTab] = useState("student");
   const [authError, setAuthError] = useState("");
+  const [authSuccess, setAuthSuccess] = useState("");
   const searchParams = useSearchParams();
 
   const activeCategory = moduleCategories.find((c) => c.key === activeTab)!;
 
-  // Handle auth errors from URL parameters
+  // Handle auth errors and success from URL parameters
   useEffect(() => {
     const error = searchParams.get("auth_error");
+    const success = searchParams.get("auth_success");
+    
     if (error) {
       const decoded = decodeURIComponent(error);
       const safeError = decoded.replace(/[<>]/g, "");
       setAuthError(safeError);
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("auth_error");
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+    
+    if (success === "true") {
+      setAuthSuccess("Authentication successful! You are now logged in.");
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("auth_success");
       window.history.replaceState({}, "", newUrl.toString());
     }
   }, [searchParams]);
@@ -126,6 +136,20 @@ function LandingPageContent() {
               color: '#dc2626'
             }}>
               <strong>Authentication Error:</strong> {authError}
+            </div>
+          )}
+
+          {/* Auth Success Display */}
+          {authSuccess && (
+            <div className="auth-success-banner" style={{
+              backgroundColor: '#dcfce7',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '20px',
+              color: '#166534'
+            }}>
+              <strong>Success:</strong> {authSuccess}
             </div>
           )}
 

@@ -30,13 +30,13 @@ export default function AssignmentsPage() {
     if (authLoading || classes === undefined) return <LoadingSkeleton variant="page" />;
 
     const columns = [
-        { header: "Title", accessorKey: "title" },
-        { header: "Due Date", accessorKey: "dueDate" },
-        { header: "Max Points", accessorKey: "maxPoints" },
-        { header: "Status", accessorKey: "status" },
+        { key: "title", header: "Title", cell: (row: any) => row.title },
+        { key: "dueDate", header: "Due Date", cell: (row: any) => row.dueDate },
+        { key: "maxPoints", header: "Max Points", cell: (row: any) => row.maxPoints },
+        { key: "status", header: "Status", cell: (row: any) => row.status },
         {
+            key: "actions",
             header: "Actions",
-            id: "actions",
             cell: (row: any) => (
                 <Button variant="ghost" size="sm" asChild>
                     <Link href={`/portal/teacher/assignments/${row._id}`}>
@@ -66,7 +66,7 @@ export default function AssignmentsPage() {
             <DataTable
                 columns={columns}
                 data={assignments || []}
-                searchKey="title"
+                searchKey={(row: any) => row.title}
             />
         </div>
     );

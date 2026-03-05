@@ -24,17 +24,17 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     if (authLoading || classData === undefined || students === undefined) return <LoadingSkeleton variant="page" />;
 
     const studentColumns = [
-        { header: "Name", accessorKey: "name", cell: (row: any) => `${row.firstName} ${row.lastName}` },
-        { header: "Admission No.", accessorKey: "admissionNumber" },
-        { header: "Gender", accessorKey: "gender" },
-        { header: "Status", accessorKey: "status" },
+        { key: "name", header: "Name", cell: (row: any) => `${row.firstName} ${row.lastName}` },
+        { key: "admissionNumber", header: "Admission No.", cell: (row: any) => row.admissionNumber },
+        { key: "gender", header: "Gender", cell: (row: any) => row.gender },
+        { key: "status", header: "Status", cell: (row: any) => row.status },
     ];
 
     const assignmentColumns = [
-        { header: "Title", accessorKey: "title" },
-        { header: "Due Date", accessorKey: "dueDate" },
-        { header: "Max Points", accessorKey: "maxPoints" },
-        { header: "Status", accessorKey: "status" },
+        { key: "title", header: "Title", cell: (row: any) => row.title },
+        { key: "dueDate", header: "Due Date", cell: (row: any) => row.dueDate },
+        { key: "maxPoints", header: "Max Points", cell: (row: any) => row.maxPoints },
+        { key: "status", header: "Status", cell: (row: any) => row.status },
     ];
 
     return (

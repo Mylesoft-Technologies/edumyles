@@ -60,7 +60,7 @@ export default function GradeEntryPage({ params }: { params: Promise<{ classId: 
             score: parseFloat(data.score),
             grade: calculateGrade(parseFloat(data.score)),
             remarks: data.remarks,
-            recordedBy: user?.eduMylesUserId || "",
+            recordedBy: user?._id || "",
         }));
 
         try {

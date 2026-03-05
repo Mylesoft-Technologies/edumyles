@@ -110,9 +110,9 @@ export async function GET(request: NextRequest) {
 
     const dashboard = getRoleDashboardPath(role);
     
-    // Redirect to frontend app if configured, otherwise use relative path
-    const frontendUrl = process.env.NEXT_PUBLIC_APP_URL;
-    const redirectUrl = frontendUrl ? `${frontendUrl}${dashboard}` : dashboard;
+    // For now, redirect to landing page with success message since frontend isn't deployed separately
+    // TODO: Deploy frontend to separate domain and use NEXT_PUBLIC_APP_URL
+    const redirectUrl = "/?auth_success=true";
     
     const response = NextResponse.redirect(new URL(redirectUrl, request.url));
 
