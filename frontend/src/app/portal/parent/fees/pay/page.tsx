@@ -1,15 +1,5 @@
 "use client";
 
-<<<<<<< HEAD
-import { PageHeader } from "@/components/shared/PageHeader";
-import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
-import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-=======
 import { useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
@@ -28,11 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
 import { CreditCard, Smartphone, Building, CheckCircle, Clock, AlertCircle } from "lucide-react";
->>>>>>> main
 
 export default function ParentPayFeesPage() {
   const { isLoading } = useAuth();
@@ -42,28 +29,7 @@ export default function ParentPayFeesPage() {
     {}
   );
 
-<<<<<<< HEAD
-  const getOutstanding = useQuery(
-    api.modules.portal.parent.queries.getChildrenFeeOverview,
-    {}
-  );
-
-  const initiatePayment = useMutation(
-    api.modules.portal.parent.mutations.initiatePayment
-  );
-
-  if (isLoading || children === undefined || getOutstanding === undefined) {
-    return <LoadingSkeleton variant="page" />;
-  }
-
-  const handlePay = async (studentId: string, invoiceId: string) => {
-    try {
-      await initiatePayment({ invoiceId, method: "mpesa" });
-      toast({
-        title: "Payment initiated",
-        description: "M-Pesa STK push will complete this payment in Phase 11.",
-=======
-  useQuery(api.modules.portal.parent.queries.getChildrenFeeOverview, {});
+  const getOutstanding = useQuery(api.modules.portal.parent.queries.getChildrenFeeOverview, {});
 
   const initiateStkPush = useAction(api.actions.payments.mpesa.initiateStkPush);
 
@@ -165,19 +131,10 @@ export default function ParentPayFeesPage() {
       toast({
         title: "Payment initiated",
         description: result.message ?? "Payment request submitted successfully",
->>>>>>> main
       });
     } catch (error) {
       toast({
         title: "Payment failed",
-<<<<<<< HEAD
-        description: "Unable to initiate payment. Please try again later.",
-        variant: "destructive",
-      });
-    }
-  };
-
-=======
         description: error instanceof Error ? error.message : "Unable to initiate payment. Please try again later.",
         variant: "destructive",
       });
@@ -189,7 +146,7 @@ export default function ParentPayFeesPage() {
   if (isLoading || children === undefined) {
     return <LoadingSkeleton variant="page" />;
   }
->>>>>>> main
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -202,16 +159,6 @@ export default function ParentPayFeesPage() {
           No children are linked to your account yet.
         </p>
       ) : (
-<<<<<<< HEAD
-        children.map((child: any) => (
-          <ChildPayCard
-            key={child._id}
-            child={child}
-            onPay={handlePay}
-          />
-        ))
-      )}
-=======
         children.map((child: { _id: Id<"students">; firstName: string; lastName: string }) => (
           <ChildPayCard
             key={child._id}
@@ -369,6 +316,7 @@ export default function ParentPayFeesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {/* Payment History */}
       {paymentHistory.length > 0 && (
         <Card className="mt-6">
@@ -428,24 +376,16 @@ export default function ParentPayFeesPage() {
           </CardContent>
         </Card>
       )}
->>>>>>> main
     </div>
   );
 }
 
 function ChildPayCard({
   child,
-<<<<<<< HEAD
-  onPay,
-}: {
-  child: any;
-  onPay: (studentId: string, invoiceId: string) => void;
-=======
   onPayClick,
 }: {
   child: { _id: Id<"students">; firstName: string; lastName: string };
   onPayClick: (invoiceId: Id<"invoices">, amount: number, label?: string) => void;
->>>>>>> main
 }) {
   const outstandingInvoices = useQuery(
     api.modules.portal.parent.queries.getOutstandingInvoicesForChild,
@@ -479,22 +419,14 @@ function ChildPayCard({
       <CardContent className="space-y-2 text-sm text-muted-foreground">
         {hasOutstanding ? (
           <>
-<<<<<<< HEAD
-            {outstandingInvoices.map((inv: any) => (
-=======
             {outstandingInvoices.map((inv: { _id: Id<"invoices">; dueDate: string; amount: number }) => (
->>>>>>> main
               <div key={inv._id} className="flex items-center justify-between">
                 <span>
                   Invoice • Due {inv.dueDate} • KES {inv.amount}
                 </span>
                 <Button
                   size="sm"
-<<<<<<< HEAD
-                  onClick={() => onPay(String(child._id), String(inv._id))}
-=======
                   onClick={() => onPayClick(inv._id, inv.amount, `${child.firstName} ${child.lastName}`)}
->>>>>>> main
                 >
                   Pay with M-Pesa
                 </Button>
@@ -508,4 +440,3 @@ function ChildPayCard({
     </Card>
   );
 }
-

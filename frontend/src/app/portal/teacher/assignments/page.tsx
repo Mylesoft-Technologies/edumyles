@@ -4,11 +4,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "convex/react";
-<<<<<<< HEAD
-import { api } from "../../../../../convex/_generated/api";
-=======
 import { api } from "@/convex/_generated/api";
->>>>>>> main
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -17,88 +13,100 @@ import { Plus, FileText, ChevronRight } from "lucide-react";
 export default function AssignmentsPage() {
     const { user, isLoading: authLoading } = useAuth();
 
-<<<<<<< HEAD
-    const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
-        user?.tenantId && user?.eduMylesUserId ? {
-            tenantId: user.tenantId,
-            teacherId: user.eduMylesUserId
-        } : "skip"
-=======
     const classes = useQuery(
         api.modules.academics.queries.getTeacherClasses,
         {}
->>>>>>> main
     );
 
-    // In a real implementation, we might want a cross-class assignment query for the teacher.
-    // For now, we'll suggest selecting a class or show a list from a new teacher assignments query if it existed.
-    // Let's assume we implement a simple list for the first class for now or show an empty state.
-
-<<<<<<< HEAD
-    const assignments = useQuery(api.modules.academics.queries.getAssignments,
-        classes?.[0]?._id ? { tenantId: user?.tenantId || "", classId: classes[0]._id } : "skip"
-=======
     const assignments = useQuery(
         api.modules.academics.queries.getAssignments,
-        classes?.[0]?._id ? { classId: classes[0]._id } : "skip"
->>>>>>> main
+        classes?.[0]?._id ? { tenantId: user?.tenantId || "", classId: classes[0]._id } : "skip"
     );
 
-    if (authLoading || classes === undefined) return <LoadingSkeleton variant="page" />;
+    if (authLoading || classes === undefined || assignments === undefined) {
+        return <LoadingSkeleton variant="page" />;
+    }
 
     const columns = [
-<<<<<<< HEAD
-        { header: "Title", accessorKey: "title" },
-        { header: "Due Date", accessorKey: "dueDate" },
-        { header: "Max Points", accessorKey: "maxPoints" },
-        { header: "Status", accessorKey: "status" },
         {
-            header: "Actions",
+            header: "Title",
+            accessorKey: "title",
+        },
+        {
+            header: "Class",
+            accessorKey: "className",
+        },
+        {
+            header: "Due Date",
+            accessorKey: "dueDate",
+        },
+        {
+            header: "Type",
+            accessorKey: "type",
+        },
+        {
+            header: "Max Score",
+            accessorKey: "maxScore",
+        },
+        {
             id: "actions",
-=======
-        { key: "title", header: "Title", cell: (row: any) => row.title },
-        { key: "dueDate", header: "Due Date", cell: (row: any) => row.dueDate },
-        { key: "maxPoints", header: "Max Points", cell: (row: any) => row.maxPoints },
-        { key: "status", header: "Status", cell: (row: any) => row.status },
-        {
-            key: "actions",
-            header: "Actions",
->>>>>>> main
             cell: (row: any) => (
-                <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/portal/teacher/assignments/${row._id}`}>
-                        Submissions
-                        <ChevronRight className="ml-2 h-4 w-4" />
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/portal/teacher/assignments/${row.original._id}`}>
+                        View
                     </Link>
                 </Button>
-            )
+            ),
         },
     ];
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <PageHeader
-                    title="Assignments"
-                    description="Create and manage student assessments."
-                />
+            <PageHeader
+                title="Assignments"
+                description="Manage your class assignments"
+                breadcrumbs={[
+                    { label: "Teacher Portal", href: "/portal/teacher" },
+                    { label: "Assignments" }
+                ]}
+            />
+
+            <div className="flex justify-between items-center">
+                <div>
+                    <h3 className="text-lg font-semibold">Your Assignments</h3>
+                    <p className="text-sm text-muted-foreground">
+                        {assignments.length} assignment{assignments.length !== 1 ? "s" : ""} total
+                    </p>
+                </div>
                 <Button asChild>
                     <Link href="/portal/teacher/assignments/create">
-                        <Plus className="mr-2 h-4 w-4" />
-                        New Assignment
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Assignment
                     </Link>
                 </Button>
             </div>
 
-            <DataTable
-                columns={columns}
-                data={assignments || []}
-<<<<<<< HEAD
-                searchKey="title"
-=======
-                searchKey={(row: any) => row.title}
->>>>>>> main
-            />
+            {assignments.length === 0 ? (
+                <div className="text-center py-12">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No assignments yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                        Create your first assignment to get started
+                    </p>
+                    <Button asChild>
+                        <Link href="/portal/teacher/assignments/create">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Assignment
+                        </Link>
+                    </Button>
+                </div>
+            ) : (
+                <DataTable
+                    columns={columns}
+                    data={assignments}
+                    searchKey="title"
+                />
+            )}
         </div>
     );
 }

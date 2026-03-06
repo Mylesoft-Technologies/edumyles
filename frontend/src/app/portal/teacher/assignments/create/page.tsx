@@ -5,11 +5,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "convex/react";
-<<<<<<< HEAD
-import { api } from "../../../../../convex/_generated/api";
-=======
 import { api } from "@/convex/_generated/api";
->>>>>>> main
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,17 +19,9 @@ export default function CreateAssignmentPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
-<<<<<<< HEAD
-    const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
-        user?.tenantId && user?.eduMylesUserId ? {
-            tenantId: user.tenantId,
-            teacherId: user.eduMylesUserId
-        } : "skip"
-=======
     const classes = useQuery(
         api.modules.academics.queries.getTeacherClasses,
         {}
->>>>>>> main
     );
 
     const createAssignmentMutation = useMutation(api.modules.academics.mutations.createAssignment);
@@ -46,110 +34,144 @@ export default function CreateAssignmentPage() {
 
         const formData = new FormData(e.currentTarget);
         const data = {
-<<<<<<< HEAD
             tenantId: user?.tenantId || "",
-            classId: formData.get("classId") as string,
-            subjectId: formData.get("subjectId") as string,
-            teacherId: user?.eduMylesUserId || "",
+            teacherId: user?._id || "",
             title: formData.get("title") as string,
             description: formData.get("description") as string,
-            dueDate: formData.get("dueDate") as string,
-            maxPoints: parseInt(formData.get("maxPoints") as string),
-=======
             classId: formData.get("classId") as string,
-            subjectId: formData.get("subjectId") as string,
-            title: formData.get("title") as string,
-            description: formData.get("description") as string,
             dueDate: formData.get("dueDate") as string,
-            maxPoints: parseInt(formData.get("maxPoints") as string, 10),
->>>>>>> main
-            status: "active",
+            maxScore: parseInt(formData.get("maxScore") as string),
+            type: formData.get("type") as string,
         };
 
         try {
             await createAssignmentMutation(data);
-            toast({ title: "Success", description: "Assignment created successfully." });
+            toast({
+                title: "Assignment created",
+                description: "The assignment has been created successfully.",
+            });
             router.push("/portal/teacher/assignments");
         } catch (error) {
-            toast({ title: "Error", description: "Failed to create assignment.", variant: "destructive" });
+            toast({
+                title: "Error",
+                description: "Failed to create assignment. Please try again.",
+                variant: "destructive",
+            });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="space-y-6 max-w-2xl mx-auto">
+        <div className="space-y-6">
             <PageHeader
-<<<<<<< HEAD
-                title="New Assignment"
-                description="Create a new assessment for your students."
-                backHref="/portal/teacher/assignments"
-=======
                 title="Create Assignment"
-                description="Add a new assignment for your students"
+                description="Create a new assignment for your students"
                 breadcrumbs={[
                     { label: "Assignments", href: "/portal/teacher/assignments" },
                     { label: "Create" }
                 ]}
->>>>>>> main
             />
 
             <Card>
-                <CardContent className="pt-6">
+                <CardContent className="p-6">
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Class</label>
-                                <Select name="classId" required>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select class" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {classes.map(cls => (
-                                            <SelectItem key={cls._id} value={cls._id}>{cls.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Subject</label>
-                                <Select name="subjectId" required>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select subject" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="math">Mathematics</SelectItem>
-                                        <SelectItem value="eng">English</SelectItem>
-                                        <SelectItem value="sci">Science</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        <div>
+                            <label htmlFor="title" className="block text-sm font-medium mb-2">
+                                Assignment Title
+                            </label>
+                            <Input
+                                id="title"
+                                name="title"
+                                placeholder="Enter assignment title"
+                                required
+                            />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Assignment Title</label>
-                            <Input name="title" placeholder="e.g. Algebra Quiz 1" required />
+                        <div>
+                            <label htmlFor="description" className="block text-sm font-medium mb-2">
+                                Description
+                            </label>
+                            <Textarea
+                                id="description"
+                                name="description"
+                                placeholder="Enter assignment description"
+                                rows={4}
+                                required
+                            />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Description</label>
-                            <Textarea name="description" placeholder="Describe the assignment details..." className="h-32" required />
+                        <div>
+                            <label htmlFor="classId" className="block text-sm font-medium mb-2">
+                                Class
+                            </label>
+                            <Select name="classId" required>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a class" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {classes.map((cls: any) => (
+                                        <SelectItem key={cls._id} value={cls._id}>
+                                            {cls.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Due Date</label>
-                                <Input name="dueDate" type="date" required />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Max Points</label>
-                                <Input name="maxPoints" type="number" defaultValue="100" required />
-                            </div>
+                        <div>
+                            <label htmlFor="dueDate" className="block text-sm font-medium mb-2">
+                                Due Date
+                            </label>
+                            <Input
+                                id="dueDate"
+                                name="dueDate"
+                                type="date"
+                                required
+                            />
                         </div>
 
-                        <div className="flex justify-end pt-4">
+                        <div>
+                            <label htmlFor="maxScore" className="block text-sm font-medium mb-2">
+                                Maximum Score
+                            </label>
+                            <Input
+                                id="maxScore"
+                                name="maxScore"
+                                type="number"
+                                placeholder="100"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="type" className="block text-sm font-medium mb-2">
+                                Assignment Type
+                            </label>
+                            <Select name="type" required>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select assignment type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="homework">Homework</SelectItem>
+                                    <SelectItem value="quiz">Quiz</SelectItem>
+                                    <SelectItem value="test">Test</SelectItem>
+                                    <SelectItem value="project">Project</SelectItem>
+                                    <SelectItem value="exam">Exam</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex gap-4">
                             <Button type="submit" disabled={loading}>
                                 {loading ? "Creating..." : "Create Assignment"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.back()}
+                            >
+                                Cancel
                             </Button>
                         </div>
                     </form>
