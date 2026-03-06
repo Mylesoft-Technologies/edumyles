@@ -66,16 +66,8 @@ interface UserInfo {
 }
 
 function getUserFromCookie(): UserInfo | null {
-  if (typeof document === "undefined") return null;
-  try {
-    const match = document.cookie
-      .split("; ")
-      .find((c) => c.startsWith("edumyles_user="));
-    if (!match) return null;
-    return JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
-  } catch {
-    return null;
-  }
+  // ALWAYS return null on landing page - this is a marketing page, not an authenticated app
+  return null;
 }
 
 
@@ -93,15 +85,8 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Read user cookie on mount - DISABLED for landing page
   // Landing page should always show login/signup buttons, not logged-in state
   useEffect(() => {
-    // Clear any existing auth cookies on landing page to ensure clean state
-    if (typeof document !== "undefined") {
-      document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "edumyles_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
     setUser(null); // Always force null user state on landing page
   }, []);
 
