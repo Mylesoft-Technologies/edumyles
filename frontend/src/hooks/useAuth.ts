@@ -52,6 +52,15 @@ export function useAuth() {
 
         console.log("[useAuth] Session query result:", result);
         console.log("[useAuth] Token from cookie:", token);
+        
+        // Store logs in localStorage for debugging
+        const logData = {
+          timestamp: new Date().toISOString(),
+          sessionResult: result,
+          tokenFromCookie: token,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        };
+        localStorage.setItem('edumyles_auth_debug', JSON.stringify(logData));
 
         if (!cancelled) {
           setSession(result as Session | null);
