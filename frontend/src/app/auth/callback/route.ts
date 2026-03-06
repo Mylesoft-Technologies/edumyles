@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
     const sessionToken = crypto.randomBytes(32).toString("hex");
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 
-    await convex.mutation(api.platform.createPlatformSession, {
+    await convex.mutation(api.platform.createSession, {
       sessionToken,
       tenantId,
       userId: workosUserId,

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-export const createPlatformSession = mutation({
+export const createSession = mutation({
   args: {
     sessionToken: v.string(),
     tenantId: v.string(),
@@ -11,13 +11,14 @@ export const createPlatformSession = mutation({
     expiresAt: v.number(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("platformSessions", {
+    await ctx.db.insert("sessions", {
       token: args.sessionToken,
       userId: args.userId,
       role: args.role,
       permissions: [], // TODO: Calculate based on role
       expiresAt: args.expiresAt,
       createdAt: Date.now(),
+      tenantId: args.tenantId,
     });
     return { success: true };
   },
@@ -29,10 +30,9 @@ export const getSession = query({
   },
   handler: async (ctx, args) => {
     const session = await ctx.db
-      .query("platformSessions")
-      .withIndex("by_token")
-      .eq("token", args.sessionToken)
-      .first();
+      .query("sessions")
+      .withIndex("by_token", q => q.eq("token", args.sessionToken))
+      .unique();
     
     if (!session) {
       return null;
@@ -40,7 +40,6 @@ export const getSession = query({
     
     // Check if session is expired
     if (session.expiresAt < Date.now()) {
-      await ctx.db.delete(session._id);
       return null;
     }
     

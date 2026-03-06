@@ -17,9 +17,25 @@ export default defineSchema({
     isActive: v.boolean(), createdAt: v.number(),
   }).index("by_workos_user", ["workosUserId"]).index("by_email", ["email"]),
 
+  // Legacy sessions table for backward compatibility
+  sessions: defineTable({
+    tenantId: v.string(), token: v.optional(v.string()), userId: v.string(), role: v.string(),
+    permissions: v.optional(v.array(v.string())), expiresAt: v.number(), createdAt: v.number(),
+    isActive: v.optional(v.boolean()),
+    deviceInfo: v.optional(v.string()),
+    workosUserId: v.optional(v.string()),
+    email: v.optional(v.string()),
+    sessionToken: v.optional(v.string()),
+  }).index("by_tenant", ["tenantId"]).index("by_token", ["token"]).index("by_tenant_user", ["tenantId", "userId"]),
+
   platformSessions: defineTable({
     token: v.string(), userId: v.string(), role: v.string(),
     permissions: v.array(v.string()), expiresAt: v.number(), createdAt: v.number(),
+    // Optional fields for backward compatibility
+    isActive: v.optional(v.boolean()),
+    deviceInfo: v.optional(v.string()),
+    workosUserId: v.optional(v.string()),
+    tenantId: v.optional(v.string()),
   }).index("by_token", ["token"]).index("by_user", ["userId"]),
 
   platformAuditLogs: defineTable({
@@ -60,11 +76,6 @@ export default defineSchema({
     email: v.string(), phone: v.optional(v.string()), firstName: v.string(), lastName: v.string(),
     photo: v.optional(v.string()), isActive: v.boolean(), createdAt: v.number(), updatedAt: v.number(),
   }).index("by_tenant", ["tenantId"]).index("by_tenant_role", ["tenantId", "role"]).index("by_tenant_email", ["tenantId", "email"]).index("by_workos_user", ["workosUserId"]),
-
-  sessions: defineTable({
-    tenantId: v.string(), token: v.string(), userId: v.string(), role: v.string(),
-    permissions: v.array(v.string()), expiresAt: v.number(), createdAt: v.number(),
-  }).index("by_tenant", ["tenantId"]).index("by_token", ["token"]).index("by_tenant_user", ["tenantId", "userId"]),
 
   auditLogs: defineTable({
     tenantId: v.string(), actorId: v.string(), actorEmail: v.string(), action: v.string(),
