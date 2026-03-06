@@ -238,29 +238,51 @@ export default function PlatformDashboardPage() {
 
       {/* Secondary Content */}
       <div className="grid gap-6 md:grid-cols-2">
-              Plan Distribution
-            </CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent>
-            {stats?.planCounts ? (
-              <div className="space-y-3">
-                {Object.entries(stats.planCounts).map(([plan, count]) => (
-                  <div key={plan} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${plan === "enterprise" ? "bg-purple-500" :
-                        plan === "growth" ? "bg-blue-500" :
-                          plan === "starter" ? "bg-green-500" :
-                            "bg-gray-400"
-                        }`} />
-                      <span className="text-sm font-medium capitalize">{plan}</span>
-                    </div>
-                    <span className="text-sm font-bold">{count as number}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Loading plan data...</p>
-            )}
+          <CardContent className="space-y-4">
+            <Button className="w-full justify-start" variant="outline">
+              <UserCheck className="h-4 w-4 mr-2" />
+              View All Users
+            </Button>
+            <Button className="w-full justify-start" variant="outline">
+              <Building2 className="h-4 w-4 mr-2" />
+              Manage Tenants
+            </Button>
+            <Button className="w-full justify-start" variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
+              System Logs
+            </Button>
+            <Button className="w-full justify-start" variant="outline">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Security Center
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>System Status</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">API Status</span>
+              <Badge className="bg-green-100 text-green-800">Operational</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Database</span>
+              <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">CDN</span>
+              <Badge className="bg-green-100 text-green-800">Active</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Backup</span>
+              <Badge className="bg-amber-100 text-amber-800">In Progress</Badge>
+            </div>
           </CardContent>
         </Card>
 
