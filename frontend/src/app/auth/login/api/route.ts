@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Login redirect error:", error);
     const fallback = new URL("/", req.url);
-    fallback.searchParams.set("authError", "login_unavailable");
+    fallback.searchParams.set("auth_error", "Login service is temporarily unavailable. Please try again later.");
     return NextResponse.redirect(fallback);
   }
 }

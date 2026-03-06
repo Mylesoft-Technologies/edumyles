@@ -126,33 +126,9 @@ export async function GET(req: NextRequest) {
         expiresAt: Date.now() + thirtyDays,
       });
       console.log("[auth/callback] ✅ Session created successfully");
-      console.log("[auth/callback] Session data stored:", {
-        sessionToken,
-        tenantId,
-        userId: workosUserId,
-        email,
-        role,
-        expiresAt: Date.now() + thirtyDays,
-      });
-      
-      // Store callback debug info in localStorage (client-side only)
-      if (typeof window !== 'undefined') {
-        const callbackLogData = {
-          timestamp: new Date().toISOString(),
-          sessionCreated: true,
-          sessionToken,
-          redirectUrl: dashboard,
-          userAgent: req.headers.get('user-agent') || 'unknown',
-        };
-        localStorage.setItem('edumyles_callback_debug', JSON.stringify(callbackLogData));
-      }
+      console.log("[auth/callback] Session created and stored");
     } catch (error) {
-      console.error("[auth/callback] ❌ Session creation failed:", error);
-      console.error("[auth/callback] ❌ Error details:", {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name,
-      });
+      console.error("[auth/callback] Session creation failed:", error);
       // Continue anyway - user can still login but session won't be validated
     }
 

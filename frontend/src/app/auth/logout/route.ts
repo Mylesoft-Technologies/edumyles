@@ -15,9 +15,19 @@ export async function POST(request: NextRequest) {
       expires: new Date(0) // Set to past date to ensure deletion
     });
 
-    // Clear any other auth cookies
+    // Clear user info cookie
     response.cookies.set("edumyles_user", "", {
-      httpOnly: true,
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+      expires: new Date(0)
+    });
+
+    // Clear role cookie
+    response.cookies.set("edumyles_role", "", {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",

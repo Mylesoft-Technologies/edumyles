@@ -1,10 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
 
 type Session = {
-  _id: string;
   sessionToken: string;
   tenantId: string;
   userId: string;
@@ -12,21 +9,6 @@ type Session = {
   role: string;
   expiresAt: number;
 };
-
-const convex = new ConvexHttpClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL ?? ""
-);
-
-const SESSION_COOKIE_NAME = "edumyles_session";
-
-function getSessionTokenFromCookie(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${SESSION_COOKIE_NAME}=`));
-  if (match) return decodeURIComponent(match.split("=")[1]);
-  return null;
-}
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
@@ -37,8 +19,12 @@ export function useAuth() {
 
     async function loadSession() {
       try {
-        const token = getSessionTokenFromCookie();
-        if (!token) {
+        // Use server-side API endpoint to validate the httpOnly session cookie
+        const res = await fetch("/api/auth/session", {
+          credentials: "same-origin",
+        });
+
+        if (!res.ok) {
           if (!cancelled) {
             setSession(null);
             setIsLoading(false);
@@ -46,24 +32,10 @@ export function useAuth() {
           return;
         }
 
-        const result = await convex.query(api.sessions.getSession, {
-          sessionToken: token,
-        });
-
-        console.log("[useAuth] Session query result:", result);
-        console.log("[useAuth] Token from cookie:", token);
-        
-        // Store logs in localStorage for debugging
-        const logData = {
-          timestamp: new Date().toISOString(),
-          sessionResult: result,
-          tokenFromCookie: token,
-          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
-        };
-        localStorage.setItem('edumyles_auth_debug', JSON.stringify(logData));
+        const data = await res.json();
 
         if (!cancelled) {
-          setSession(result as Session | null);
+          setSession(data.session as Session | null);
           setIsLoading(false);
         }
       } catch {
@@ -97,17 +69,17 @@ export function useAuth() {
         sessionStorage.clear();
         
         // Redirect to login page
-        const returnUrl = encodeURIComponent(window.location.pathname);
-        window.location.href = `/login?returnUrl=${returnUrl}`;
+          const returnUrl = encodeURIComponent(window.location.pathname);
+          window.location.href = `/auth/login?returnUrl=${returnUrl}`;
       } else {
         console.error("Logout failed");
         // Fallback: still redirect to login
-        window.location.href = "/login";
+        window.location.href = "/auth/login";
       }
     } catch (error) {
       console.error("Logout error:", error);
       // Fallback: still redirect to login
-      window.location.href = "/login";
+      window.location.href = "/auth/login";
     }
   }, []);
 
