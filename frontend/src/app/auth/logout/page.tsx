@@ -35,9 +35,9 @@ export default function LogoutPage() {
       setTimeout(() => {
         const returnUrl = searchParams.get("returnUrl");
         if (returnUrl && returnUrl !== "/auth/logout") {
-          router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+          router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
         } else {
-          router.push("/auth/login");
+          router.push("/login");
         }
       }, 2000);
       
@@ -60,9 +60,9 @@ export default function LogoutPage() {
   const handleGoToLogin = () => {
     const returnUrl = searchParams.get("returnUrl");
     if (returnUrl && returnUrl !== "/auth/logout") {
-      router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+      router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
     } else {
-      router.push("/auth/login");
+      router.push("/login");
     }
   };
 
@@ -112,7 +112,7 @@ export default function LogoutPage() {
                   {message}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Redirecting you to the login page...
+                  Redirecting you to login page...
                 </p>
               </div>
             )}
