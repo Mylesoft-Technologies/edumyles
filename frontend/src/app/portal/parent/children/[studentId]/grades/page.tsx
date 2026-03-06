@@ -28,18 +28,12 @@ export default function ChildGradesPage({
   return (
     <div className="space-y-4">
       <PageHeader
-<<<<<<< HEAD
-        title="Grades"
-        description="Subject grades by term"
-        backHref={`/portal/parent/children/${studentId}`}
-=======
         title="Academic Performance"
         description="Grade reports and assessment results"
         breadcrumbs={[
           { label: "Child Profile", href: `/portal/parent/children/${studentId}` },
           { label: "Grades" }
         ]}
->>>>>>> main
       />
 
       {grades.length === 0 ? (

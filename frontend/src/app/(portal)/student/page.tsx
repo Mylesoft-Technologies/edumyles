@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { StatCard } from "@/components/shared/StatCard";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,25 +30,25 @@ export default function StudentDashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Average Score"
-                    value={`${gpa}%`}
+                    value={parseFloat(gpa)}
                     icon={GraduationCap}
                     trend="+2.1% from last term"
                 />
                 <StatCard
                     title="Attendance"
-                    value={`${attendanceRate}%`}
+                    value={parseFloat(attendanceRate)}
                     icon={Calendar}
                     trend="Overall rate"
                 />
                 <StatCard
                     title="Pending Tasks"
-                    value={pendingAssignments.toString()}
+                    value={pendingAssignments}
                     icon={FileText}
                     trend={`${assignments?.length || 0} total assignments`}
                 />
                 <StatCard
                     title="Wallet Balance"
-                    value={`KES ${wallet?.balanceCents ? (wallet.balanceCents / 100).toLocaleString() : "0"}`}
+                    value={wallet?.balanceCents ? wallet.balanceCents / 100 : 0}
                     icon={Wallet}
                     trend="Available for spending"
                 />
