@@ -93,9 +93,16 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Read user cookie on mount
+  // Read user cookie on mount - DISABLED for landing page
+  // Landing page should always show login/signup buttons, not logged-in state
   useEffect(() => {
-    setUser(getUserFromCookie());
+    // Clear any existing auth cookies on landing page to ensure clean state
+    if (typeof document !== "undefined") {
+      document.cookie = "edumyles_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "edumyles_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "edumyles_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+    setUser(null); // Always force null user state on landing page
   }, []);
 
 
