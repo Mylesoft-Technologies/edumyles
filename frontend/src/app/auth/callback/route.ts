@@ -4,7 +4,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import crypto from "crypto";
 
-const MASTER_ADMIN_EMAIL = process.env.MASTER_ADMIN_EMAIL ?? "";
+const MASTER_ADMIN_EMAIL = process.env.MASTER_ADMIN_EMAIL ?? "ayany004@gmail.com";
 
 function resolveRole(email: string, _orgId?: string): string {
   if (MASTER_ADMIN_EMAIL && email.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase()) {
