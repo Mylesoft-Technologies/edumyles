@@ -1,41 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
+import { WorkOS } from "@workos-inc/node";
 
 export async function POST(req: NextRequest) {
-    try {
-        const { email, schoolName, provider } = await req.json();
-        const clientId = process.env.NEXT_PUBLIC_WORKOS_CLIENT_ID || process.env.WORKOS_CLIENT_ID;
-        const redirectUri =
-            process.env.WORKOS_REDIRECT_URI ||
-            process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI ||
-            req.nextUrl.origin + "/auth/callback";
+  try {
+    const body = await req.json().catch(() => ({}));
+    const email = body?.email;
+    const schoolName = body?.schoolName;
+    const provider = body?.provider || "authkit";
+    const apiKey = process.env.WORKOS_API_KEY;
+    const clientId =
+      process.env.NEXT_PUBLIC_WORKOS_CLIENT_ID ||
+      process.env.WORKOS_CLIENT_ID;
+    const redirectUri =
+      process.env.WORKOS_REDIRECT_URI ||
+      process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI ||
+      req.nextUrl.origin + "/auth/callback";
 
-        if (!clientId) {
-            return NextResponse.json({ error: "Authentication service not configured" }, { status: 500 });
-        }
-
-        const params = new URLSearchParams({
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            response_type: "code",
-        });
-
-        if (provider) {
-            params.set("provider", provider);
-            params.set("screen_hint", "sign-up");
-        } else if (email) {
-            params.set("login_hint", email);
-            params.set("screen_hint", "sign-up");
-            if (schoolName) {
-                const state = Buffer.from(JSON.stringify({ schoolName })).toString("base64url");
-                params.set("state", state);
-            }
-        } else {
-            return NextResponse.json({ error: "Email or provider is required" }, { status: 400 });
-        }
-
-        const authUrl = "https://api.workos.com/user-management/authorize?" + params.toString();
-        return NextResponse.json({ authUrl });
-    } catch {
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    if (!clientId || !apiKey) {
+      return NextResponse.json(
+        { error: "Authentication service not configured" },
+        { status: 500 }
+      );
     }
+
+    const state = schoolName
+      ? Buffer.from(JSON.stringify({ schoolName })).toString("base64url")
+      : undefined;
+
+    const workos = new WorkOS(apiKey);
+    
+    // Configure provider based on selection
+    let providerConfig: any = {
+      clientId,
+      redirectUri,
+      screenHint: "sign-up",
+      ...(email ? { loginHint: email } : {}),
+      ...(state ? { state } : {}),
+    };
+
+    // Set specific provider if Google or Microsoft is selected
+    if (provider === "google") {
+      providerConfig.provider = "Google";
+    } else if (provider === "microsoft") {
+      providerConfig.provider = "Microsoft";
+    } else {
+      providerConfig.provider = "authkit"; // Default to AuthKit for email
+    }
+
+    const authUrl = workos.userManagement.getAuthorizationUrl(providerConfig);
+
+    return NextResponse.json({ authUrl });
+  } catch (error) {
+    console.error("Signup API error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

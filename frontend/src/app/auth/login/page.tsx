@@ -1,5 +1,23 @@
 import { redirect } from "next/navigation";
-export const metadata = { title: "Sign In — EduMyles" };
-export default async function LoginPage() {
-  redirect("/admin");
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string; returnTo?: string }>;
+}) {
+  const params = await searchParams;
+  const query = new URLSearchParams();
+
+  if (params.error) {
+    query.set("error", params.error);
+  }
+  if (params.next) {
+    query.set("next", params.next);
+  }
+  if (params.returnTo) {
+    query.set("returnTo", params.returnTo);
+  }
+
+  const suffix = query.toString();
+  redirect(`/auth/login/api${suffix ? `?${suffix}` : ""}`);
 }

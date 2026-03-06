@@ -29,9 +29,9 @@ export default function ModuleRequestsPage() {
     return <LoadingSkeleton variant="page" />;
   }
 
-  const pendingRequests = (requests ?? []).filter((r) => r.status === "pending");
-  const approvedRequests = (requests ?? []).filter((r) => r.status === "approved");
-  const rejectedRequests = (requests ?? []).filter((r) => r.status === "rejected");
+  const pendingRequests = ((requests as any[]) ?? []).filter((r: any) => r.status === "pending");
+  const approvedRequests = ((requests as any[]) ?? []).filter((r: any) => r.status === "approved");
+  const rejectedRequests = ((requests as any[]) ?? []).filter((r: any) => r.status === "rejected");
 
   const handleApprove = async (requestId: string) => {
     setIsProcessing(true);

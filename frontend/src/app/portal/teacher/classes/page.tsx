@@ -4,7 +4,11 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "convex/react";
+<<<<<<< HEAD
 import { api } from "../../../../../../convex/_generated/api";
+=======
+import { api } from "@/convex/_generated/api";
+>>>>>>> main
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -13,11 +17,17 @@ import { BookOpen, Users, ChevronRight } from "lucide-react";
 export default function MyClassesPage() {
     const { user, isLoading: authLoading } = useAuth();
 
+<<<<<<< HEAD
     const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
         user?.tenantId && user?.eduMylesUserId ? {
             tenantId: user.tenantId,
             teacherId: user.eduMylesUserId
         } : "skip"
+=======
+    const classes = useQuery(
+        api.modules.academics.queries.getTeacherClasses,
+        {}
+>>>>>>> main
     );
 
     if (authLoading || classes === undefined) return <LoadingSkeleton variant="page" />;

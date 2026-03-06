@@ -48,7 +48,24 @@ export const getStudent = query({
             return null;
         }
 
-        return student;
+        const classData = student.classId
+            ? await ctx.db.get(student.classId as any)
+            : null;
+
+        const guardians = await ctx.db
+            .query("guardians")
+            .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId))
+            .collect();
+
+        const studentGuardians = guardians.filter((g) =>
+            g.studentIds.includes(student._id.toString())
+        );
+
+        return {
+            ...student,
+            class: classData,
+            guardians: studentGuardians,
+        };
     },
 });
 
@@ -86,12 +103,23 @@ export const listClasses = query({
             .query("classes")
             .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
 
-        // Academic year index is not present in root schema, filtering manually for now
         const classes = await classesQuery.collect();
+        const enrichedClasses = await Promise.all(
+            classes.map(async (c) => {
+                const students = await ctx.db
+                    .query("students")
+                    .withIndex("by_tenant_class", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("classId", c._id)
+                    )
+                    .collect();
+                return { ...c, studentCount: students.length };
+            })
+        );
+
         if (args.academicYear) {
-            return classes.filter((c) => c.academicYear === args.academicYear);
+            return enrichedClasses.filter((c) => c.academicYear === args.academicYear);
         }
-        return classes;
+        return enrichedClasses;
     },
 });
 

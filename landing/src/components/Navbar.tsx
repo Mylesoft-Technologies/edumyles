@@ -109,10 +109,16 @@ export default function Navbar() {
     ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || (user.email?.[0] ?? "").toUpperCase())
     : "";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const directMasterAdminUrl = appUrl
-    ? `${appUrl.replace(/\/$/, "")}/auth/direct-master-admin`
-    : "/auth/signup";
 
+  const handleLogout = () => {
+    // Use server-side logout to properly clear httpOnly cookies
+    window.location.href = "/auth/logout";
+  };
+
+  const handleMobileLogout = () => {
+    setMobileMenuOpen(false);
+    window.location.href = "/auth/logout";
+  };
 
   return (
     <>
@@ -158,21 +164,25 @@ export default function Navbar() {
                 <div className="navbar-avatar">{initials}</div>
                 <span className="navbar-username">{user.firstName || user.email.split("@")[0]}</span>
               </div>
-              <a className="navbar-login" href="http://localhost:3000/dashboard">
+              <button
+                type="button"
+                className="navbar-login"
+                onClick={handleLogout}
+              >
                 Log Out
-              </a>
+              </button>
             </>
           ) : (
             <>
-              <a className="navbar-login" href="http://localhost:3000/dashboard">
+              <Link className="navbar-login" href="/auth/login">
                 Log In
-              </a>
-              <a className="navbar-get-started" href={directMasterAdminUrl}>
+              </Link>
+              <Link className="navbar-get-started" href="/auth/signup">
                 Get Started
-              </a>
-              <a className="navbar-signup" href="http://localhost:3000/dashboard">
+              </Link>
+              <Link className="navbar-signup" href="/auth/signup">
                 Sign Up Free
-              </a>
+              </Link>
             </>
           )}
 
@@ -212,21 +222,25 @@ export default function Navbar() {
                   <div className="navbar-avatar">{initials}</div>
                   <span>{user.firstName || user.email.split("@")[0]}</span>
                 </div>
-                <a href="http://localhost:3000/dashboard" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleMobileLogout}
+                >
                   Log Out
-                </a>
+                </button>
               </>
             ) : (
               <>
-                <a href="http://localhost:3000/dashboard" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/auth/login" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
                   Log In
-                </a>
-                <a href={directMasterAdminUrl} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+                </Link>
+                <Link href="/auth/signup" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
                   Get Started
-                </a>
-                <a href="http://localhost:3000/dashboard" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
+                </Link>
+                <Link href="/auth/signup" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
                   Sign Up Free
-                </a>
+                </Link>
               </>
             )}
 

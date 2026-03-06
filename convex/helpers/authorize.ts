@@ -25,6 +25,10 @@ export type Permission =
   | "payroll:read" | "payroll:write" | "payroll:approve"
   | "library:read" | "library:write"
   | "transport:read" | "transport:write"
+  | "timetable:read" | "timetable:write"
+  | "communications:read" | "communications:write"
+  | "ewallet:read" | "ewallet:write"
+  | "ecommerce:read" | "ecommerce:write"
   | "reports:read"
   | "settings:read" | "settings:write"
   | "users:manage"
@@ -44,7 +48,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   transport_manager: ["transport:read", "transport:write", "students:read"],
   board_member: ["reports:read", "finance:read", "students:read"],
   alumni: ["grades:read", "reports:read", "attendance:read"],
-  partner: ["students:read", "finance:read", "reports:read"],
+  partner: ["students:read", "finance:read", "reports:read", "communications:read"],
 };
 
 export function requirePermission(

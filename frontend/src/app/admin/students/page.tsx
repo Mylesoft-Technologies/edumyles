@@ -50,7 +50,7 @@ export default function StudentsPage() {
 
     if (isLoading) return <LoadingSkeleton variant="page" />;
 
-    const classMap = new Map(classes?.map((c) => [c._id, c.name]) ?? []);
+    const classMap = new Map((classes as any[])?.map((c) => [c._id, c.name]) ?? []);
 
     const columns: Column<Student>[] = [
         {

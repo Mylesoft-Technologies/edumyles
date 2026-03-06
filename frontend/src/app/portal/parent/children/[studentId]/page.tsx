@@ -43,9 +43,19 @@ export default function ChildOverviewPage({
   return (
     <div className="space-y-6">
       <PageHeader
+<<<<<<< HEAD
         title={`${child.firstName} ${child.lastName}`}
         description="Overview of your child's academic information"
         backHref="/portal/parent/children"
+=======
+        title="Student Profile"
+        description="Overview and academic information"
+        breadcrumbs={[
+          { label: "Children", href: "/portal/parent/children" },
+          { label: studentId, href: `/portal/parent/children/${studentId}` },
+          { label: "Profile" }
+        ]}
+>>>>>>> main
       />
 
       <Card>

@@ -1,0 +1,153 @@
+name: External Integrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      integration:
+        description: 'Integration to run'
+        required: true
+        default: 'slack-update'
+        type: choice
+        options:
+          - slack-update
+          - teams-notification
+          - email-report
+          - calendar-sync
+          - dashboard-update
+
+jobs:
+  slack-integration:
+    name: Slack Integration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.integration == 'slack-update'
+    permissions:
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send Slack Update
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          node scripts/integrations.js slack-update
+
+  teams-integration:
+    name: Microsoft Teams Integration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.integration == 'teams-notification'
+    permissions:
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send Teams Notification
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          node scripts/integrations.js teams-notification
+
+  email-report:
+    name: Email Report Integration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.integration == 'email-report'
+    permissions:
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send Email Report
+        env:
+          EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          node scripts/integrations.js email-report
+
+  calendar-sync:
+    name: Calendar Integration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.integration == 'calendar-sync'
+    permissions:
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync to Calendar
+        env:
+          CALENDAR_URL: ${{ secrets.CALENDAR_URL }}
+          CALENDAR_API_KEY: ${{ secrets.CALENDAR_API_KEY }}
+        run: |
+          node scripts/integrations.js calendar-sync
+
+  dashboard-update:
+    name: Dashboard Integration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.integration == 'dashboard-update'
+    permissions:
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update Dashboard
+        env:
+          DASHBOARD_API_URL: ${{ secrets.DASHBOARD_API_URL }}
+          DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+        run: |
+          node scripts/integrations.js dashboard-update

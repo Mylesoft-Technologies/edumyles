@@ -1,11 +1,14 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "preserve",
     "noEmit": true,
     "incremental": true,
+    "strict": false,
+    "noImplicitAny": false,
     "plugins": [
       {
         "name": "next"

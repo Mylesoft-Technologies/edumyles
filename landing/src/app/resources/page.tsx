@@ -55,8 +55,8 @@ export default function ResourcesPage() {
           <p className="eyebrow">Resources</p>
           <h1>Learn, grow, succeed.</h1>
           <p className="subtext">
-            Videos, webinars, guides, and insights to help your school get the
-            most out of EduMyles.
+            Videos, webinars, guides, and insights to help your school get the most out of EduMyles — and empower every
+            student, teacher, and parent along the way.
           </p>
         </div>
       </section>

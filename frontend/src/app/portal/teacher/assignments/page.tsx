@@ -4,7 +4,11 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "convex/react";
+<<<<<<< HEAD
 import { api } from "../../../../../convex/_generated/api";
+=======
+import { api } from "@/convex/_generated/api";
+>>>>>>> main
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -13,24 +17,37 @@ import { Plus, FileText, ChevronRight } from "lucide-react";
 export default function AssignmentsPage() {
     const { user, isLoading: authLoading } = useAuth();
 
+<<<<<<< HEAD
     const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
         user?.tenantId && user?.eduMylesUserId ? {
             tenantId: user.tenantId,
             teacherId: user.eduMylesUserId
         } : "skip"
+=======
+    const classes = useQuery(
+        api.modules.academics.queries.getTeacherClasses,
+        {}
+>>>>>>> main
     );
 
     // In a real implementation, we might want a cross-class assignment query for the teacher.
     // For now, we'll suggest selecting a class or show a list from a new teacher assignments query if it existed.
     // Let's assume we implement a simple list for the first class for now or show an empty state.
 
+<<<<<<< HEAD
     const assignments = useQuery(api.modules.academics.queries.getAssignments,
         classes?.[0]?._id ? { tenantId: user?.tenantId || "", classId: classes[0]._id } : "skip"
+=======
+    const assignments = useQuery(
+        api.modules.academics.queries.getAssignments,
+        classes?.[0]?._id ? { classId: classes[0]._id } : "skip"
+>>>>>>> main
     );
 
     if (authLoading || classes === undefined) return <LoadingSkeleton variant="page" />;
 
     const columns = [
+<<<<<<< HEAD
         { header: "Title", accessorKey: "title" },
         { header: "Due Date", accessorKey: "dueDate" },
         { header: "Max Points", accessorKey: "maxPoints" },
@@ -38,6 +55,15 @@ export default function AssignmentsPage() {
         {
             header: "Actions",
             id: "actions",
+=======
+        { key: "title", header: "Title", cell: (row: any) => row.title },
+        { key: "dueDate", header: "Due Date", cell: (row: any) => row.dueDate },
+        { key: "maxPoints", header: "Max Points", cell: (row: any) => row.maxPoints },
+        { key: "status", header: "Status", cell: (row: any) => row.status },
+        {
+            key: "actions",
+            header: "Actions",
+>>>>>>> main
             cell: (row: any) => (
                 <Button variant="ghost" size="sm" asChild>
                     <Link href={`/portal/teacher/assignments/${row._id}`}>
@@ -67,7 +93,11 @@ export default function AssignmentsPage() {
             <DataTable
                 columns={columns}
                 data={assignments || []}
+<<<<<<< HEAD
                 searchKey="title"
+=======
+                searchKey={(row: any) => row.title}
+>>>>>>> main
             />
         </div>
     );

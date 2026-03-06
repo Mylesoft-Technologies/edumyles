@@ -1,116 +1,178 @@
 import { NextRequest, NextResponse } from "next/server";
+import { WorkOS } from "@workos-inc/node";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+import crypto from "crypto";
 
+const MASTER_ADMIN_EMAIL = process.env.MASTER_ADMIN_EMAIL ?? "";
+
+function resolveRole(email: string, _orgId?: string): string {
+  if (
+    MASTER_ADMIN_EMAIL &&
+    email.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase()
+  ) {
+    return "master_admin";
+  }
+  return "school_admin";
+}
+
+/** Returns the dashboard path for the role (e.g. /platform, /admin). */
+function getRoleDashboardPath(role: string): string {
+  switch (role) {
+    case "master_admin":
+    case "super_admin":
+      return "/platform";
+    case "teacher":
+      return "/portal/teacher";
+    case "parent":
+      return "/portal/parent";
+    case "student":
+      return "/portal/student";
+    case "alumni":
+      return "/portal/alumni";
+    case "partner":
+      return "/portal/partner";
+    default:
+      return "/admin";
+  }
+}
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
+  const stateParam = request.nextUrl.searchParams.get("state");
   const error = request.nextUrl.searchParams.get("error");
-  const errorDescription = request.nextUrl.searchParams.get(
-    "error_description",
-  );
+  const errorDescription = request.nextUrl.searchParams.get("error_description");
   const baseUrl = request.nextUrl.origin;
 
-  // Handle errors from WorkOS
   if (error) {
-    console.error("WorkOS auth error:", error, errorDescription);
+    console.error("[auth/callback] WorkOS error:", error, errorDescription);
     return NextResponse.redirect(
-      `${baseUrl}/?auth_error=${encodeURIComponent(errorDescription || error)}`,
+      `${baseUrl}/auth/login?error=${encodeURIComponent(errorDescription || error)}`
     );
   }
 
   if (!code) {
-    return NextResponse.redirect(`${baseUrl}/?auth_error=no_code`);
+    return NextResponse.redirect(`${baseUrl}/auth/login?error=no_code`);
   }
 
+  let signupState: { schoolName?: string } = {};
+  if (stateParam) {
+    try {
+      signupState = JSON.parse(
+        Buffer.from(stateParam, "base64url").toString("utf-8")
+      );
+    } catch {
+      // ignore invalid state
+    }
+  }
+
+  const apiKey = process.env.WORKOS_API_KEY;
   const clientId =
     process.env.NEXT_PUBLIC_WORKOS_CLIENT_ID || process.env.WORKOS_CLIENT_ID;
-  const apiKey = process.env.WORKOS_API_KEY;
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
-  if (!clientId || !apiKey) {
-    console.error(
-      "WorkOS credentials not configured. Ensure NEXT_PUBLIC_WORKOS_CLIENT_ID and WORKOS_API_KEY are set.",
-    );
-    return NextResponse.redirect(`${baseUrl}/?auth_error=config`);
+  // Debug logging for production
+  console.log("[auth/callback] Environment check:", {
+    hasApiKey: !!apiKey,
+    hasClientId: !!clientId,
+    hasConvexUrl: !!convexUrl,
+    redirectUri: process.env.WORKOS_REDIRECT_URI,
+    publicRedirectUri: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
+  });
+
+  if (!apiKey || !clientId) {
+    console.error("[auth/callback] Missing WORKOS_API_KEY or WORKOS_CLIENT_ID");
+    return NextResponse.redirect(`${baseUrl}/auth/login?error=config_error`);
   }
 
   try {
-    // Exchange the authorization code for user info
-    const tokenRes = await fetch(
-      "https://api.workos.com/user-management/authenticate",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client_id: clientId,
-          client_secret: apiKey,
-          grant_type: "authorization_code",
-          code,
-        }),
-      },
-    );
+    const workos = new WorkOS(apiKey);
+    const { user, organizationId } =
+      await workos.userManagement.authenticateWithCode({
+        code,
+        clientId,
+      });
 
-    if (!tokenRes.ok) {
-      const errBody = await tokenRes.text();
-      console.error("WorkOS token exchange failed:", tokenRes.status, errBody);
-      return NextResponse.redirect(`${baseUrl}/?auth_error=token_exchange`);
+    const email = user.email;
+    const firstName = user.firstName ?? "";
+    const lastName = user.lastName ?? "";
+    const workosUserId = user.id;
+    const role = resolveRole(email, organizationId ?? undefined);
+    const tenantId = organizationId ?? "PLATFORM";
+
+    const sessionToken = crypto.randomBytes(32).toString("hex");
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const isProduction = process.env.NODE_ENV === "production";
+
+    if (convexUrl) {
+      const convex = new ConvexHttpClient(convexUrl);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await convex.mutation((api as any).sessions.createSession, {
+        sessionToken,
+        tenantId,
+        userId: workosUserId,
+        email,
+        role,
+        expiresAt: Date.now() + thirtyDays,
+      });
     }
 
-    const data = await tokenRes.json();
-    const user = data.user;
-    const accessToken = data.access_token;
-
-    if (!user) {
-      console.error("No user in WorkOS response");
-      return NextResponse.redirect(`${baseUrl}/?auth_error=no_user`);
-    }
-
-    // Create a simple session token (user info encoded as base64)
-    const sessionPayload = {
-      userId: user.id,
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      profilePictureUrl: user.profile_picture_url,
-      accessToken,
-      createdAt: Date.now(),
-    };
-
-    const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString(
-      "base64url",
-    );
-
-    // Set session cookie and redirect to home
-    const response = NextResponse.redirect(`${baseUrl}/`);
+    const dashboard = getRoleDashboardPath(role);
+    
+    // Redirect to appropriate dashboard route with email parameter
+    // These routes will show temporary dashboards
+    const redirectUrl = `${dashboard}?email=${encodeURIComponent(email)}`;
+    
+    const response = NextResponse.redirect(new URL(redirectUrl, request.url));
 
     response.cookies.set("edumyles_session", sessionToken, {
       httpOnly: true,
-      secure: true,
+      secure: isProduction,
       sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60,
       path: "/",
-      maxAge: 30 * 24 * 60 * 60, // 30 days
     });
 
-    // Set a readable user info cookie for the client
     response.cookies.set(
       "edumyles_user",
       JSON.stringify({
-        firstName: user.first_name || "",
-        lastName: user.last_name || "",
-        email: user.email,
-        avatar: user.profile_picture_url || "",
+        email,
+        firstName,
+        lastName,
+        avatar: user.profilePictureUrl ?? "",
+        role,
+        tenantId,
+        ...(signupState.schoolName ? { schoolName: signupState.schoolName } : {}),
       }),
       {
         httpOnly: false,
-        secure: true,
+        secure: isProduction,
         sameSite: "lax",
-        path: "/",
         maxAge: 30 * 24 * 60 * 60,
-      },
+        path: "/",
+      }
     );
 
+    response.cookies.set("edumyles_role", role, {
+      httpOnly: false,
+      secure: isProduction,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60,
+      path: "/",
+    });
+
+    console.log(`[auth/callback] ${email} → ${role} → ${redirectUrl}`);
     return response;
   } catch (err) {
-    console.error("Auth callback error:", err);
-    return NextResponse.redirect(`${baseUrl}/?auth_error=unknown`);
+    console.error("[auth/callback] Full error details:", {
+      error: err,
+      message: err instanceof Error ? err.message : "Unknown error",
+      stack: err instanceof Error ? err.stack : undefined,
+      name: err instanceof Error ? err.name : undefined,
+    });
+    const message = err instanceof Error ? err.message : "callback_failed";
+    return NextResponse.redirect(
+      `${baseUrl}/auth/login?error=${encodeURIComponent(message)}`
+    );
   }
-
 }

@@ -30,7 +30,7 @@ export const getMyProfile = query({
 export const getMyGrades = query({
     args: {
         term: v.optional(v.string()),
-        academicYearId: v.optional(v.string()),
+        academicYear: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const tenant = await requireTenantContext(ctx);
@@ -46,15 +46,16 @@ export const getMyGrades = query({
 
         let gradesQuery = ctx.db
             .query("grades")
-            .withIndex("by_tenant_student", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("studentId", student._id)
-            );
+            .withIndex("by_student", (q) =>
+                q.eq("studentId", student._id.toString())
+            )
+            .filter((q) => q.eq(q.field("tenantId"), tenant.tenantId));
 
         const grades = await gradesQuery.collect();
 
         return grades.filter(g =>
             (!args.term || g.term === args.term) &&
-            (!args.academicYearId || g.academicYearId === args.academicYearId)
+            (!args.academicYear || g.academicYear === args.academicYear)
         );
     },
 });
@@ -77,10 +78,11 @@ export const getMyAttendance = query({
         if (!student) return [];
 
         const records = await ctx.db
-            .query("attendanceRecords")
-            .withIndex("by_tenant_student", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("studentId", student._id)
+            .query("attendance")
+            .withIndex("by_student_date", (q) =>
+                q.eq("studentId", student._id.toString())
             )
+            .filter((q) => q.eq(q.field("tenantId"), tenant.tenantId))
             .collect();
 
         if (args.startDate || args.endDate) {
@@ -108,10 +110,11 @@ export const getMyTimetable = query({
         if (!student || !student.classId) return [];
 
         return await ctx.db
-            .query("timetableSlots")
-            .withIndex("by_tenant_class", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("classId", student.classId!)
+            .query("timetables")
+            .withIndex("by_class", (q) =>
+                q.eq("classId", student.classId!)
             )
+            .filter((q) => q.eq(q.field("tenantId"), tenant.tenantId))
             .collect();
     },
 });
@@ -133,16 +136,18 @@ export const getMyAssignments = query({
 
         const assignments = await ctx.db
             .query("assignments")
-            .withIndex("by_tenant_class", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("classId", student.classId!)
+            .withIndex("by_class", (q) =>
+                q.eq("classId", student.classId!)
             )
+            .filter((q) => q.eq(q.field("tenantId"), tenant.tenantId))
             .collect();
 
         const submissions = await ctx.db
             .query("submissions")
-            .withIndex("by_tenant_student", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("studentId", student._id)
+            .withIndex("by_student", (q) =>
+                q.eq("studentId", student._id.toString())
             )
+            .filter((q) => q.eq(q.field("tenantId"), tenant.tenantId))
             .collect();
 
         const result = assignments.map(a => {
@@ -150,7 +155,7 @@ export const getMyAssignments = query({
             return {
                 ...a,
                 submission,
-                status: submission ? (submission.marks !== undefined ? "graded" : "submitted") : "pending"
+                status: submission ? (submission.grade !== undefined ? "graded" : "submitted") : "pending"
             };
         });
 
@@ -191,11 +196,42 @@ export const getMyReportCards = query({
 
         return await ctx.db
             .query("reportCards")
-            .withIndex("by_tenant_student", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("studentId", student._id)
+            .withIndex("by_student_term", (q) =>
+                q.eq("studentId", student._id.toString())
             )
-            .filter(q => q.eq(q.field("status"), "published"))
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("tenantId"), tenant.tenantId),
+                    q.eq(q.field("status"), "published")
+                )
+            )
             .collect();
+    },
+});
+
+export const getMySubmission = query({
+    args: {
+        assignmentId: v.id("assignments"),
+        userId: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const tenant = await requireTenantContext(ctx);
+        await requireModule(ctx, tenant.tenantId, "academics");
+
+        const submission = await ctx.db
+            .query("submissions")
+            .withIndex("by_student", (q) =>
+                q.eq("studentId", args.userId)
+            )
+            .filter((q) => 
+                q.and(
+                    q.eq(q.field("tenantId"), tenant.tenantId),
+                    q.eq(q.field("assignmentId"), args.assignmentId)
+                )
+            )
+            .first();
+
+        return submission;
     },
 });
 
@@ -205,14 +241,19 @@ export const getAnnouncements = query({
         const tenant = await requireTenantContext(ctx);
         await requireModule(ctx, tenant.tenantId, "communications");
 
+        const student = await ctx.db
+            .query("students")
+            .withIndex("by_user", (q) => q.eq("userId", tenant.userId))
+            .first();
+
         return await ctx.db
-            .query("announcements")
-            .withIndex("by_tenant_status", (q) =>
-                q.eq("tenantId", tenant.tenantId).eq("status", "sent")
+            .query("notifications")
+            .withIndex("by_tenant", (q) =>
+                q.eq("tenantId", tenant.tenantId)
             )
             .filter(q => q.or(
-                q.eq(q.field("audience"), ["all"]),
-                q.eq(q.field("audience"), ["students"])
+                q.eq(q.field("type"), "announcement"),
+                q.eq(q.field("type"), "general")
             ))
             .collect();
     },

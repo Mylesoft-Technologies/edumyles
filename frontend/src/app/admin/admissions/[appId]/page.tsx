@@ -79,6 +79,8 @@ export default function ApplicationDetailPage() {
         if (pendingAction.status === "enrolled") {
             await enrollFromApplication({
                 applicationId: appId as Id<"admissionApplications">,
+                admissionNo: application.applicationId,
+                classId: application.requestedGrade, // Using requested grade as classId hint
             });
         } else {
             await updateStatus({

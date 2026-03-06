@@ -5,7 +5,11 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "convex/react";
+<<<<<<< HEAD
 import { api } from "../../../../../../../convex/_generated/api";
+=======
+import { api } from "@/convex/_generated/api";
+>>>>>>> main
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,8 +25,13 @@ export default function GradeEntryPage({ params }: { params: Promise<{ classId: 
     const [term, setTerm] = useState<string>("Term 1");
     const [grades, setGrades] = useState<Record<string, { score: string; remarks: string }>>({});
 
+<<<<<<< HEAD
     const classData = useQuery(api.modules.sis.queries.listClasses, { tenantId: user?.tenantId || "" })?.find(c => c._id === classId);
     const students = useQuery(api.modules.academics.queries.getClassStudents, { tenantId: user?.tenantId || "", classId });
+=======
+    const classData = useQuery(api.modules.sis.queries.listClasses, {})?.find(c => c._id === classId);
+    const students = useQuery(api.modules.academics.queries.getClassStudents, { classId });
+>>>>>>> main
     const enterGradesMutation = useMutation(api.modules.academics.mutations.enterGrades);
 
     if (authLoading || classData === undefined || students === undefined) return <LoadingSkeleton variant="page" />;
@@ -56,6 +65,7 @@ export default function GradeEntryPage({ params }: { params: Promise<{ classId: 
             classId,
             subjectId: selectedSubject,
             term,
+<<<<<<< HEAD
             academicYear: new Date().getFullYear().toString(),
             score: parseFloat(data.score),
             grade: calculateGrade(parseFloat(data.score)),
@@ -68,6 +78,17 @@ export default function GradeEntryPage({ params }: { params: Promise<{ classId: 
                 tenantId: user?.tenantId || "",
                 grades: payload,
             });
+=======
+            academicYear: "2024", // Dynamic year in production
+            score: parseFloat(data.score),
+            grade: calculateGrade(parseFloat(data.score)),
+            remarks: data.remarks,
+            recordedBy: user?._id || "",
+        }));
+
+        try {
+            await enterGradesMutation({ grades: payload });
+>>>>>>> main
             toast({ title: "Success", description: "Grades saved successfully." });
         } catch (error) {
             toast({ title: "Error", description: "Failed to save grades.", variant: "destructive" });
@@ -77,9 +98,18 @@ export default function GradeEntryPage({ params }: { params: Promise<{ classId: 
     return (
         <div className="space-y-6">
             <PageHeader
+<<<<<<< HEAD
                 title="Enter Grades"
                 description={`${classData.name} • ${term}`}
                 backHref={`/portal/teacher/classes/${classId}`}
+=======
+                title="Grade Entry"
+                description="Record student grades and performance"
+                breadcrumbs={[
+                    { label: "Class Details", href: `/portal/teacher/classes/${classId}` },
+                    { label: "Grade Entry" }
+                ]}
+>>>>>>> main
             />
 
             <Card>

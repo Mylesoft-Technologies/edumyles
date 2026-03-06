@@ -5,7 +5,11 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "convex/react";
+<<<<<<< HEAD
 import { api } from "../../../../../convex/_generated/api";
+=======
+import { api } from "@/convex/_generated/api";
+>>>>>>> main
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,11 +23,17 @@ export default function CreateAssignmentPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
+<<<<<<< HEAD
     const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
         user?.tenantId && user?.eduMylesUserId ? {
             tenantId: user.tenantId,
             teacherId: user.eduMylesUserId
         } : "skip"
+=======
+    const classes = useQuery(
+        api.modules.academics.queries.getTeacherClasses,
+        {}
+>>>>>>> main
     );
 
     const createAssignmentMutation = useMutation(api.modules.academics.mutations.createAssignment);
@@ -36,6 +46,7 @@ export default function CreateAssignmentPage() {
 
         const formData = new FormData(e.currentTarget);
         const data = {
+<<<<<<< HEAD
             tenantId: user?.tenantId || "",
             classId: formData.get("classId") as string,
             subjectId: formData.get("subjectId") as string,
@@ -44,6 +55,14 @@ export default function CreateAssignmentPage() {
             description: formData.get("description") as string,
             dueDate: formData.get("dueDate") as string,
             maxPoints: parseInt(formData.get("maxPoints") as string),
+=======
+            classId: formData.get("classId") as string,
+            subjectId: formData.get("subjectId") as string,
+            title: formData.get("title") as string,
+            description: formData.get("description") as string,
+            dueDate: formData.get("dueDate") as string,
+            maxPoints: parseInt(formData.get("maxPoints") as string, 10),
+>>>>>>> main
             status: "active",
         };
 
@@ -61,9 +80,18 @@ export default function CreateAssignmentPage() {
     return (
         <div className="space-y-6 max-w-2xl mx-auto">
             <PageHeader
+<<<<<<< HEAD
                 title="New Assignment"
                 description="Create a new assessment for your students."
                 backHref="/portal/teacher/assignments"
+=======
+                title="Create Assignment"
+                description="Add a new assignment for your students"
+                breadcrumbs={[
+                    { label: "Assignments", href: "/portal/teacher/assignments" },
+                    { label: "Create" }
+                ]}
+>>>>>>> main
             />
 
             <Card>

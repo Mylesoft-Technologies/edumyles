@@ -18,6 +18,7 @@ export const createStudent = mutation({
         guardianEmail: v.optional(v.string()),
         guardianPhone: v.optional(v.string()),
         guardianRelationship: v.optional(v.string()),
+        photoUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const tenant = await requireTenantContext(ctx);
@@ -36,6 +37,7 @@ export const createStudent = mutation({
             classId: args.classId,
             status: args.status || "active",
             guardianUserId: undefined,
+            photoUrl: args.photoUrl,
             enrolledAt: Date.now(),
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -166,5 +168,36 @@ export const createGuardian = mutation({
         });
 
         return guardianId;
+    },
+});
+export const graduateStudent = mutation({
+    args: { studentId: v.id("students") },
+    handler: async (ctx, args) => {
+        const tenant = await requireTenantContext(ctx);
+        await requireModule(ctx, tenant.tenantId, "sis");
+        requirePermission(tenant, "students:write");
+
+        const existing = await ctx.db.get(args.studentId);
+        if (!existing || existing.tenantId !== tenant.tenantId) {
+            throw new Error("Student not found or access denied");
+        }
+
+        await ctx.db.patch(args.studentId, {
+            status: "graduated",
+            updatedAt: Date.now(),
+        });
+
+        await logAction(ctx, {
+            tenantId: tenant.tenantId,
+            actorId: tenant.userId,
+            actorEmail: tenant.email,
+            action: "student.graduated" as any,
+            entityType: "student",
+            entityId: args.studentId,
+            before: { status: existing.status },
+            after: { status: "graduated" },
+        });
+
+        return args.studentId;
     },
 });

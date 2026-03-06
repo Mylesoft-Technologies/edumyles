@@ -44,7 +44,7 @@ export default function MarketplacePage() {
   }
 
   const handleInstall = (moduleId: string) => {
-    const mod = availableModules?.find((m) => m.moduleId === moduleId);
+    const mod = (availableModules as any[])?.find((m) => m.moduleId === moduleId);
     if (!mod) return;
     setDialogState({
       open: true,
@@ -56,7 +56,7 @@ export default function MarketplacePage() {
   };
 
   const handleUninstall = (moduleId: string) => {
-    const mod = availableModules?.find((m) => m.moduleId === moduleId);
+    const mod = (availableModules as any[])?.find((m) => m.moduleId === moduleId);
     if (!mod) return;
     setDialogState({
       open: true,

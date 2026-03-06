@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ConvexClientProvider } from "./providers";
+import ConditionalLayout from "@/components/landing/ConditionalLayout";
 
 export const metadata: Metadata = {
-    title: "EduMyles — School Management Platform",
-    description: "Multi-tenant school management platform for East Africa",
-    themeColor: "#056C40",
+    title: "EduMyles — School Management for East Africa",
+    description:
+        "Replace disconnected spreadsheets and messaging groups with one unified platform for admissions, billing, academics, HR, and communication across East Africa.",
     other: {
         "msapplication-TileColor": "#056C40",
     },
@@ -27,8 +28,11 @@ export default function RootLayout({
                 />
             </head>
             <body className="font-sans antialiased">
-                <ConvexClientProvider>{children}</ConvexClientProvider>
+                <ConvexClientProvider>
+                    <ConditionalLayout>{children}</ConditionalLayout>
+                </ConvexClientProvider>
             </body>
         </html>
     );
 }
+

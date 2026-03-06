@@ -127,7 +127,7 @@ export default function PlatformDashboardPage() {
             {activity ? (
               activity.length > 0 ? (
                 <div className="space-y-3">
-                  {activity.map((item) => (
+                  {(activity as any[]).map((item) => (
                     <div key={item._id} className="flex items-start gap-3 border-b border-border/50 pb-3 last:border-0 last:pb-0">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">

@@ -1,29 +1,19 @@
 "use client";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { RoleGuard } from "@/components/shared/RoleGuard";
+import { Header } from "@/components/layout/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
 import { adminNavItems } from "@/lib/routes";
-import { useTenant } from "@/hooks/useTenant";
-
-const ADMIN_ROLES = [
-  "master_admin",
-  "super_admin",
-  "school_admin",
-  "principal",
-  "bursar",
-  "hr_manager",
-  "librarian",
-  "transport_manager",
-];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { installedModules } = useTenant();
-
   return (
-    <RoleGuard allowedRoles={ADMIN_ROLES}>
-      <AppShell navItems={adminNavItems} installedModules={installedModules}>
-        {children}
-      </AppShell>
-    </RoleGuard>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar navItems={adminNavItems} />
+        <main className="flex-1 p-6">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

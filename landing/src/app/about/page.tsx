@@ -5,7 +5,7 @@ import FounderImage from "./FounderImage";
 export const metadata: Metadata = {
   title: "About Us — EduMyles",
   description:
-    "EduMyles is a school management platform built for East Africa. Learn about our mission, story, and the team behind the product.",
+    "EduMyles is transforming schools, one mile at a time — learn about our mission, vision, M.Y.L.E.S. values, and the team behind the platform.",
 };
 
 const milestones = [
@@ -18,10 +18,26 @@ const milestones = [
 ];
 
 const values = [
-  { title: "Built for Africa", desc: "Not a Western tool localised as an afterthought. EduMyles is designed from day one for East African schools, currencies, curricula, and payment methods." },
-  { title: "Simplicity First", desc: "School staff shouldn\u2019t need IT training to use their management tools. We obsess over making complex workflows feel simple." },
-  { title: "Data Ownership", desc: "Your school\u2019s data belongs to your school. Strict tenant isolation, transparent policies, and no vendor lock-in." },
-  { title: "Impact Over Profit", desc: "We offer a free tier because every school deserves access to proper digital tools, regardless of budget." },
+  {
+    title: "M — Mastery",
+    desc: "We pursue relentless excellence in everything we do — from the code we write to the schools we serve. We never settle for “good enough.”",
+  },
+  {
+    title: "Y — Youth Empowerment",
+    desc: "Every feature we build is an investment in Africa\u2019s young people. When schools succeed, students succeed — and so does Africa.",
+  },
+  {
+    title: "L — Leadership",
+    desc: "We lead with integrity, courage, and accountability to every stakeholder: schools, students, parents, teams, and communities.",
+  },
+  {
+    title: "E — Entrepreneurship",
+    desc: "We think like founders — moving fast, owning outcomes, and finding creative solutions even when resources are limited.",
+  },
+  {
+    title: "S — Service",
+    desc: "We measure success by lives impacted, schools transformed, and communities strengthened — not just revenue.",
+  },
 ];
 
 export default function AboutPage() {
@@ -31,31 +47,34 @@ export default function AboutPage() {
       <section className="page-hero">
         <div className="page-hero-inner">
           <p className="eyebrow">About Us</p>
-          <h1>Built for schools. Built in Africa.</h1>
+          <h1>Transforming schools, one mile at a time.</h1>
           <p className="subtext">
-            EduMyles is a school management platform purpose-built for East
-            Africa — replacing disconnected tools with one unified system for
-            admissions, academics, finance, and operations.
+            EduMyles is a school management platform purpose-built for African schools — replacing disconnected tools
+            with one intuitive, unified system for admissions, academics, finance, and operations.
           </p>
         </div>
       </section>
 
-      {/* Mission */}
+      {/* Mission & Vision */}
       <section className="content-section">
         <div className="content-inner">
           <div className="about-mission-block">
             <div className="about-mission-text">
-              <h2>Our Mission</h2>
+              <h2>Our Mission &amp; Vision</h2>
               <p className="about-lead">
-                To give every school in East Africa access to world-class
-                management tools — so teachers can teach, parents can stay
-                informed, and administrators can focus on what matters.
+                To empower schools across Africa with intuitive, affordable technology that simplifies administration,
+                enhances learning outcomes, and connects every stakeholder in the education journey.
               </p>
               <p>
-                Too many schools in East Africa still run on spreadsheets,
-                paper ledgers, and WhatsApp groups. Data gets lost, fees go
-                uncollected, parents stay uninformed, and admin staff burn out
-                on repetitive tasks. EduMyles exists to change that.
+                Too many schools still run on spreadsheets, paper ledgers, and WhatsApp groups. Data gets lost, fees go
+                uncollected, parents stay uninformed, and admin staff burn out on repetitive tasks. EduMyles exists to
+                change that — by giving every school, regardless of size or location, access to world-class tools that
+                simply work.
+              </p>
+              <p>
+                Our vision is a world where every school has access to the technology it needs to deliver transformative
+                education. From a rural day school to a multi-campus network, EduMyles is designed to scale with the
+                journey.
               </p>
             </div>
             <div className="about-mission-stats">

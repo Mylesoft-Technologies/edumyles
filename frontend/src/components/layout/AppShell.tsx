@@ -29,3 +29,5 @@ export function AppShell({ children, navItems, installedModules }: AppShellProps
     </div>
   );
 }
+
+export default AppShell;

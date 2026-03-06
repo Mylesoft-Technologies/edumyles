@@ -7,16 +7,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { BookOpen, ClipboardList, Calendar, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "convex/react";
+<<<<<<< HEAD
 import { api } from "../../../../../convex/_generated/api";
+=======
+import { api } from "@/convex/_generated/api";
+>>>>>>> main
 
 export default function TeacherDashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
 
+<<<<<<< HEAD
   const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
     user?.tenantId && user?.eduMylesUserId ? {
       tenantId: user.tenantId,
       teacherId: user.eduMylesUserId
     } : "skip"
+=======
+  const classes = useQuery(
+    api.modules.academics.queries.getTeacherClasses,
+    {}
+>>>>>>> main
   );
 
   if (authLoading || classes === undefined) return <LoadingSkeleton variant="page" />;
@@ -35,7 +45,11 @@ export default function TeacherDashboardPage() {
         description="Here's what's happening in your classes today."
       />
 
+<<<<<<< HEAD
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+=======
+      <div className="grid gap-4理论 sm:grid-cols-2 lg:grid-cols-4">
+>>>>>>> main
         {stats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}

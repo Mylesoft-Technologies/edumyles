@@ -1,21 +1,23 @@
-import type { Metadata } from "next";
-import LoginForm from "./LoginForm";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-    title: "Sign In — EduMyles",
-    description: "Sign in to your EduMyles school management platform.",
-};
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string; returnTo?: string }>;
+}) {
+  const params = await searchParams;
+  const query = new URLSearchParams();
 
-export default function LoginPage() {
-    return (
-        <div className="auth-page">
-            <div className="auth-container">
-                <div className="auth-header">
-                    <h1>EduMyles</h1>
-                    <p>Sign in to your school management platform</p>
-                </div>
-                <LoginForm />
-            </div>
-        </div>
-    );
+  if (params.error) {
+    query.set("error", params.error);
+  }
+  if (params.next) {
+    query.set("next", params.next);
+  }
+  if (params.returnTo) {
+    query.set("returnTo", params.returnTo);
+  }
+
+  const suffix = query.toString();
+  redirect(`/auth/login/api${suffix ? `?${suffix}` : ""}`);
 }

@@ -5,25 +5,40 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "convex/react";
+<<<<<<< HEAD
 import { api } from "../../../../../../convex/_generated/api";
+=======
+import { api } from "@/convex/_generated/api";
+>>>>>>> main
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+<<<<<<< HEAD
 import { Calendar, Users, ClipboardList, BookOpen, FileText, Plus } from "lucide-react";
+=======
+import { Calendar, Users, ClipboardList, BookOpen } from "lucide-react";
+>>>>>>> main
 
 export default function ClassDetailsPage({ params }: { params: Promise<{ classId: string }> }) {
     const { classId } = use(params);
     const { user, isLoading: authLoading } = useAuth();
 
+<<<<<<< HEAD
     const classData = useQuery(api.modules.sis.queries.listClasses, { tenantId: user?.tenantId || "" })?.find(c => c._id === classId);
     const students = useQuery(api.modules.academics.queries.getClassStudents, { tenantId: user?.tenantId || "", classId });
     const assignments = useQuery(api.modules.academics.queries.getAssignments, { tenantId: user?.tenantId || "", classId });
+=======
+    const classData = useQuery(api.modules.sis.queries.listClasses, {})?.find(c => c._id === classId);
+    const students = useQuery(api.modules.academics.queries.getClassStudents, { classId });
+    const assignments = useQuery(api.modules.academics.queries.getAssignments, { classId });
+>>>>>>> main
 
     if (authLoading || classData === undefined || students === undefined) return <LoadingSkeleton variant="page" />;
 
     const studentColumns = [
+<<<<<<< HEAD
         { header: "Name", accessorKey: "name", cell: (row: any) => `${row.firstName} ${row.lastName}` },
         { header: "Admission No.", accessorKey: "admissionNumber" },
         { header: "Gender", accessorKey: "gender" },
@@ -35,6 +50,19 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
         { header: "Due Date", accessorKey: "dueDate" },
         { header: "Max Points", accessorKey: "maxPoints" },
         { header: "Status", accessorKey: "status" },
+=======
+        { key: "name", header: "Name", cell: (row: any) => `${row.firstName} ${row.lastName}` },
+        { key: "admissionNumber", header: "Admission No.", cell: (row: any) => row.admissionNumber },
+        { key: "gender", header: "Gender", cell: (row: any) => row.gender },
+        { key: "status", header: "Status", cell: (row: any) => row.status },
+    ];
+
+    const assignmentColumns = [
+        { key: "title", header: "Title", cell: (row: any) => row.title },
+        { key: "dueDate", header: "Due Date", cell: (row: any) => row.dueDate },
+        { key: "maxPoints", header: "Max Points", cell: (row: any) => row.maxPoints },
+        { key: "status", header: "Status", cell: (row: any) => row.status },
+>>>>>>> main
     ];
 
     return (
@@ -42,7 +70,14 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
             <PageHeader
                 title={classData.name}
                 description={`${classData.level || "Grade"} ${classData.stream || ""} • ${students.length} Students`}
+<<<<<<< HEAD
                 backHref="/portal/teacher/classes"
+=======
+                breadcrumbs={[
+                    { label: "Classes", href: "/portal/teacher/classes" },
+                    { label: "Class Details" }
+                ]}
+>>>>>>> main
             />
 
             <Tabs defaultValue="overview" className="space-y-4">
@@ -118,7 +153,11 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
                     <DataTable
                         columns={studentColumns}
                         data={students}
+<<<<<<< HEAD
                         searchKey="firstName"
+=======
+                        searchKey={(row: any) => row.firstName}
+>>>>>>> main
                     />
                 </TabsContent>
 
@@ -142,4 +181,9 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     );
 }
 
+<<<<<<< HEAD
 
+=======
+// Helper icons
+import { FileText, Plus } from "lucide-react";
+>>>>>>> main

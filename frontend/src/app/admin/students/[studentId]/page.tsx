@@ -128,7 +128,7 @@ export default function StudentProfilePage() {
                 <TabsContent value="guardians" className="mt-4">
                     {student.guardians && student.guardians.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2">
-                            {student.guardians.map((g) => (
+                            {(student.guardians as any[]).map((g) => (
                                 <Card key={g._id}>
                                     <CardHeader>
                                         <CardTitle className="text-base">

@@ -5,7 +5,11 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "convex/react";
+<<<<<<< HEAD
 import { api } from "../../../../../convex/_generated/api";
+=======
+import { api } from "@/convex/_generated/api";
+>>>>>>> main
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -21,6 +25,7 @@ export default function AttendancePage() {
     const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
     const [attendance, setAttendance] = useState<Record<string, string>>({});
 
+<<<<<<< HEAD
     const classes = useQuery(api.modules.academics.queries.getTeacherClasses,
         user?.tenantId && user?.eduMylesUserId ? {
             tenantId: user.tenantId,
@@ -30,6 +35,16 @@ export default function AttendancePage() {
 
     const students = useQuery(api.modules.academics.queries.getClassStudents,
         selectedClassId ? { tenantId: user?.tenantId || "", classId: selectedClassId } : "skip"
+=======
+    const classes = useQuery(
+        api.modules.academics.queries.getTeacherClasses,
+        {}
+    );
+
+    const students = useQuery(
+        api.modules.academics.queries.getClassStudents,
+        selectedClassId ? { classId: selectedClassId } : "skip"
+>>>>>>> main
     );
 
     const markAttendanceMutation = useMutation(api.modules.academics.mutations.markAttendance);
@@ -52,10 +67,14 @@ export default function AttendancePage() {
         }));
 
         try {
+<<<<<<< HEAD
             await markAttendanceMutation({
                 tenantId: user?.tenantId || "",
                 records,
             });
+=======
+            await markAttendanceMutation({ records });
+>>>>>>> main
             toast({ title: "Success", description: "Attendance marked successfully." });
         } catch (error) {
             toast({ title: "Error", description: "Failed to mark attendance.", variant: "destructive" });
