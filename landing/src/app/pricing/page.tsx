@@ -167,17 +167,24 @@ export default function PricingPage() {
                 <span className="pricing-badge">Most Popular</span>
               )}
               <h3>{tier.name}</h3>
-              <div className="pricing-price">
-                <span className="price-amount">{tier.price}</span>
+              <div className="price">
+                {tier.price === "Free" ? (
+                  <span className="amount">Free</span>
+                ) : (
+                  <>
+                    <span className="currency">{tier.price.includes("$") ? "" : tier.price.split("/")[0]}</span>
+                    <span className="amount">{tier.price.includes("$") ? tier.price.replace("$", "") : tier.price}</span>
+                  </>
+                )}
                 {tier.period && (
-                  <span className="price-period">{tier.period}</span>
+                  <span className="period">{tier.period}</span>
                 )}
               </div>
-              <p className="pricing-desc">{tier.description}</p>
-              <ul className="pricing-modules">
+              <p>{tier.description}</p>
+              <ul className="features">
                 {tier.modules.map((m) => (
                   <li key={m}>
-                    <span className="check-icon">&#10003;</span> {m}
+                    {m}
                   </li>
                 ))}
               </ul>

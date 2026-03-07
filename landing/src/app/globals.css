@@ -683,9 +683,7 @@ button {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* ================================================================
-   1. HERO SECTION — Modern Design
-   ================================================================ */
+/* Enhanced hero section with better visual hierarchy */
 .hero {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -725,6 +723,7 @@ button {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
+  animation: slideInLeft 600ms ease-out;
 }
 
 h1 {
@@ -738,6 +737,7 @@ h1 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: slideInLeft 600ms ease-out 200ms both;
 }
 
 .subtext {
@@ -746,6 +746,8 @@ h1 {
   color: var(--muted);
   font-size: 1.05rem;
   font-weight: 400;
+  line-height: 1.6;
+  animation: slideInLeft 600ms ease-out 400ms both;
 }
 
 .actions {
@@ -753,6 +755,7 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  animation: slideInLeft 600ms ease-out 600ms both;
 }
 
 .trust-signals {
@@ -760,6 +763,7 @@ h1 {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
+  animation: slideInLeft 600ms ease-out 800ms both;
 }
 
 .trust-signal {
@@ -769,6 +773,11 @@ h1 {
   font-size: 0.85rem;
   color: var(--muted);
   font-weight: 500;
+  transition: color 200ms ease;
+}
+
+.trust-signal:hover {
+  color: var(--forest);
 }
 
 .trust-signal .check {
@@ -776,11 +785,11 @@ h1 {
   font-weight: 700;
 }
 
-/* Dashboard Mockup */
+/* Enhanced dashboard mockup with better animations */
 .hero-visual {
   display: flex;
   justify-content: center;
-  animation: rise 560ms ease-out 200ms both;
+  animation: rise 560ms ease-out 600ms both;
 }
 
 .dashboard-mockup {
@@ -817,6 +826,11 @@ h1 {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  transition: transform 200ms ease;
+}
+
+.mockup-dots span:hover {
+  transform: scale(1.2);
 }
 
 .mockup-dots span:nth-child(1) {
@@ -857,10 +871,17 @@ h1 {
   height: 8px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.15);
+  transition: all 200ms ease;
+}
+
+.mockup-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(2px);
 }
 
 .mockup-sidebar-item.active {
   background: var(--forest);
+  box-shadow: 0 0 10px rgba(5, 108, 64, 0.5);
 }
 
 .mockup-main {
@@ -880,6 +901,11 @@ h1 {
   flex: 1;
   height: 44px;
   border-radius: 8px;
+  transition: transform 200ms ease;
+}
+
+.mockup-stat-card:hover {
+  transform: translateY(-2px);
 }
 
 .mockup-stat-card.c1 {
@@ -903,6 +929,24 @@ h1 {
     linear-gradient(90deg, transparent 50%, rgba(5, 108, 64, 0.08) 50%),
     linear-gradient(0deg, var(--border) 1px, transparent 1px);
   background-size: 20% 100%, 100% 25%;
+  position: relative;
+  overflow: hidden;
+}
+
+.mockup-chart::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(135deg, rgba(5, 108, 64, 0.2), rgba(5, 108, 64, 0.1));
+  animation: chartGrow 3s ease-in-out infinite;
+}
+
+@keyframes chartGrow {
+  0%, 100% { height: 40%; }
+  50% { height: 60%; }
 }
 
 .mockup-table {
@@ -915,6 +959,11 @@ h1 {
   height: 14px;
   background: var(--off-white);
   border-radius: 4px;
+  transition: all 200ms ease;
+}
+
+.mockup-table-row:hover {
+  background: rgba(5, 108, 64, 0.1);
 }
 
 .mockup-table-row:first-child {
@@ -927,6 +976,10 @@ h1 {
 
 .mockup-table-row:nth-child(3) {
   width: 70%;
+}
+
+.mockup-table-row:nth-child(4) {
+  width: 90%;
 }
 
 /* ================================================================
@@ -1612,8 +1665,8 @@ h1 {
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
   max-width: var(--max-width);
   margin: 0 auto 2rem;
 }
@@ -1664,34 +1717,45 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
-.pricing-price {
+.pricing-card .price {
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2rem;
 }
 
-.price-amount {
+.pricing-card .currency {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.pricing-card .amount {
   font-size: 2.2rem;
   font-weight: 800;
   color: var(--charcoal);
 }
 
-.price-period {
+.pricing-card .period {
   font-size: 0.85rem;
   color: var(--muted);
   font-weight: 400;
 }
 
-.pricing-desc {
+.pricing-card p {
   font-size: 0.85rem;
   color: var(--muted);
   margin: 0 0 1.2rem;
+  line-height: 1.5;
 }
 
-.pricing-modules {
+.pricing-card .features {
   flex: 1;
   margin-bottom: 1.5rem;
 }
 
-.pricing-modules li {
+.pricing-card .features li {
   font-size: 0.85rem;
   color: var(--charcoal);
   padding: 0.35rem 0;
@@ -1700,7 +1764,8 @@ h1 {
   gap: 0.5rem;
 }
 
-.check-icon {
+.pricing-card .features li::before {
+  content: '✓';
   color: var(--forest);
   font-weight: 700;
   font-size: 0.9rem;
@@ -2055,23 +2120,46 @@ h1 {
   margin-top: 1rem;
 }
 
-/* ================================================================
-   ENHANCED UI/UX IMPROVEMENTS
-   ================================================================ */
+/* Enhanced loading states */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.loading-state::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--forest);
+  border-radius: 50%;
+  margin-left: 0.75rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced focus states */
+.btn:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Better focus states */
-.btn:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--crimson);
-  outline-offset: 2px;
-}
-
-/* Enhanced button hover effects */
+/* Better button interactions */
 .btn {
   position: relative;
   overflow: hidden;
@@ -2093,13 +2181,18 @@ a:focus-visible {
   left: 100%;
 }
 
-/* Card hover enhancements */
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* Enhanced card hover effects */
 .highlight-card,
 .module-app-card,
 .story-card,
 .pricing-card {
   position: relative;
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .highlight-card::before,
@@ -2119,23 +2212,19 @@ a:focus-visible {
 }
 
 .highlight-card:hover::before,
-.module-app-card::before,
+.module-app-card:hover::before,
 .story-card:hover::before,
 .pricing-card:hover::before {
   transform: scaleX(1);
 }
 
-/* Stats animation */
-.stat-card {
-  position: relative;
-}
-
+/* Stats animation enhancement */
 .stat-value {
   background: linear-gradient(135deg, var(--crimson), var(--amber));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: pulse 2s infinite;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
@@ -2148,37 +2237,11 @@ a:focus-visible {
 }
 
 /* Enhanced navbar dropdown */
-.navbar-dropdown {
+.nav-dropdown {
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Loading states */
-.btn:active {
-  transform: scale(0.98);
-}
-
-/* Better transitions for all interactive elements */
-a,
-button,
-.btn {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Mobile touch improvements */
-@media (hover: none) and (pointer: coarse) {
-  .btn:hover {
-    transform: none;
-  }
-  
-  .highlight-card:hover,
-  .module-app-card:hover,
-  .story-card:hover,
-  .pricing-card:hover {
-    transform: none;
-  }
 }
 
 /* ================================================================
