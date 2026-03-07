@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setAuthCookie } from '@/lib/auth-bypass';
+import { isBypassRequestAllowed, setAuthCookie } from '@/lib/auth-bypass';
 
 export async function GET(request: NextRequest) {
+  if (!isBypassRequestAllowed(request)) {
+    return NextResponse.json(
+      { error: "Access denied: bypass auth is disabled in production" },
+      { status: 403 }
+    );
+  }
+
   // Create mock alumni session
   const mockUser = {
     _id: 'alumni-demo',
@@ -22,3 +29,4 @@ export async function GET(request: NextRequest) {
   // Redirect to alumni dashboard
   return NextResponse.redirect(new URL('/portal/alumni', request.url));
 }
+

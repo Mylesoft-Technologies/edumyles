@@ -3,12 +3,13 @@
 import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation } from "@/hooks/useSSRSafeConvex";
+import { useQuery } from "@/hooks/useSSRSafeConvex";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import Link from "next/link";
 import { 
   TrendingUp, 
   Users, 
@@ -22,54 +23,59 @@ import {
   BarChart3
 } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
-import { toast } from "@/components/ui/use-toast";
 
 export default function PartnerDashboardPage() {
-  const { user, isLoading } = useAuth();
-  const [selectedPeriod, setSelectedPeriod] = useState("current");
+  const { isLoading } = useAuth();
 
-  // Mock data - in real app, these would come from queries
+  const partnerProfile = useQuery(api.modules.portal.partner.queries.getPartnerProfile, {});
+  const sponsoredStudents = useQuery(api.modules.portal.partner.queries.getSponsoredStudents, {});
+  const sponsorshipReport = useQuery(api.modules.portal.partner.queries.getSponsorshipReport, {});
+  const partnerPayments = useQuery(api.modules.portal.partner.queries.getPartnerPayments, {});
+  const announcements = useQuery(api.modules.portal.partner.queries.getPartnerAnnouncements, {});
+
+  if (
+    isLoading ||
+    partnerProfile === undefined ||
+    sponsoredStudents === undefined ||
+    sponsorshipReport === undefined ||
+    partnerPayments === undefined ||
+    announcements === undefined
+  ) {
+    return <LoadingSkeleton variant="page" />;
+  }
+
   const sponsorshipStats = {
-    totalSponsorships: 12,
-    activeSponsorships: 8,
-    totalInvestment: 2500000, // 25,000.00 in cents
-    studentsSponsored: 45,
-    impactScore: 92
+    totalSponsorships: (partnerPayments.upcomingDues?.length ?? 0) + (partnerPayments.payments?.length ?? 0),
+    activeSponsorships: sponsoredStudents.length,
+    totalInvestment: sponsorshipReport.totalInvestedCents ?? 0,
+    studentsSponsored: sponsoredStudents.length,
+    impactScore: Math.min(
+      100,
+      Math.round(
+        (((sponsorshipReport.summary?.averageScore ?? 70) / 100) * 60) +
+          ((sponsoredStudents.length > 0 ? 1 : 0) * 20) +
+          20
+      )
+    ),
   };
 
-  const recentSponsorships = [
-    {
-      _id: "sponsor-1",
-      studentName: "John Doe",
-      amount: 50000,
-      type: "Full Scholarship",
-      startDate: "2024-01-15",
-      status: "active",
-      impact: "High"
-    },
-    {
-      _id: "sponsor-2", 
-      studentName: "Jane Smith",
-      amount: 25000,
-      type: "Partial Scholarship",
-      startDate: "2024-02-01",
-      status: "active",
-      impact: "Medium"
-    }
-  ];
+  const recentSponsorships = (sponsorshipReport.students ?? []).slice(0, 5).map((s: any) => ({
+    _id: s.studentId,
+    studentName: `${s.firstName ?? ""} ${s.lastName ?? ""}`.trim() || "Student",
+    amount: Math.round((sponsorshipStats.totalInvestment || 0) / Math.max(1, sponsoredStudents.length)),
+    type: "Sponsorship",
+    startDate: new Date().toISOString(),
+    status: "active",
+    impact: s.averageScore != null && s.averageScore >= 75 ? "High" : "Medium",
+  }));
 
-  const upcomingEvents = [
-    {
-      _id: "event-1",
-      title: "Partner Recognition Dinner",
-      date: "2024-04-20",
-      type: "recognition",
-      attendees: 30
-    }
-  ];
-
-  if (isLoading) return <LoadingSkeleton variant="page" />;
+  const upcomingEvents = (announcements ?? []).slice(0, 5).map((a: any) => ({
+    _id: String(a._id),
+    title: a.title ?? "Partner Update",
+    date: new Date(a.createdAt ?? Date.now()).toISOString(),
+    type: a.type ?? "announcement",
+    attendees: sponsoredStudents.length,
+  }));
 
   return (
     <div>
@@ -152,9 +158,7 @@ export default function PartnerDashboardPage() {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <p className="text-sm text-muted-foreground">Amount</p>
-                          <p className="font-medium">
-                            KES {(sponsorship.amount / 100).toLocaleString()}
-                          </p>
+                      <p className="font-medium">KES {(sponsorship.amount / 100).toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Type</p>
@@ -165,9 +169,7 @@ export default function PartnerDashboardPage() {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <p className="text-sm text-muted-foreground">Start Date</p>
-                          <p className="font-medium">
-                            {format(new Date(sponsorship.startDate), "PPP")}
-                          </p>
+                          <p className="font-medium">{format(new Date(sponsorship.startDate), "PPP")}</p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Impact</p>
@@ -177,8 +179,10 @@ export default function PartnerDashboardPage() {
                     </div>
                     
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4" />
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/portal/partner/students/${sponsorship._id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </Button>
                     </div>
                   </div>
@@ -198,17 +202,23 @@ export default function PartnerDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
-              <Button className="w-full justify-start" variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                New Sponsorship
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href="/portal/partner/students">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Sponsorship
+                </Link>
               </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Generate Report
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href="/portal/partner/reports">
+                  <Download className="h-4 w-4 mr-2" />
+                  Generate Report
+                </Link>
               </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                View Analytics
+              <Button className="w-full justify-start" variant="outline" asChild>
+                <Link href="/portal/partner/reports">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  View Analytics
+                </Link>
               </Button>
             </div>
           </CardContent>
@@ -247,9 +257,11 @@ export default function PartnerDashboardPage() {
                       </div>
                     </div>
                     
-                    <Button size="sm">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      RSVP
+                    <Button size="sm" asChild>
+                      <Link href="/portal/partner/messages">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        RSVP
+                      </Link>
                     </Button>
                   </div>
                 </div>

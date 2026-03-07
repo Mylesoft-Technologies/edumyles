@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setAuthCookie } from '@/lib/auth-bypass';
+import { isBypassRequestAllowed, setAuthCookie } from '@/lib/auth-bypass';
 
 export async function GET(request: NextRequest) {
+  if (!isBypassRequestAllowed(request)) {
+    return NextResponse.json(
+      { error: "Access denied: bypass auth is disabled in production" },
+      { status: 403 }
+    );
+  }
+
   // Create mock parent session
   const mockUser = {
     _id: 'parent-demo',
@@ -21,3 +28,4 @@ export async function GET(request: NextRequest) {
   // Redirect to parent dashboard
   return NextResponse.redirect(new URL('/portal/parent', request.url));
 }
+

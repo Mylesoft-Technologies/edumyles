@@ -29,6 +29,7 @@ export default function HRContractsPage() {
   const { user, isLoading } = useAuth();
   const [selectedStaff, setSelectedStaff] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
 
   const staff = useQuery(
     api.modules.hr.queries.listStaff,
@@ -64,6 +65,40 @@ export default function HRContractsPage() {
       });
     }
   };
+
+  const handleExportContracts = () => {
+    const payload = {
+      generatedAt: new Date().toISOString(),
+      selectedStaff: selectedStaff || null,
+      selectedStatus,
+      contracts: filteredContracts,
+    };
+
+    const data = JSON.stringify(payload, null, 2);
+    const href = `data:application/json;charset=utf-8,${encodeURIComponent(data)}`;
+    const element = document.createElement("a");
+    element.href = href;
+    element.download = `contracts-export-${new Date().toISOString().split("T")[0]}.json`;
+    element.click();
+  };
+
+  const handleDownloadContract = (contract: any) => {
+    const data = JSON.stringify(contract, null, 2);
+    const href = `data:application/json;charset=utf-8,${encodeURIComponent(data)}`;
+    const element = document.createElement("a");
+    element.href = href;
+    element.download = `contract-${contract._id.slice(-6)}.json`;
+    element.click();
+  };
+
+  const handleEditContract = (contract: any) => {
+    setSelectedStaff(contract.staffId);
+    setSelectedContractId(contract._id);
+    document.getElementById(`contract-${contract._id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const filteredContracts =
+    (contracts as any[])?.filter((contract) => selectedStatus === "all" || contract.status === selectedStatus) || [];
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
 
@@ -121,16 +156,27 @@ export default function HRContractsPage() {
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Contracts ({contracts?.length || 0})
+                Contracts ({filteredContracts.length})
               </div>
-              <Button size="sm">
+              <Button
+                size="sm"
+                onClick={() =>
+                  selectedStaff
+                    ? handleCreateContract(selectedStaff)
+                    : toast({
+                        title: "Select staff first",
+                        description: "Choose a staff member in filters to create a contract.",
+                        variant: "destructive",
+                      })
+                }
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 New Contract
               </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {contracts?.length === 0 ? (
+            {filteredContracts.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Contracts Found</h3>
@@ -140,8 +186,12 @@ export default function HRContractsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {(contracts as any[])?.map((contract) => (
-                  <div key={contract._id} className="border rounded-lg p-4">
+                {filteredContracts.map((contract) => (
+                  <div
+                    key={contract._id}
+                    id={`contract-${contract._id}`}
+                    className={`border rounded-lg p-4 ${selectedContractId === contract._id ? "ring-2 ring-primary/40" : ""}`}
+                  >
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -183,10 +233,10 @@ export default function HRContractsPage() {
                       </div>
 
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleEditContract(contract)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleDownloadContract(contract)}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
@@ -210,7 +260,7 @@ export default function HRContractsPage() {
                   <FileText className="h-4 w-4 mr-2" />
                   Create Contract for Selected Staff
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleExportContracts}>
                   <Download className="h-4 w-4 mr-2" />
                   Export Contracts
                 </Button>

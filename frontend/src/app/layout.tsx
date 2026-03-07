@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import ConditionalLayout from "@/components/landing/ConditionalLayout";
@@ -9,13 +10,19 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 // Force rebuild 2025-03-06 - All merge conflicts resolved
 
 export const metadata: Metadata = {
-    title: "EduMyles — School Management for East Africa",
+    title: "EduMyles - School Management for East Africa",
     description:
         "Replace disconnected spreadsheets and messaging groups with one unified platform for admissions, billing, academics, HR, and communication across East Africa.",
     other: {
         "msapplication-TileColor": "#056C40",
     },
 };
+
+const poppins = Poppins({
+    subsets: ["latin"],
+    weight: ["300", "400", "500", "600", "700", "800"],
+    variable: "--font-poppins",
+});
 
 export default function RootLayout({
     children,
@@ -24,15 +31,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-                    rel="stylesheet"
-                />
-            </head>
-            <body className="font-sans antialiased">
+            <body className={`${poppins.variable} font-sans antialiased`}>
                 <ErrorBoundary>
                     <ConvexClientProvider>
                         <ConditionalLayout>{children}</ConditionalLayout>
@@ -44,4 +43,5 @@ export default function RootLayout({
         </html>
     );
 }
+
 

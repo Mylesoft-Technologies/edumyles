@@ -18,10 +18,11 @@ export default function StudentTransactionsPage() {
   const { user, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [limit, setLimit] = useState(50);
 
   const myTransactions = useQuery(
     api.modules.portal.student.queries.getMyTransactionHistory,
-    { limit: 50, type: typeFilter === "all" ? undefined : typeFilter as any }
+    { limit, type: typeFilter === "all" ? undefined : typeFilter as any }
   );
 
   const myWallet = useQuery(
@@ -188,9 +189,9 @@ export default function StudentTransactionsPage() {
         </Card>
 
         {/* Load More */}
-        {filteredTransactions.length >= 50 && (
+        {filteredTransactions.length >= limit && (
           <div className="text-center">
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => setLimit((current) => current + 50)}>
               Load More Transactions
             </Button>
           </div>

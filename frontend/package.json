@@ -6,13 +6,13 @@
     "dev": "next dev --port 3000",
     "build": "NEXT_PUBLIC_CONVEX_URL=${NEXT_PUBLIC_CONVEX_URL:-https://dummy.convex.cloud} next build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "type-check": "tsc --noEmit",
+    "lint": "eslint src eslint.config.mjs",
+    "lint:fix": "eslint src eslint.config.mjs --fix",
+    "type-check": "node ../node_modules/typescript/bin/tsc --noEmit",
     "clean": "rm -rf .next out tsconfig.tsbuildinfo",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test": "node ../node_modules/vitest/vitest.mjs",
+    "test:ui": "node ../node_modules/vitest/vitest.mjs --ui",
+    "test:run": "node ../node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
     "@convex-dev/react-query": "^0.1.0",

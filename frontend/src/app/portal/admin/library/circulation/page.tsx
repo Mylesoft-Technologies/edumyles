@@ -26,13 +26,16 @@ import {
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function LibraryCirculationPage() {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [borrowerId, setBorrowerId] = useState("");
   const [bookId, setBookId] = useState("");
+  const [showAllOverdue, setShowAllOverdue] = useState(false);
 
   const activeBorrows = useQuery(
     api.modules.library.queries.listActiveBorrows,
@@ -265,10 +268,10 @@ export default function LibraryCirculationPage() {
                 <Clock className="h-5 w-5" />
                 Active Borrows ({filteredBorrows.length})
               </div>
-              <Button size="sm" variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
+                <Button size="sm" variant="outline" onClick={() => router.refresh()}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -365,7 +368,7 @@ export default function LibraryCirculationPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {(overdueBorrows as any[]).slice(0, 3).map((borrow) => (
+                {(showAllOverdue ? (overdueBorrows as any[]) : (overdueBorrows as any[])?.slice(0, 3)).map((borrow) => (
                   <div key={borrow._id} className="flex items-center justify-between p-3 bg-white rounded border">
                     <div>
                       <p className="font-medium">Book #{borrow.bookId.slice(-6)}</p>
@@ -383,8 +386,14 @@ export default function LibraryCirculationPage() {
                   </div>
                 ))}
                 {overdueBorrows.length > 3 && (
-                  <Button variant="outline" className="w-full mt-2">
-                    View All Overdue ({overdueBorrows.length - 3} more)
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={() => setShowAllOverdue((current) => !current)}
+                  >
+                    {showAllOverdue
+                      ? "Show Top 3 Overdue"
+                      : `View All Overdue (${overdueBorrows.length - 3} more)`}
                   </Button>
                 )}
               </div>
