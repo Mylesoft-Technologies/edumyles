@@ -1,16 +1,57 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 const config: Config = {
-  content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       fontFamily: {
         sans: ['"Poppins"', "sans-serif"],
       },
       colors: {
-        // Zoho One — Primary palette
+        border: "var(--border)",
+        input: "var(--border)",
+        ring: "var(--forest-green)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        muted: {
+          DEFAULT: "var(--surface)",
+          foreground: "var(--muted)",
+        },
+        accent: {
+          DEFAULT: "var(--surface)",
+          foreground: "var(--foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--forest-green)",
+          foreground: "var(--white)",
+        },
+        secondary: {
+          DEFAULT: "var(--surface)",
+          foreground: "var(--foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--crimson-red)",
+          foreground: "var(--white)",
+        },
+        card: {
+          DEFAULT: "var(--white)",
+          foreground: "var(--foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--white)",
+          foreground: "var(--foreground)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar-bg)",
+          foreground: "var(--sidebar-text-active)",
+          primary: "var(--sidebar-text-active)",
+          "primary-foreground": "var(--sidebar-bg)",
+          accent: "var(--sidebar-active)",
+          "accent-foreground": "var(--sidebar-text-active)",
+          border: "var(--sidebar-border)",
+          ring: "var(--sidebar-active)",
+        },
         forest: {
           50: "#e8f5ee",
           100: "#c6e6d4",
@@ -79,7 +120,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [animate],
 };
 
 export default config;
