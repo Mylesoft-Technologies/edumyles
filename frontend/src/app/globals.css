@@ -214,15 +214,23 @@ button {
   z-index: 100;
 }
 
-/* Admin panel overrides - prevent landing navbar styles from affecting admin */
-.admin-layout .navbar {
-  position: relative;
-  z-index: auto;
+/* Admin panel overrides - completely disable landing navbar in admin context */
+.admin-layout .navbar,
+.admin-layout .navbar *,
+body:has(.admin-layout) .navbar,
+body:has(.admin-layout) .navbar *,
+body.admin-page .navbar,
+body.admin-page .navbar * {
+  display: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
 }
 
 .admin-layout header {
   position: relative;
-  z-index: 200;
+  z-index: 2000;
 }
 
 .navbar-logo {

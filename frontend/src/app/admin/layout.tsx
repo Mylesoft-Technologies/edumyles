@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { adminNavItems } from "@/lib/routes";
@@ -15,6 +16,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleMobileMenuClose = () => {
     setMobileMenuOpen(false);
   };
+
+  // Add body class to ensure CSS overrides work
+  useEffect(() => {
+    document.body.classList.add('admin-page');
+    return () => {
+      document.body.classList.remove('admin-page');
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background relative z-[500] admin-layout">
