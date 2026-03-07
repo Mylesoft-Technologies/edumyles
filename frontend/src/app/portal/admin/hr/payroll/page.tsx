@@ -30,6 +30,7 @@ export default function HRPayrollPage() {
   const { user, isLoading } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState("current");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [showAllPayslips, setShowAllPayslips] = useState(false);
 
   const payrollRuns = useQuery(
     api.modules.hr.queries.listPayrollRuns,
@@ -85,6 +86,26 @@ export default function HRPayrollPage() {
     }
   };
 
+  const downloadJson = (filename: string, payload: unknown) => {
+    const data = JSON.stringify(payload, null, 2);
+    const href = `data:application/json;charset=utf-8,${encodeURIComponent(data)}`;
+    const element = document.createElement("a");
+    element.href = href;
+    element.download = filename;
+    element.click();
+  };
+
+  const handleExportPayroll = () => {
+    downloadJson(`payroll-export-${new Date().toISOString().split("T")[0]}.json`, {
+      generatedAt: new Date().toISOString(),
+      selectedPeriod,
+      selectedStatus,
+      stats: payrollStats,
+      payrollRuns,
+      payslips,
+    });
+  };
+
   const calculatePayrollStats = () => {
     const totalRuns = payrollRuns?.length || 0;
     const approvedRuns = (payrollRuns as any[])?.filter(run => run.status === "approved").length || 0;
@@ -103,6 +124,7 @@ export default function HRPayrollPage() {
   };
 
   const payrollStats = calculatePayrollStats();
+  const visiblePayslips = showAllPayslips ? (payslips as any[]) : (payslips as any[])?.slice(0, 5);
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
 
@@ -208,7 +230,7 @@ export default function HRPayrollPage() {
                     <Plus className="h-4 w-4 mr-2" />
                     New Run
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={handleExportPayroll}>
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
@@ -283,7 +305,16 @@ export default function HRPayrollPage() {
                             Approve
                           </Button>
                         )}
-                        <Button size="sm" variant="outline">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            downloadJson(`payroll-run-${run._id.slice(-6)}.json`, {
+                              generatedAt: new Date().toISOString(),
+                              run,
+                            })
+                          }
+                        >
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
@@ -314,7 +345,7 @@ export default function HRPayrollPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {(payslips as any[])?.slice(0, 5).map((payslip) => (
+                {visiblePayslips?.map((payslip) => (
                   <div key={payslip._id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
@@ -357,7 +388,16 @@ export default function HRPayrollPage() {
                       </div>
 
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            downloadJson(`payslip-${payslip._id.slice(-6)}.json`, {
+                              generatedAt: new Date().toISOString(),
+                              payslip,
+                            })
+                          }
+                        >
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
@@ -365,8 +405,14 @@ export default function HRPayrollPage() {
                   </div>
                 ))}
                 {payslips?.length > 5 && (
-                  <Button variant="outline" className="w-full mt-4">
-                    View All Payslips ({payslips?.length - 5} more)
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={() => setShowAllPayslips((current) => !current)}
+                  >
+                    {showAllPayslips
+                      ? "Show Recent Payslips Only"
+                      : `View All Payslips (${payslips?.length - 5} more)`}
                   </Button>
                 )}
               </div>

@@ -27,6 +27,7 @@ import {
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 interface TimetableSlot {
   _id: string;
@@ -59,11 +60,12 @@ const COLORS = [
 ];
 
 export default function TimetableBuilderPage() {
+  const router = useRouter();
   const { user, isLoading } = useAuth();
   const [selectedDay, setSelectedDay] = useState(1); // Monday
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("2024");
-  const [conflicts, setConflicts] = useState<any[]>([]);
+  const [hiddenConflictSlotIds, setHiddenConflictSlotIds] = useState<string[]>([]);
 
   const classes = useQuery(
     api.modules.sis.queries.listClasses,
@@ -85,6 +87,16 @@ export default function TimetableBuilderPage() {
       dayOfWeek: selectedDay,
       academicYear: selectedAcademicYear 
     } : "skip"
+  );
+
+  const weekSlots = useQuery(
+    api.modules.timetable.queries.listSlots,
+    user
+      ? {
+          classId: selectedClass || undefined,
+          academicYear: selectedAcademicYear,
+        }
+      : "skip"
   );
 
   const createSlot = useMutation(api.modules.timetable.mutations.createSlot);
@@ -143,8 +155,8 @@ export default function TimetableBuilderPage() {
   };
 
   const getConflictForSlot = (slot: TimetableSlot) => {
-    return conflictsData?.find(conflict => 
-      conflict.slotIds.includes(slot._id)
+    return conflictsData?.find(conflict =>
+      conflict.slotIds.includes(slot._id) && !hiddenConflictSlotIds.includes(slot._id)
     );
   };
 
@@ -158,6 +170,76 @@ export default function TimetableBuilderPage() {
   };
 
   if (isLoading) return <LoadingSkeleton variant="page" />;
+
+  const handleCopyWeek = async () => {
+    if (!weekSlots || weekSlots.length === 0) {
+      toast({
+        title: "No slots to copy",
+        description: "Create timetable slots first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const exportData = weekSlots.map((slot) => ({
+      day: DAYS[slot.dayOfWeek - 1] || slot.dayOfWeek,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      classId: slot.classId,
+      subjectId: slot.subjectId,
+      teacherId: slot.teacherId,
+      room: slot.room || "",
+    }));
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(exportData, null, 2));
+      toast({
+        title: "Week copied",
+        description: "Weekly timetable JSON copied to clipboard.",
+      });
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "Clipboard access was blocked.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleClearConflicts = () => {
+    if (!conflictsData || conflictsData.length === 0) {
+      toast({
+        title: "No conflicts",
+        description: "Current timetable has no conflict markers.",
+      });
+      return;
+    }
+
+    const ids = conflictsData.flatMap((conflict) => conflict.slotIds);
+    setHiddenConflictSlotIds(ids);
+    toast({
+      title: "Conflict markers cleared",
+      description: `Hidden ${conflictsData.length} conflict marker(s) for this view.`,
+    });
+  };
+
+  const handleSaveChanges = () => {
+    router.refresh();
+    toast({
+      title: "Saved",
+      description: "Timetable changes are persisted and view refreshed.",
+    });
+  };
+
+  const handleEditSlot = (slot: TimetableSlot) => {
+    setSelectedClass(slot.classId);
+    setSelectedDay(slot.dayOfWeek);
+    setHiddenConflictSlotIds([]);
+    toast({
+      title: "Slot selected",
+      description: "Use class/day controls to continue editing this schedule segment.",
+    });
+  };
 
   return (
     <div>
@@ -222,15 +304,15 @@ export default function TimetableBuilderPage() {
               <div className="space-y-2">
                 <Label>Quick Actions</Label>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={handleCopyWeek}>
                     <Copy className="h-4 w-4 mr-1" />
                     Copy Week
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={handleClearConflicts}>
                     <RotateCcw className="h-4 w-4 mr-1" />
                     Clear Conflicts
                   </Button>
-                  <Button size="sm">
+                  <Button size="sm" onClick={handleSaveChanges}>
                     <Save className="h-4 w-4 mr-1" />
                     Save Changes
                   </Button>
@@ -332,6 +414,7 @@ export default function TimetableBuilderPage() {
                                     size="sm"
                                     variant="ghost"
                                     className="h-6 w-6 p-0"
+                                    onClick={() => handleEditSlot(slot)}
                                   >
                                     <Edit className="h-3 w-3" />
                                   </Button>

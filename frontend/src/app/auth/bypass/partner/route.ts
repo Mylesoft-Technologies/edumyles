@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isBypassAllowed, setAuthCookie } from '@/lib/auth-bypass';
+import { isBypassRequestAllowed, setAuthCookie } from '@/lib/auth-bypass';
 
 export async function GET(request: NextRequest) {
-  if (!isBypassAllowed()) {
+  if (!isBypassRequestAllowed(request)) {
     return NextResponse.json(
       { error: "Access denied: bypass auth is disabled in production" },
       { status: 403 }
@@ -29,3 +29,4 @@ export async function GET(request: NextRequest) {
   // Redirect to partner dashboard
   return NextResponse.redirect(new URL('/portal/partner', request.url));
 }
+
