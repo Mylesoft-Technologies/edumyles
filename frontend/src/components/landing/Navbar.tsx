@@ -1,60 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
   {
     label: "Features",
-    href: "/#modules",
+    href: "/features",
     dropdown: [
-      { label: "Platform Overview", href: "/#modules", desc: "Unified school management" },
-      { label: "All 11 Modules", href: "/#modules", desc: "Student, finance, operations & more" },
-      { label: "Integrations", href: "/#modules", desc: "M-Pesa, Airtel Money, Stripe" },
-      { label: "AI & Automation", href: "/#modules", desc: "Smart scheduling & insights" },
+      { label: "Platform Overview", href: "/features", desc: "Unified school management" },
+      { label: "All Modules", href: "/features", desc: "Student, finance, operations & more" },
+      { label: "Integrations", href: "/features", desc: "M-Pesa, Airtel Money, Stripe" },
     ],
   },
-  {
-    label: "Pricing",
-    href: "/#pricing",
-  },
+  { label: "Pricing", href: "/pricing" },
   {
     label: "Solutions",
-    href: "/#modules",
+    href: "/solutions",
     dropdown: [
-      { label: "For Primary Schools", href: "/#modules", desc: "Simplified management for junior schools" },
-      { label: "For Secondary Schools", href: "/#modules", desc: "Full academic & admin management" },
-      { label: "For School Groups", href: "/#modules", desc: "Multi-campus unified control" },
-      { label: "For Partners", href: "/#modules", desc: "White-label & API access" },
+      { label: "Primary Schools", href: "/solutions", desc: "Simplified management for junior schools" },
+      { label: "Secondary Schools", href: "/solutions", desc: "Academic & admin management" },
+      { label: "School Groups", href: "/solutions", desc: "Multi-campus unified control" },
     ],
   },
-  {
-    label: "Success Stories",
-    href: "/#stories",
-  },
-  {
-    label: "Resources",
-    href: "/#stories",
-    dropdown: [
-      { label: "Blog", href: "/#stories", desc: "Articles, guides & insights" },
-      { label: "Product Videos", href: "/#stories", desc: "Walkthrough & tutorial videos" },
-      { label: "Webinars", href: "/#stories", desc: "Live & recorded sessions" },
-      { label: "Guides", href: "/#stories", desc: "Implementation & best practices" },
-    ],
-  },
+  { label: "Resources", href: "/resources" },
   {
     label: "About",
-    href: "/#brand",
+    href: "/about",
     dropdown: [
-      { label: "Our Story", href: "/#brand", desc: "Mission, values & journey" },
-      { label: "Team", href: "/#brand", desc: "Meet the people behind EduMyles" },
+      { label: "Our Story", href: "/about", desc: "Mission, values & journey" },
+      { label: "Team", href: "/team", desc: "Meet the people behind EduMyles" },
+      { label: "Blog", href: "/blog", desc: "Insights and updates" },
     ],
   },
-  {
-    label: "Concierge",
-    href: "/#concierge",
-  },
+  { label: "Concierge", href: "/concierge" },
 ];
 
 interface UserInfo {
@@ -67,9 +47,7 @@ interface UserInfo {
 function getUserFromCookie(): UserInfo | null {
   if (typeof document === "undefined") return null;
   try {
-    const match = document.cookie
-      .split("; ")
-      .find((c) => c.startsWith("edumyles_user="));
+    const match = document.cookie.split("; ").find((c) => c.startsWith("edumyles_user="));
     if (!match) return null;
     return JSON.parse(decodeURIComponent(match.split("=").slice(1).join("=")));
   } catch {
@@ -82,6 +60,7 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
+  const navRef = useRef<HTMLElement | null>(null);
 
   const pathname = usePathname();
 
@@ -100,9 +79,20 @@ export default function Navbar() {
     setOpenDropdown(null);
   }, [pathname]);
 
+  useEffect(() => {
+    const onClickOutside = (event: MouseEvent) => {
+      if (!navRef.current) return;
+      if (event.target instanceof Node && !navRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
   const initials = user
-    ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() ||
-      (user.email?.[0] ?? "").toUpperCase())
+    ? (`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || (user.email?.[0] ?? "").toUpperCase())
     : "";
 
   const handleLogout = () => {
@@ -121,32 +111,55 @@ export default function Navbar() {
         <span className="badge">NEW</span>
       </div>
 
-      <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
+      <nav className={`navbar ${scrolled ? "scrolled" : ""}`} ref={navRef}>
         <Link href="/" className="navbar-logo">
           EduMyles
         </Link>
 
         <ul className="navbar-links">
-          {navItems.map((item) => (
-            <li
-              key={item.label}
-              className={`nav-item ${item.dropdown ? "has-dropdown" : ""}`}
-              onMouseEnter={() => item.dropdown && setOpenDropdown(item.label)}
-              onMouseLeave={() => setOpenDropdown(null)}
-            >
-              <Link href={item.href}>{item.label}</Link>
-              {item.dropdown && (
-                <div className={`nav-dropdown ${openDropdown === item.label ? "open" : ""}`}>
-                  {item.dropdown.map((sub) => (
-                    <Link key={sub.label} href={sub.href} className="dropdown-item">
-                      <span className="dropdown-item-label">{sub.label}</span>
-                      <span className="dropdown-item-desc">{sub.desc}</span>
+          {navItems.map((item) => {
+            const hasDropdown = Boolean(item.dropdown);
+            const isOpen = openDropdown === item.label;
+
+            return (
+              <li
+                key={item.label}
+                className={`nav-item ${hasDropdown ? "has-dropdown" : ""}`}
+                onMouseEnter={() => hasDropdown && setOpenDropdown(item.label)}
+                onMouseLeave={() => hasDropdown && setOpenDropdown(null)}
+              >
+                <Link
+                  href={item.href}
+                  aria-expanded={hasDropdown ? isOpen : undefined}
+                  aria-haspopup={hasDropdown ? "menu" : undefined}
+                  onClick={(e) => {
+                    if (!hasDropdown) return;
+                    if (!isOpen) {
+                      e.preventDefault();
+                      setOpenDropdown(item.label);
+                    }
+                  }}
+                >
+                  {item.label}
+                </Link>
+
+                {hasDropdown && item.dropdown && (
+                  <div className={`nav-dropdown ${isOpen ? "open" : ""}`} role="menu">
+                    <Link href={item.href} className="dropdown-item">
+                      <span className="dropdown-item-label">{item.label} Overview</span>
+                      <span className="dropdown-item-desc">Open the full {item.label.toLowerCase()} page</span>
                     </Link>
-                  ))}
-                </div>
-              )}
-            </li>
-          ))}
+                    {item.dropdown.map((sub) => (
+                      <Link key={sub.label} href={sub.href} className="dropdown-item">
+                        <span className="dropdown-item-label">{sub.label}</span>
+                        <span className="dropdown-item-desc">{sub.desc}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         <div className="navbar-actions">
@@ -202,6 +215,7 @@ export default function Navbar() {
               )}
             </div>
           ))}
+
           <div className="mobile-auth-actions">
             {user ? (
               <>

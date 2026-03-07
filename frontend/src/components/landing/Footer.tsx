@@ -2,46 +2,46 @@ import Link from "next/link";
 
 const quickLinks = [
   { label: "Getting Started", href: "/auth/login" },
-  { label: "Product Videos", href: "/#stories" },
-  { label: "Integrations Guide", href: "/#modules" },
-  { label: "Webinars", href: "/#stories" },
-  { label: "Pricing FAQs", href: "/#pricing" },
-  { label: "Module FAQs", href: "/#modules" },
-  { label: "EduMyles Terms", href: "/#brand" },
-  { label: "EduMyles Affiliate", href: "/#concierge" },
-  { label: "EduMyles for Startups", href: "/#modules" },
+  { label: "Product Videos", href: "/resources" },
+  { label: "Integrations Guide", href: "/features" },
+  { label: "Webinars", href: "/resources" },
+  { label: "Pricing FAQs", href: "/pricing" },
+  { label: "Module FAQs", href: "/features" },
+  { label: "EduMyles Terms", href: "/terms" },
+  { label: "EduMyles Affiliate", href: "/concierge" },
+  { label: "EduMyles for Startups", href: "/solutions" },
   { label: "EduMyles Marketplace", href: "/platform/marketplace" },
 ];
 
 const exploreLinks = [
-  { label: "About Us", href: "/#brand" },
-  { label: "Our Team", href: "/#brand" },
-  { label: "Blog", href: "/#stories" },
-  { label: "Why EduMyles?", href: "/#modules" },
-  { label: "EduMyles for Small Schools", href: "/#modules" },
-  { label: "Concierge", href: "/#concierge" },
-  { label: "Support Plans", href: "/#pricing" },
-  { label: "Newsletter", href: "/#stories" },
+  { label: "About Us", href: "/about" },
+  { label: "Our Team", href: "/team" },
+  { label: "Blog", href: "/blog" },
+  { label: "Why EduMyles?", href: "/features" },
+  { label: "EduMyles for Small Schools", href: "/solutions" },
+  { label: "Concierge", href: "/concierge" },
+  { label: "Support Plans", href: "/pricing" },
+  { label: "Newsletter", href: "/resources" },
 ];
 
 const partnerLinks = [
-  { label: "Partner Program", href: "/portal/partner" },
+  { label: "Partner Program", href: "/solutions" },
   { label: "Find a Partner", href: "/portal/partner" },
-  { label: "Become a Partner", href: "/#concierge" },
+  { label: "Become a Partner", href: "/contact" },
 ];
 
 const legalLinks = [
-  { label: "Contact Us", href: "/#concierge" },
-  { label: "Security", href: "/#brand" },
-  { label: "Compliance", href: "/#brand" },
-  { label: "IPR Complaints", href: "/#brand" },
-  { label: "Anti-spam Policy", href: "/#brand" },
-  { label: "Terms of Service", href: "/#brand" },
-  { label: "Privacy Policy", href: "/#brand" },
-  { label: "Trademark Policy", href: "/#brand" },
-  { label: "Cookie Policy", href: "/#brand" },
-  { label: "GDPR Compliance", href: "/#brand" },
-  { label: "Abuse Policy", href: "/#brand" },
+  { label: "Contact Us", href: "/contact" },
+  { label: "Security", href: "/terms" },
+  { label: "Compliance", href: "/terms" },
+  { label: "IPR Complaints", href: "/terms" },
+  { label: "Anti-spam Policy", href: "/terms" },
+  { label: "Terms of Service", href: "/terms" },
+  { label: "Privacy Policy", href: "/terms" },
+  { label: "Trademark Policy", href: "/terms" },
+  { label: "Cookie Policy", href: "/terms" },
+  { label: "GDPR Compliance", href: "/terms" },
+  { label: "Abuse Policy", href: "/terms" },
 ];
 
 export default function Footer() {
@@ -52,14 +52,14 @@ export default function Footer() {
           <div className="promo-card">
             <h4>Workshops</h4>
             <p>Live training events to help your team get the most out of EduMyles.</p>
-            <Link href="/#stories" className="btn btn-sm btn-amber">
+            <Link href="/resources" className="btn btn-sm btn-amber">
               Learn More
             </Link>
           </div>
           <div className="promo-card">
             <h4>Live Webinars</h4>
             <p>Join upcoming sessions to see new features and best practices in action.</p>
-            <Link href="/#stories" className="btn btn-sm btn-amber">
+            <Link href="/resources" className="btn btn-sm btn-amber">
               Save Your Seat
             </Link>
           </div>
