@@ -19,6 +19,21 @@ function getConvexClient() {
  */
 export async function GET(req: NextRequest) {
   try {
+    // Development bypass - create mock session for testing
+    if (process.env.NODE_ENV === "development" && !req.cookies.get("edumyles_session")?.value) {
+      console.log("[api/auth/session] Development mode: Creating mock session");
+      return NextResponse.json({
+        session: {
+          sessionToken: "dev_session_token",
+          tenantId: "PLATFORM",
+          userId: "dev_user_id",
+          email: "admin@edumyles.local",
+          role: "master_admin",
+          expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+        },
+      });
+    }
+
     const sessionToken = req.cookies.get("edumyles_session")?.value;
 
     if (!sessionToken) {

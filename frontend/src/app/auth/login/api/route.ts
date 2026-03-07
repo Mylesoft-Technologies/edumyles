@@ -31,6 +31,16 @@ function buildAuthUrl(req: NextRequest, email?: string, state?: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    // Development bypass - redirect directly to admin panel
+    if (process.env.NODE_ENV === "development") {
+      console.log("[auth/login] Development mode: Bypassing WorkOS auth");
+      const response = NextResponse.json({ 
+        success: true,
+        redirectUrl: "/admin"
+      });
+      return response;
+    }
+
     const body = await req.json().catch(() => ({}));
     const email = body?.email;
     const state = generateState();
@@ -55,6 +65,13 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    // Development bypass - redirect directly to admin panel
+    if (process.env.NODE_ENV === "development") {
+      console.log("[auth/login] Development mode: Bypassing WorkOS auth");
+      const response = NextResponse.redirect(new URL("/admin", req.url));
+      return response;
+    }
+
     const email = req.nextUrl.searchParams.get("email") ?? undefined;
     const state = generateState();
     const authUrl = buildAuthUrl(req, email, state);
