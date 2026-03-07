@@ -29,7 +29,7 @@ export const createStudent = mutation({
 
         const studentId = await ctx.db.insert("students", {
             tenantId: tenant.tenantId,
-            admissionNo: admNo,
+            admissionNumber: admNo,
             firstName: args.firstName,
             lastName: args.lastName,
             dateOfBirth: args.dateOfBirth,

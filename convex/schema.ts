@@ -4,6 +4,7 @@ import { v } from "convex/values";
 export default defineSchema({
   sessions: defineTable({
     sessionToken: v.optional(v.string()),
+    token: v.optional(v.string()), // Add this to match existing data
     tenantId: v.string(),
     userId: v.string(),
     email: v.optional(v.string()),
@@ -16,6 +17,7 @@ export default defineSchema({
     workosUserId: v.optional(v.string()),
   })
     .index("by_token", ["sessionToken"])
+    .index("by_sessionToken", ["token"]) // Add index for the token field
     .index("by_userId", ["userId"]),
 
   auditLogs: defineTable({

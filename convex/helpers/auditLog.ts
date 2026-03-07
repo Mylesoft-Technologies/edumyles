@@ -11,7 +11,7 @@ export type AuditAction =
   | "impersonation.started" | "impersonation.ended"
   | "settings.updated"
   | "module.installed" | "module.uninstalled" | "module.config_updated" | "module.access_requested" | "module.status_toggled"
-  | "tenant.created" | "tenant.suspended"
+  | "tenant.created" | "tenant.suspended" | "tenant.activated"
   | "admission.submitted" | "admission.status_updated" | "admission.enrolled"
   | "staff.created" | "staff.updated" | "staff.role_assigned"
   | "class.created" | "class.updated"
