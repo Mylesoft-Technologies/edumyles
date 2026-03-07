@@ -32,7 +32,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   const initials = getInitials(user?.firstName, user?.lastName);
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-6 z-[200] relative">
+    <header className="flex h-16 items-center justify-between border-b bg-background px-6 z-[2000] relative">
       {/* Left: Mobile menu toggle + tenant name */}
       <div className="flex items-center gap-3">
         <Button

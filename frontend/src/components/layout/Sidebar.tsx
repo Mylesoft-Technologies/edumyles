@@ -155,8 +155,8 @@ export function Sidebar({ navItems, installedModules, isMobile = false, onClose 
 
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-sm">
-        <div className="fixed inset-y-0 left-0 z-[1000] w-64 bg-sidebar">
+      <div className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-sm">
+        <div className="fixed inset-y-0 left-0 z-[10000] w-64 bg-sidebar">
           <SidebarContent />
         </div>
       </div>
@@ -166,7 +166,7 @@ export function Sidebar({ navItems, installedModules, isMobile = false, onClose 
   return (
     <aside
       className={cn(
-        "relative flex h-full flex-col border-r bg-sidebar transition-all duration-300 z-[100]",
+        "relative flex h-full flex-col border-r bg-sidebar transition-all duration-300 z-[1000]",
         collapsed ? "w-16" : "w-64"
       )}
     >

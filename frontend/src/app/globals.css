@@ -214,6 +214,17 @@ button {
   z-index: 100;
 }
 
+/* Admin panel overrides - prevent landing navbar styles from affecting admin */
+.admin-layout .navbar {
+  position: relative;
+  z-index: auto;
+}
+
+.admin-layout header {
+  position: relative;
+  z-index: 200;
+}
+
 .navbar-logo {
   font-weight: 700;
   font-size: 1.3rem;
