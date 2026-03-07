@@ -13,18 +13,35 @@ interface TeamMember {
 
 export default function TeamCard({ member }: { member: TeamMember }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
     <div className="team-card">
       <div className="team-card-image">
         {member.image && !imgFailed ? (
-          <img
-            src={member.image}
-            alt={member.name}
-            width={200}
-            height={220}
-            onError={() => setImgFailed(true)}
-          />
+          <>
+            {!imgLoaded && (
+              <div className="team-avatar-fallback">{member.initials}</div>
+            )}
+            <img
+              src={member.image}
+              alt={member.name}
+              width={200}
+              height={220}
+              onLoad={() => setImgLoaded(true)}
+              onError={() => {
+                setImgFailed(true);
+                setImgLoaded(false);
+              }}
+              className={imgLoaded ? "loaded" : ""}
+              style={{
+                display: imgLoaded ? "block" : "none",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
+          </>
         ) : (
           <div className="team-avatar-fallback">{member.initials}</div>
         )}

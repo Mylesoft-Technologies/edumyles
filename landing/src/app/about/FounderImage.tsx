@@ -15,7 +15,15 @@ export default function FounderImage() {
       alt="Jonathan Myles — CEO & Founder of EduMyles"
       width={400}
       height={400}
+      className="founder-photo"
       onError={() => setFailed(true)}
+      style={{
+        width: "100%",
+        height: "auto",
+        borderRadius: "16px",
+        objectFit: "cover",
+        aspectRatio: "3/4"
+      }}
     />
   );
 }
