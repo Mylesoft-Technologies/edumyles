@@ -448,115 +448,87 @@ export default function PlatformDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {mockActivity ? (
-                mockActivity.length > 0 ? (
-                  <div className="space-y-3">
-                    {mockActivity.map((item) => (
-                      <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex-shrink-0">
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <ActionLabel action={item.action} />
-                            <span className="text-xs text-muted-foreground">
-                              {formatRelativeTime(item.createdAt)}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-sm text-muted-foreground truncate">
-                            {item.tenantName}
-                          </p>
-                        </div>
+              {mockActivity && mockActivity.length > 0 ? (
+                <div className="space-y-3">
+                  {mockActivity.map((item) => (
+                    <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex-shrink-0">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <ActionLabel action={item.action} />
+                          <span className="text-xs text-muted-foreground">
+                            {formatRelativeTime(item.createdAt)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground truncate">
+                          {item.tenantName}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
                 ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <Activity className="h-8 w-8 text-muted-foreground/50 mx-auto" />
                   <p className="text-sm text-muted-foreground">No recent activity logged yet.</p>
-                )
-              ) : (
-                <p className="text-sm text-muted-foreground">Loading activity...</p>
+                </div>
               )}
-              <div className="mt-4 pt-4 border-t">
-                <Button variant="outline" className="w-full">
-                  View All Activity
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
-      </div>
 
-      {/* Quick Actions & System Status */}
-      <div className="grid gap-6 lg:grid-cols-3">
         {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline">
-              <UserCheck className="h-4 w-4 mr-2" />
-              Manage Users
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Building2 className="h-4 w-4 mr-2" />
-              Tenant Settings
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Shield className="h-4 w-4 mr-2" />
-              Security Center
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <FileText className="h-4 w-4 mr-2" />
-              System Logs
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* System Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>System Status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">API Status</span>
-              <Badge className="bg-green-100 text-green-800">Operational</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Database</span>
-              <Badge className="bg-green-100 text-green-800">Healthy</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">CDN</span>
-              <Badge className="bg-green-100 text-green-800">Active</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Backup</span>
-              <Badge className="bg-amber-100 text-amber-800">In Progress</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Active/Suspended Tenants */}
-        <div className="space-y-4">
+        <div className="lg:col-span-1">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Active Tenants</CardTitle>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{mockStats.activeTenants}</div>
-              <p className="text-xs text-muted-foreground mt-1">Currently operational</p>
+            <CardContent className="space-y-4">
+              <Button className="w-full justify-start hover:bg-primary hover:text-primary-foreground hover:shadow-md transition-all duration-200 group" variant="outline">
+                <UserCheck className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                <span className="group-hover:translate-x-1 transition-transform">View All Users</span>
+              </Button>
+              <Button className="w-full justify-start hover:bg-primary hover:text-primary-foreground hover:shadow-md transition-all duration-200 group" variant="outline">
+                <Building2 className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                <span className="group-hover:translate-x-1 transition-transform">Manage Tenants</span>
+              </Button>
+              <Button className="w-full justify-start hover:bg-primary hover:text-primary-foreground hover:shadow-md transition-all duration-200 group" variant="outline">
+                <Shield className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                <span className="group-hover:translate-x-1 transition-transform">Security Center</span>
+              </Button>
+              <Button className="w-full justify-start hover:bg-primary hover:text-primary-foreground hover:shadow-md transition-all duration-200 group" variant="outline">
+                <FileText className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                <span className="group-hover:translate-x-1 transition-transform">System Logs</span>
+              </Button>
             </CardContent>
           </Card>
-          
+        </div>
+
+        {/* System Status */}
+        <div className="lg:col-span-2">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Suspended Tenants</CardTitle>
+            <CardHeader>
+              <CardTitle>System Status</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{mockStats.suspendedTenants}</div>
-              <p className="text-xs text-muted-foreground mt-1">Require attention</p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">API Status</span>
+                <Badge className="bg-green-100 text-green-800 animate-pulse">Operational</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Database</span>
+                <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">CDN</span>
+                <Badge className="bg-green-100 text-green-800">Active</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Backup</span>
+                <Badge className="bg-amber-100 text-amber-800 animate-pulse">In Progress</Badge>
+              </div>
             </CardContent>
           </Card>
         </div>
