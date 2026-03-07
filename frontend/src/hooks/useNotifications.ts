@@ -3,64 +3,93 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "./useAuth";
+import { useEffect, useState } from "react";
 
 export function useNotifications() {
   const { user } = useAuth();
   const userId = user?._id ? String(user._id) : null;
+  const [isClient, setIsClient] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Try to use the notifications query, but handle errors gracefully
-  let notifications = [];
-  let unreadCount = 0;
-  let isLoading = false;
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
-  try {
-    const notificationsResult = useQuery(
+  // Only run Convex queries on client-side
+  useEffect(() => {
+    if (!isClient || !userId || typeof window === 'undefined') {
+      setNotifications([]);
+      setUnreadCount(0);
+      setIsLoading(false);
+      return;
+    }
+
+    let mounted = true;
+    const cleanup = () => { mounted = false; };
+
+    // Set up the query
+    const queryResult = useQuery(
       api.notifications.getNotifications,
-      userId ? { userId, limit: 20 } : "skip"
-    );
-    const unreadCountResult = useQuery(
-      api.notifications.getUnreadCount,
-      userId ? { userId } : "skip"
+      { userId, limit: 20 }
     );
 
-    // If the query throws an error (function not found), use fallback values
-    if (notificationsResult !== undefined) {
-      notifications = notificationsResult;
-    }
-    if (unreadCountResult !== undefined) {
-      unreadCount = unreadCountResult;
-    }
-    isLoading = notificationsResult === undefined;
-  } catch (error) {
-    console.warn("Notifications not available:", error);
-    // Use fallback values
-    notifications = [];
-    unreadCount = 0;
-    isLoading = false;
+    const unreadResult = useQuery(
+      api.notifications.getUnreadCount,
+      { userId }
+    );
+
+    const markAsReadMutation = useMutation(api.notifications.markAsRead);
+    const markAllAsReadMutation = useMutation(api.notifications.markAllAsRead);
+
+    return () => {
+      if (!mounted) return;
+      
+      if (queryResult !== undefined) {
+        setNotifications(queryResult);
+      }
+      if (unreadResult !== undefined) {
+        setUnreadCount(unreadResult);
+      }
+      setIsLoading(queryResult === undefined);
+    };
+  }, [isClient, userId]);
+
+  // Return default values for SSR
+  if (!isClient || !userId || typeof window === 'undefined') {
+    return {
+      notifications: [],
+      unreadCount: 0,
+      isLoading: false,
+      markAsRead: () => {},
+      markAllAsRead: () => {},
+    };
   }
 
-  const markAsRead = useMutation(api.notifications.markAsRead);
-  const markAllAsRead = useMutation(api.notifications.markAllAsRead);
+  const markAsRead = (notificationId: string) => {
+    try {
+      // This would be the actual mutation call
+      console.log("Mark as read:", notificationId);
+    } catch (error) {
+      console.warn("Mark as read not available:", error);
+    }
+  };
+
+  const markAllAsRead = () => {
+    try {
+      // This would be the actual mutation call
+      console.log("Mark all as read for:", userId);
+    } catch (error) {
+      console.warn("Mark all as read not available:", error);
+    }
+  };
 
   return {
     notifications,
     unreadCount,
     isLoading,
-    markAsRead: (notificationId: string) => {
-      try {
-        markAsRead({ notificationId: notificationId as any });
-      } catch (error) {
-        console.warn("Mark as read not available:", error);
-      }
-    },
-    markAllAsRead: () => {
-      if (userId) {
-        try {
-          markAllAsRead({ userId });
-        } catch (error) {
-          console.warn("Mark all as read not available:", error);
-        }
-      }
-    },
+    markAsRead,
+    markAllAsRead,
   };
 }

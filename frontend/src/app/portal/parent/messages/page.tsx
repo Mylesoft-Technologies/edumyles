@@ -8,12 +8,22 @@ import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ParentMessagesPage() {
   const { user, isLoading: authLoading } = useAuth();
   const [message, setMessage] = useState("");
-  
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Don't run Convex queries during SSR
+  if (!isMounted || typeof window === 'undefined') {
+    return <LoadingSkeleton variant="page" />;
+  }
+
   // Handle missing Convex functions gracefully
   let notifications = [];
   let notificationsLoading = false;

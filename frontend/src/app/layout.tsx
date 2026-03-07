@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import ConditionalLayout from "@/components/landing/ConditionalLayout";
 import { ConvexClientProvider } from "./providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Force rebuild 2025-03-06 - All merge conflicts resolved
 
@@ -38,6 +39,7 @@ export default function RootLayout({
                     </ConvexClientProvider>
                 </ErrorBoundary>
                 <Toaster />
+                <SpeedInsights />
             </body>
         </html>
     );
