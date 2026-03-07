@@ -1,6 +1,6 @@
 "use client";
 
-import { ConvexProvider } from "convex/react";
+import { ConvexProvider } from "@/hooks/useSSRSafeConvex";
 import { convexClient } from "@/lib/convex";
 
 export function ConvexClientProvider({ children }: { children: React.ReactNode }) {
