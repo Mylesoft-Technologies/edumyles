@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-
-// ── Data ────────────────────────────────────────────────────
+import { Suspense, useEffect, useState } from "react";
 
 const stats = [
   { value: "50+", label: "Schools Managed" },
@@ -16,7 +15,7 @@ const highlights = [
   {
     title: "Admissions to Alumni",
     description:
-      "Handle enrollment, class allocation, academics, report cards, and parent communication — one connected flow from day one.",
+      "Handle enrollment, class allocation, academics, report cards, and parent communication - one connected flow from day one.",
   },
   {
     title: "Built for Multi-Campus",
@@ -35,7 +34,7 @@ const moduleCategories = [
     key: "student",
     label: "Student Management",
     description:
-      "Manage the entire student lifecycle — from admissions and enrollment through academics, assessments, and alumni tracking. Every record in one place.",
+      "Manage the entire student lifecycle - from admissions and enrollment through academics, assessments, and alumni tracking. Every record in one place.",
     apps: [
       { name: "Student Information System", desc: "Student profiles, classes, streams" },
       { name: "Admissions", desc: "Applications, enrollment, waitlists" },
@@ -67,64 +66,53 @@ const moduleCategories = [
       { name: "Transport", desc: "Bus routes, fleet management" },
     ],
   },
-];
+] as const;
 
 function LandingPageContent() {
-  const [activeTab, setActiveTab] = useState("student");
+  const [activeTab, setActiveTab] = useState<(typeof moduleCategories)[number]["key"]>("student");
   const [authError, setAuthError] = useState("");
   const searchParams = useSearchParams();
 
-  const activeCategory = moduleCategories.find((c) => c.key === activeTab)!;
+  const activeCategory = moduleCategories.find((c) => c.key === activeTab) ?? moduleCategories[0];
 
-  // Handle auth errors from URL parameters
   useEffect(() => {
     const error = searchParams.get("auth_error");
-    if (error) {
-      const decoded = decodeURIComponent(error);
-      const safeError = decoded.replace(/[<>]/g, "");
-      setAuthError(safeError);
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete("auth_error");
-      window.history.replaceState({}, "", newUrl.toString());
-    }
+    if (!error) return;
+
+    const decoded = decodeURIComponent(error);
+    const safeError = decoded.replace(/[<>]/g, "");
+    setAuthError(safeError);
+
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete("auth_error");
+    window.history.replaceState({}, "", newUrl.toString());
   }, [searchParams]);
 
   return (
-    <>
-      {/* ════════════════════════════════════════════════════
-          1. HERO SECTION — White Background
-      ════════════════════════════════════════════════════ */}
+    <main>
       <section className="hero">
         <div className="hero-content">
           <p className="eyebrow">EduMyles</p>
           <h1>Transforming schools, one mile at a time.</h1>
 
-          {/* Auth Error Display */}
           {authError && (
-            <div className="auth-error-banner" style={{
-              backgroundColor: '#fee2e2',
-              border: '1px solid #fecaca',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              marginBottom: '20px',
-              color: '#dc2626'
-            }}>
+            <div className="auth-error-banner" role="alert" aria-live="polite">
               <strong>Authentication Error:</strong> {authError}
             </div>
           )}
 
           <p className="subtext">
-            EduMyles is the operating system for schools across Africa — intuitive, affordable technology
+            EduMyles is the operating system for schools across Africa - intuitive, affordable technology
             that simplifies administration, enhances learning outcomes, and connects every stakeholder in
             the education journey.
           </p>
           <div className="actions">
-            <a className="btn btn-primary" href="/auth/login">
+            <Link className="btn btn-primary" href="/auth/login">
               Get Started
-            </a>
-            <a className="btn btn-secondary" href="/concierge">
+            </Link>
+            <Link className="btn btn-secondary" href="/concierge">
               Contact Sales
-            </a>
+            </Link>
           </div>
           <div className="trust-signals">
             <span className="trust-signal">
@@ -138,11 +126,14 @@ function LandingPageContent() {
             </span>
           </div>
         </div>
+
         <div className="hero-visual">
           <div className="dashboard-mockup">
             <div className="mockup-header">
               <div className="mockup-dots">
-                <span /><span /><span />
+                <span />
+                <span />
+                <span />
               </div>
               <span className="mockup-title">EduMyles Dashboard</span>
             </div>
@@ -173,13 +164,10 @@ function LandingPageContent() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          2. STATS — Dark Green Section
-      ════════════════════════════════════════════════════ */}
-      <section className="stats-section">
+      <section className="social-proof-section">
         <div className="stats-grid">
-          {stats.map((stat, index) => (
-            <div key={index} className="stat-card">
+          {stats.map((stat) => (
+            <div key={stat.label} className="stat-card">
               <div className="stat-value">{stat.value}</div>
               <div className="stat-label">{stat.label}</div>
             </div>
@@ -187,20 +175,17 @@ function LandingPageContent() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          3. HIGHLIGHTS — Amber/Yellow Zone
-      ════════════════════════════════════════════════════ */}
       <section className="highlights-zone">
         <div className="section-header centered">
           <h2>Why schools choose EduMyles</h2>
           <p className="section-subtitle">
-            Built specifically for East African schools with local payment methods,
-            curricula support, and multi-language capabilities.
+            Built specifically for East African schools with local payment methods, curricula support, and
+            multi-language capabilities.
           </p>
         </div>
-        <div className="highlights-grid">
-          {highlights.map((highlight, index) => (
-            <div key={index} className="highlight-card">
+        <div className="highlights">
+          {highlights.map((highlight) => (
+            <div key={highlight.title} className="panel">
               <h3>{highlight.title}</h3>
               <p>{highlight.description}</p>
             </div>
@@ -208,21 +193,23 @@ function LandingPageContent() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          4. MODULES — Interactive Tabs
-      ════════════════════════════════════════════════════ */}
       <section className="modules-section">
         <div className="section-header centered">
           <h2>11 modules. One platform.</h2>
           <p className="section-subtitle">
-            Everything you need to run your school efficiently — from admissions to alumni.
+            Everything you need to run your school efficiently - from admissions to alumni.
           </p>
         </div>
-        <div className="module-tabs">
+
+        <div className="module-tabs" role="tablist" aria-label="Module categories">
           {moduleCategories.map((cat) => (
             <button
               key={cat.key}
+              type="button"
+              role="tab"
               className={`module-tab ${activeTab === cat.key ? "active" : ""}`}
+              aria-selected={activeTab === cat.key}
+              aria-controls={`module-panel-${cat.key}`}
               onClick={() => setActiveTab(cat.key)}
             >
               {cat.label}
@@ -230,14 +217,15 @@ function LandingPageContent() {
           ))}
         </div>
 
-        <div className="module-tab-content">
+        <div className="module-tab-content" role="tabpanel" id={`module-panel-${activeCategory.key}`}>
           <div className="module-tab-text">
             <h3>{activeCategory.label}</h3>
             <p>{activeCategory.description}</p>
-            <a className="btn btn-primary" href="/auth/login">
+            <Link className="btn btn-primary" href="/auth/login">
               Try It Free
-            </a>
+            </Link>
           </div>
+
           <div className="module-tab-apps">
             {activeCategory.apps.map((app) => (
               <div key={app.name} className="module-app-card">
@@ -249,27 +237,20 @@ function LandingPageContent() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          5. CONCIERGE — Dark Green Banner
-      ════════════════════════════════════════════════════ */}
       <section className="concierge-section" id="concierge">
         <div className="concierge-content">
           <span className="concierge-label">EduMyles Concierge</span>
-          <h2>Speak to a school-tech expert — free.</h2>
+          <h2>Speak to a school-tech expert - free.</h2>
           <p>
-            Get a personalized walkthrough of EduMyles tailored to your
-            school&apos;s structure, curriculum, and workflows. Not a sales call —
-            a genuine consultation.
+            Get a personalized walkthrough of EduMyles tailored to your school&apos;s structure,
+            curriculum, and workflows. Not a sales call - a genuine consultation.
           </p>
-          <a className="btn btn-amber" href="/concierge">
+          <Link className="btn btn-amber" href="/concierge">
             Book Free Consultation
-          </a>
+          </Link>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          6. SUCCESS STORIES — White
-      ════════════════════════════════════════════════════ */}
       <section className="stories-section" id="stories">
         <div className="section-header centered">
           <h2>Schools thriving with EduMyles</h2>
@@ -277,6 +258,7 @@ function LandingPageContent() {
             See how institutions across East Africa are transforming their operations.
           </p>
         </div>
+
         <div className="stories-grid">
           {[
             {
@@ -297,8 +279,8 @@ function LandingPageContent() {
               result: "50% reduction in admin work",
               quote: "Everything we need is in one place. It's been revolutionary.",
             },
-          ].map((story, index) => (
-            <div key={index} className="story-card">
+          ].map((story) => (
+            <div key={story.name} className="story-card">
               <h3>{story.name}</h3>
               <p className="story-location">{story.location}</p>
               <div className="story-result">{story.result}</div>
@@ -308,14 +290,11 @@ function LandingPageContent() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          7b. BRAND FRAMEWORK — White
-      ════════════════════════════════════════════════════ */}
       <section className="brand-section">
         <div className="section-header centered">
-          <h2>EduMyles — Brand Identity &amp; Foundation</h2>
+          <h2>EduMyles - Brand Identity &amp; Foundation</h2>
           <p className="section-subtitle">
-            Built on a clear mission, bold vision, and the M.Y.L.E.S. principle — our core values framework.
+            Built on a clear mission, bold vision, and the M.Y.L.E.S. principle - our core values framework.
           </p>
         </div>
 
@@ -325,7 +304,7 @@ function LandingPageContent() {
             <p>
               To empower schools across Africa with intuitive, affordable technology that simplifies
               administration, enhances learning outcomes, and connects every stakeholder in the education
-              journey — transforming schools, one mile at a time.
+              journey - transforming schools, one mile at a time.
             </p>
 
             <h3>Vision</h3>
@@ -339,35 +318,35 @@ function LandingPageContent() {
             <h3>The M.Y.L.E.S. Principle</h3>
             <ul className="brand-values-list">
               <li>
-                <strong>M — Mastery:</strong> Pursue excellence relentlessly in how we build, ship, and serve.
+                <strong>M - Mastery:</strong> Pursue excellence relentlessly in how we build, ship, and serve.
               </li>
               <li>
-                <strong>Y — Youth Empowerment:</strong> Design every decision to unlock the potential of Africa&apos;s young people.
+                <strong>Y - Youth Empowerment:</strong> Design every decision to unlock the potential of
+                Africa&apos;s young people.
               </li>
               <li>
-                <strong>L — Leadership:</strong> Lead with integrity, courage, and accountability to every stakeholder.
+                <strong>L - Leadership:</strong> Lead with integrity, courage, and accountability to every
+                stakeholder.
               </li>
               <li>
-                <strong>E — Entrepreneurship:</strong> Think like founders — innovate boldly, own outcomes fully.
+                <strong>E - Entrepreneurship:</strong> Think like founders - innovate boldly, own outcomes
+                fully.
               </li>
               <li>
-                <strong>S — Service:</strong> Serve schools, students, and communities with purpose, humility, and heart.
+                <strong>S - Service:</strong> Serve schools, students, and communities with purpose, humility,
+                and heart.
               </li>
             </ul>
           </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          8. PRICING — Amber
-      ════════════════════════════════════════════════════ */}
       <section className="pricing-section" id="pricing">
         <div className="section-header centered">
           <h2>Simple, transparent pricing</h2>
-          <p className="section-subtitle">
-            No hidden fees. Pay per student per month. Cancel anytime.
-          </p>
+          <p className="section-subtitle">No hidden fees. Pay per student per month. Cancel anytime.</p>
         </div>
+
         <div className="pricing-grid">
           {[
             {
@@ -403,8 +382,8 @@ function LandingPageContent() {
                 "Dedicated support",
               ],
             },
-          ].map((plan, index) => (
-            <div key={index} className="pricing-card">
+          ].map((plan) => (
+            <div key={plan.name} className="pricing-card">
               <h3>{plan.name}</h3>
               <div className="price">
                 {plan.price === "Free" ? (
@@ -419,45 +398,40 @@ function LandingPageContent() {
               </div>
               <p>{plan.description}</p>
               <ul className="features">
-                {plan.features.map((feature, i) => (
-                  <li key={i}>{feature}</li>
+                {plan.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
                 ))}
               </ul>
-              <a className="btn btn-primary" href="/auth/login">
+              <Link className="btn btn-primary" href="/auth/login">
                 Get Started
-              </a>
+              </Link>
             </div>
           ))}
         </div>
+
         <div className="pricing-links">
-          <a href="/pricing">View Plan Details</a>
+          <Link href="/pricing">View Plan Details</Link>
           <span className="divider">|</span>
-          <a href="/pricing#faq">Pricing FAQs</a>
+          <Link href="/pricing#faq">Pricing FAQs</Link>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════
-          8. FINAL CTA — Amber
-      ════════════════════════════════════════════════════ */}
       <section className="final-cta">
         <div className="final-cta-card">
           <h2>Choose EduMyles. Transform your school.</h2>
-          <p>
-            Join 50+ schools across East Africa already running smarter with
-            one unified platform.
-          </p>
-          <a className="btn btn-primary" href="/auth/login">
+          <p>Join 50+ schools across East Africa already running smarter with one unified platform.</p>
+          <Link className="btn btn-primary" href="/auth/login">
             Activate Free Trial
-          </a>
+          </Link>
         </div>
       </section>
-    </>
+    </main>
   );
 }
 
 export default function LandingPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="loading-state">Loading...</div>}>
       <LandingPageContent />
     </Suspense>
   );

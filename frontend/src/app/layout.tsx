@@ -9,7 +9,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 // Force rebuild 2025-03-06 - All merge conflicts resolved
 
 export const metadata: Metadata = {
-    title: "EduMyles — School Management for East Africa",
+    title: "EduMyles - School Management for East Africa",
     description:
         "Replace disconnected spreadsheets and messaging groups with one unified platform for admissions, billing, academics, HR, and communication across East Africa.",
     other: {
@@ -44,4 +44,5 @@ export default function RootLayout({
         </html>
     );
 }
+
 
