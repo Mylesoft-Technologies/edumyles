@@ -14,6 +14,19 @@ export function isBypassAllowed() {
   return process.env.NODE_ENV !== "production" || process.env.ALLOW_BYPASS === "true";
 }
 
+export function isBypassRequestAllowed(request?: Request) {
+  if (!isBypassAllowed()) return false;
+
+  // Optional hardening: if BYPASS_TOKEN is set, every bypass request must present it.
+  const bypassToken = process.env.BYPASS_TOKEN;
+  if (!bypassToken) return true;
+  if (!request) return false;
+
+  const urlToken = new URL(request.url).searchParams.get("token");
+  const headerToken = request.headers.get("x-bypass-token");
+  return urlToken === bypassToken || headerToken === bypassToken;
+}
+
 function normalizeRole(role: unknown) {
   if (!role || typeof role !== "string") return "school_admin";
   return role.toLowerCase();
