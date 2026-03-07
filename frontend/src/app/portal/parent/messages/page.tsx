@@ -13,15 +13,29 @@ import { useState } from "react";
 export default function ParentMessagesPage() {
   const { user, isLoading: authLoading } = useAuth();
   const [message, setMessage] = useState("");
-  const notifications = useQuery(
-    api.notifications.getNotifications,
-    user?._id ? { userId: String(user._id), limit: 20 } : "skip"
-  );
+  
+  // Handle missing Convex functions gracefully
+  let notifications = [];
+  let notificationsLoading = false;
+
+  try {
+    const notificationsResult = useQuery(
+      api.notifications.getNotifications,
+      user?._id ? { userId: String(user._id), limit: 20 } : "skip"
+    );
+    notifications = notificationsResult ?? [];
+    notificationsLoading = notificationsResult === undefined;
+  } catch (error) {
+    console.warn("Notifications not available in messages:", error);
+    notifications = [];
+    notificationsLoading = false;
+  }
+
   const sendMessage = useMutation(
     api.modules.portal.parent.mutations.sendMessage
   );
 
-  if (authLoading || notifications === undefined) {
+  if (authLoading || notificationsLoading) {
     return <LoadingSkeleton variant="page" />;
   }
 
