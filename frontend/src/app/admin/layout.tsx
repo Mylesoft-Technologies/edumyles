@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative z-[50]">
       <Header onMobileMenuToggle={handleMobileMenuToggle} />
       <div className="flex min-h-[calc(100vh-4rem)]">
         {/* Desktop Sidebar */}
