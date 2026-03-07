@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import ConditionalLayout from "@/components/landing/ConditionalLayout";
 import { ConvexClientProvider } from "./providers";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Force rebuild 2025-03-06 - All merge conflicts resolved
 
@@ -31,9 +32,11 @@ export default function RootLayout({
                 />
             </head>
             <body className="font-sans antialiased">
-                <ConvexClientProvider>
-                    <ConditionalLayout>{children}</ConditionalLayout>
-                </ConvexClientProvider>
+                <ErrorBoundary>
+                    <ConvexClientProvider>
+                        <ConditionalLayout>{children}</ConditionalLayout>
+                    </ConvexClientProvider>
+                </ErrorBoundary>
                 <Toaster />
             </body>
         </html>
