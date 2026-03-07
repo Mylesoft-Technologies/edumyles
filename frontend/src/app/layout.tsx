@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import ConditionalLayout from "@/components/landing/ConditionalLayout";
-import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
+import { ConvexClientProvider } from "./providers";
 
 // Force rebuild 2025-03-06 - All merge conflicts resolved
 
