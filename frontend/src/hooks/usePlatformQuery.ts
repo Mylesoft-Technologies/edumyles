@@ -15,19 +15,22 @@ export function usePlatformQuery<T = any>(
 ): T | undefined {
   // In development, skip platform queries if session token looks like a mock
   const sessionToken = args?.sessionToken;
+  const isDevMode = process.env.NODE_ENV === "development";
   const isDevMockSession = !sessionToken || 
     sessionToken === "dev_session_token" ||
     sessionToken.includes("dev_") ||
     sessionToken.includes("mock") ||
     sessionToken.includes("test");
   
-  const shouldSkip = !enabled || isDevMockSession;
+  // Aggressive fallback: skip ALL platform queries in development mode
+  const shouldSkip = !enabled || isDevMode || isDevMockSession;
   
   // Enhanced debug logging
   console.log("[usePlatformQuery] DEBUG:", {
     queryName: query?.name || query?.toString?.match(/function (\w+)/)?.[1] || "unknown",
     sessionToken: sessionToken ? `${sessionToken.substring(0, 12)}...` : "none",
     sessionTokenLength: sessionToken?.length || 0,
+    isDevMode,
     isDevMockSession,
     enabled,
     shouldSkip,
