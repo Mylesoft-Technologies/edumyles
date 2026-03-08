@@ -144,7 +144,7 @@ export default function PlatformUsersPage() {
     const handleToggleRole = async (admin: PlatformAdmin) => {
         const newRole = admin.role === "master_admin" ? "super_admin" : "master_admin";
         try {
-            await updateRole({ userId: admin._id, role: newRole as "master_admin" | "super_admin" });
+            await updateRole({ sessionToken: sessionToken!, userId: admin._id, role: newRole as "master_admin" | "super_admin" });
             toast({
                 title: "Role Updated",
                 description: `Successfully changed ${admin.email} to ${newRole}`,
@@ -163,7 +163,7 @@ export default function PlatformUsersPage() {
         if (!deactivateDialog) return;
         setActionLoading(true);
         try {
-            await deactivate({ userId: deactivateDialog._id });
+            await deactivate({ sessionToken: sessionToken!, userId: deactivateDialog._id });
             setDeactivateDialog(null);
             toast({
                 title: "Admin Deactivated",
