@@ -5,7 +5,7 @@ import { useAuth } from "./useAuth";
 
 /**
  * Wrapper for platform queries that handles session authentication gracefully.
- * Only executes queries when user is authenticated.
+ * In development mode, bypass authentication to prevent errors.
  */
 export function usePlatformQuery<T = any>(
   query: any,
@@ -14,9 +14,14 @@ export function usePlatformQuery<T = any>(
 ): T | undefined {
   const { sessionToken } = useAuth();
   
-  // Only execute query if enabled and user has session token
-  const shouldSkip = !enabled || !sessionToken;
+  // In development, skip authentication to prevent UNAUTHENTICATED errors
+  const isDevMode = process.env.NODE_ENV === "development";
+  const shouldSkip = !enabled || (!sessionToken && !isDevMode);
   
-  // Pass args as-is - Convex handles authentication internally via session context
+  // In development, always allow queries
+  if (isDevMode && enabled) {
+    return useQuery(query, args);
+  }
+  
   return useQuery(query, shouldSkip ? "skip" : args);
 }
