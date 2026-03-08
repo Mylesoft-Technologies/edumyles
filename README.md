@@ -1,352 +1,177 @@
 # EduMyles
 
-> Multi-tenant, modular school management platform for East Africa
+Multi-tenant school management platform built for East Africa.
 
-EduMyles is a comprehensive school management system designed specifically for East African educational institutions. It provides a unified platform for administrators, teachers, students, and parents to manage all aspects of school operations from admissions and academics to finance and communications.
+EduMyles gives schools a single system to manage students, staff, finances, communications, and day-to-day operations. Each school gets its own isolated tenant at `{school}.edumyles.com` with role-based access for administrators, teachers, students, and parents.
 
-## 🚀 Key Features
+---
 
-### Core Modules
-- **Student Information System (SIS)** - Complete student lifecycle management
-- **Admissions & Enrollment** - Streamlined application and onboarding
-- **Finance & Fee Management** - Multi-payment gateway support (M-Pesa, Airtel Money, Stripe)
-- **Timetable & Scheduling** - Smart scheduling and resource allocation
-- **Academics & Gradebook** - Comprehensive academic tracking and reporting
-- **HR & Payroll** - Staff management and automated payroll
-- **Library Management** - Digital library catalog and circulation
-- **Transport Management** - Route planning and fleet tracking
-- **Communications** - SMS, email, and in-app messaging
-- **eWallet** - Digital wallet for students and staff
-- **Marketplace** - School supplies and services marketplace
+## Tech Stack
 
-### Platform Features
-- **Multi-tenant Architecture** - Each school operates in isolated environment
-- **Subdomain Routing** - `{school}.edumyles.com` for each institution
-- **Real-time Updates** - Live data synchronization using Convex
-- **Mobile Apps** - Native iOS and Android applications
-- **Offline Support** - Critical functionality available offline
-- **Role-based Access** - Granular permissions for all user types
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15 (App Router), Tailwind CSS, shadcn/ui |
+| Backend | Convex (real-time serverless database + functions) |
+| Auth | WorkOS (magic links, SSO, organizations) |
+| Mobile | React Native (Expo) |
+| Payments | M-Pesa (Daraja), Airtel Money, Stripe |
+| SMS | Africa's Talking |
+| Email | Resend |
+| Hosting | Vercel |
+| Monorepo | Turborepo + npm workspaces |
 
-## 🛠 Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Frontend** | Next.js 15 (App Router) + Tailwind CSS + shadcn/ui | Web application UI |
-| **Backend** | Convex (real-time serverless DB + compute) | Real-time database and serverless functions |
-| **Authentication** | WorkOS (magic links, SSO, Organizations) | User authentication and organization management |
-| **Mobile** | React Native (Expo) | Cross-platform mobile applications |
-| **SMS Gateway** | Africa's Talking | SMS notifications and alerts |
-| **Email Service** | Resend + React Email | Transactional email delivery |
-| **Payments** | M-Pesa (Daraja), Airtel Money, Stripe, Bank Transfer | Multi-provider payment processing |
-| **Hosting** | Vercel (subdomain routing) | Application deployment and scaling |
-| **Build System** | Turbo (monorepo management) | Optimized build and development workflow |
-| **Package Manager** | npm | Dependency management |
-
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 edumyles/
+├── frontend/           # Next.js web app — school portal ({slug}.edumyles.com)
+│   ├── src/app/        # Routes: /admin, /platform, /auth, /portal (student)
+│   ├── src/components/ # UI components (shadcn/ui, forms, charts, layout)
+│   ├── src/hooks/      # React hooks (auth, permissions, tenant, real-time)
+│   ├── src/lib/        # Utilities, auth helpers, formatters
+│   └── src/test/       # Frontend test suite
 │
-├── frontend/              # Next.js App Router — school portal ({slug}.edumyles.com)
-│   ├── src/
-│   │   ├── app/           # Route segments (auth, dashboard, admin, portal)
-│   │   │   ├── admin/     # Platform admin interface
-│   │   │   ├── auth/      # Authentication flows
-│   │   │   ├── portal/    # School portal (student/parent/teacher views)
-│   │   │   └── platform/  # Platform management
-│   │   ├── components/    # UI components (ui, forms, tables, charts)
-│   │   ├── hooks/         # Convex subscription hooks and custom React hooks
-│   │   └── lib/           # Utilities, constants, formatters, validations
-│   ├── convex/            # Generated Convex client code
-│   └── package.json       # Frontend dependencies and scripts
+├── convex/             # Backend — real-time serverless functions
+│   ├── modules/        # Domain logic (one folder per module)
+│   │   ├── sis/        # Student Information System
+│   │   ├── admissions/ # Admissions & enrollment
+│   │   ├── finance/    # Fees, invoices, payments
+│   │   ├── academics/  # Gradebook, exams, curricula
+│   │   ├── hr/         # Staff management, payroll, leave
+│   │   ├── timetable/  # Scheduling & resource allocation
+│   │   ├── library/    # Book catalog & circulation
+│   │   ├── transport/  # Routes, fleet, tracking
+│   │   ├── communications/ # SMS, email, in-app messaging
+│   │   ├── ewallet/    # Digital wallet for students & staff
+│   │   ├── ecommerce/  # School supplies marketplace
+│   │   ├── marketplace/# Module marketplace & tier gating
+│   │   └── portal/     # Student, parent, alumni, partner portals
+│   ├── platform/       # Master admin: tenants, billing, audit, users
+│   ├── actions/        # External API integrations (payments, SMS, email)
+│   ├── helpers/        # Shared guards (tenant, module, auth, audit)
+│   └── schema.ts       # Database schema definition
 │
-├── mobile/                # React Native (Expo) — iOS & Android
-│   ├── src/
-│   │   ├── screens/       # Mobile app screens
-│   │   ├── components/    # Reusable mobile components
-│   │   ├── hooks/         # Mobile-specific hooks
-│   │   └── lib/           # Mobile utilities and helpers
-│   └── package.json       # Mobile dependencies and Expo config
+├── landing/            # Marketing site — edumyles.com
+│   └── src/app/        # Routes: /, /pricing, /features, /about, /contact
 │
-├── convex/                # Convex — real-time serverless backend
-│   ├── modules/           # Domain modules (one folder per module)
-│   │   ├── sis/           # Student Information System
-│   │   ├── admissions/    # Admissions & Enrollment
-│   │   ├── finance/       # Fee & Finance Management
-│   │   ├── timetable/     # Timetable & Scheduling
-│   │   ├── academics/     # Academics & Gradebook
-│   │   ├── hr/            # HR & Payroll
-│   │   ├── library/       # Library Management
-│   │   ├── transport/     # Transport Management
-│   │   ├── communications/# Communication & Notifications
-│   │   ├── ewallet/       # eWallet
-│   │   ├── marketplace/   # eCommerce
-│   │   └── portal/        # Portal-specific functionality
-│   ├── helpers/           # requireTenantContext, audit log, notifications
-│   ├── platform/          # Master admin, tenant provisioning, billing
-│   ├── schema.ts          # Complete database schema definition
-│   └── convex.json        # Convex configuration
+├── mobile/             # React Native (Expo) — iOS & Android
+│   └── src/            # Screens, components, hooks
 │
-├── landing/               # Next.js marketing site (edumyles.com root)
-│   ├── src/
-│   │   ├── app/           # Landing page routes
-│   │   ├── components/    # Marketing components
-│   │   └── lib/           # Landing page utilities
-│   └── package.json       # Landing page dependencies
+├── shared/             # Shared TypeScript types, constants, validators
+│   └── src/            # Types, constants, validators used across packages
 │
-├── shared/                # Shared TypeScript types, constants, validators
-│   ├── src/
-│   │   ├── types/         # Shared types used by frontend + mobile + backend
-│   │   ├── constants/     # Roles, tiers, modules, curriculum codes
-│   │   └── validators/    # Shared Zod schemas
-│   └── package.json       # Shared package configuration
+├── docs/               # Documentation
+│   ├── technical/      # Architecture, specs
+│   ├── setup/          # Production setup guides
+│   ├── api/            # API reference & OpenAPI spec
+│   └── user-guides/    # End-user workflows
 │
-├── infra/                 # Infrastructure config
-│   ├── vercel/            # Vercel deployment configurations
-│   ├── env-templates/     # .env.example — template for all environment variables
-│   └── scripts/           # Deployment and maintenance scripts
-│
-├── docs/                  # Project documentation
-│   ├── README.md           # Documentation index
-│   ├── IMPLEMENTATION_PLAN.md    # Detailed implementation roadmap
-│   ├── PROJECT_PROGRESS_ANALYSIS.md  # Current project status
-│   ├── tech_spec.md       # Technical specifications
-│   └── guides/             # User flows, build guides, action plans
-│
-├── .env.local             # Local environment variables (DO NOT COMMIT)
-├── .gitignore            # Git ignore patterns
-├── turbo.json            # Turbo monorepo configuration
-├── vercel.json           # Vercel deployment configuration
-├── package.json          # Root package.json with workspace configuration
-└── tsconfig.json         # TypeScript configuration
+└── .github/            # CI/CD workflows, issue templates
 ```
 
-## 🚀 Getting Started
+## Modules
+
+| Module | Description |
+|---|---|
+| **Student Information System** | Student profiles, enrollment lifecycle, class assignments |
+| **Admissions & Enrollment** | Application forms, document uploads, acceptance workflows |
+| **Finance & Fees** | Fee structures, invoices, multi-gateway payments (M-Pesa, Airtel, Stripe) |
+| **Academics & Gradebook** | Exams, grading, report cards, curriculum management |
+| **HR & Payroll** | Staff records, leave management, automated payroll |
+| **Timetable & Scheduling** | Class schedules, room allocation, conflict detection |
+| **Library Management** | Book catalog, circulation, overdue tracking |
+| **Transport** | Route planning, fleet management, GPS tracking |
+| **Communications** | SMS, email, and in-app notifications |
+| **eWallet** | Digital wallet top-ups, transfers, and spending |
+| **Marketplace** | Module marketplace with tier-based gating (Starter/Standard/Pro/Enterprise) |
+
+## User Roles
+
+| Role | Access |
+|---|---|
+| Platform Admin | Full system — tenant provisioning, billing, audit logs |
+| School Admin | School-level settings, staff, students, modules |
+| Principal | Academic oversight, reports, approvals |
+| Teacher | Gradebook, attendance, timetable, student records |
+| Parent | Child's grades, attendance, fees, communications |
+| Student | Dashboard, assignments, timetable, wallet |
+| Alumni | Alumni portal, events, directory |
+
+## Getting Started
 
 ### Prerequisites
 
-- **Node.js** >= 20.0.0
-- **npm** >= 10.0.0
-- **Git** for version control
-- **Convex account** (free tier available)
-- **WorkOS account** (for authentication)
+- Node.js >= 20
+- npm >= 10
+- [Convex account](https://convex.dev) (free tier available)
+- [WorkOS account](https://workos.com) (for authentication)
 
-### Quick Start
+### Setup
 
 ```bash
-# 1. Clone the repository
+# Clone and install
 git clone https://github.com/Mylesoft-Technologies/edumyles.git
 cd edumyles
-
-# 2. Install dependencies across all workspaces
 npm install
 
-# 3. Set up environment variables
+# Configure environment
 cp .env.example .env.local
-# Edit .env.local with your API keys and configuration
+# Edit .env.local with your Convex, WorkOS, and payment gateway keys
 
-# 4. Start the development environment
-npm run dev
-```
-
-### Individual Service Development
-
-```bash
-# Frontend (port 3000)
-npm run dev:frontend
-
-# Convex backend
-npm run dev:backend
-
-# Landing page (port 3001)
-npm run dev:landing
-
-# Mobile app (requires Expo CLI)
-npm run dev:mobile
-```
-
-### Environment Setup
-
-1. **Convex Backend**
-   ```bash
-   cd convex
-   npx convex dev
-   # This will create a new Convex deployment and update your .env.local
-   ```
-
-2. **WorkOS Authentication**
-   - Create a WorkOS account at https://dashboard.workos.com
-   - Set up OAuth application with redirect URI: `http://localhost:3000/auth/callback`
-   - Copy API key and Client ID to your `.env.local`
-
-3. **Payment Gateways** (Optional for development)
-   - M-Pesa: Create Daraja account at https://developer.safaricom.co.ke
-   - Stripe: Create account at https://dashboard.stripe.com
-   - Airtel Money: Create account at https://developers.airtel.africa
-
-### Development Workflow
-
-```bash
-# Type checking across all packages
-npm run type-check
-
-# Linting and formatting
-npm run lint
-npm run lint:fix
-npm run format
-
-# Clean build artifacts
-npm run clean
-
-# Build all packages
-npm run build
-```
-
-## 🏗 Architecture Principles
-
-### Multi-Tenancy
-- **Tenant Isolation:** Every Convex query must call `requireTenantContext(ctx)` first
-- **No Cross-Tenant Access:** `tenantId` is the first field on every table and every index
-- **Data Segregation:** Each school operates in a completely isolated environment
-
-### Security & Compliance
-- **Secret Management:** Never committed to git — stored in GitHub org secrets and injected at build time
-- **Role-Based Access:** Granular permissions for all user types (admin, teacher, student, parent)
-- **Audit Logging:** All actions are logged with user context and timestamps
-- **Data Privacy:** GDPR-compliant data handling and storage
-
-### Performance & Scalability
-- **Real-time Updates:** Convex provides instant data synchronization across all clients
-- **Offline Support:** Critical functionality available even without internet connection
-- **CDN Optimization:** Static assets served via Vercel's global CDN
-- **Database Indexing:** Optimized queries for fast data retrieval
-
-### Code Quality
-- **TypeScript First:** Full type safety across frontend, backend, and mobile
-- **Shared Types:** Common types and validators in `shared/` package
-- **Component Reusability:** Modular UI components with consistent design system
-- **Testing:** Comprehensive test coverage for critical business logic
-
-## 🌐 Deployment
-
-### Production Deployment
-
-```bash
-# Deploy all services to Vercel
-npm run build
-vercel --prod
-
-# Deploy Convex backend
-cd convex
-npx convex deploy
+# Start development
+npm run dev          # All services (frontend + landing + mobile)
+npm run dev:frontend # Frontend only (port 3000)
+npm run dev:backend  # Convex backend
+npm run dev:landing  # Landing page only (port 3001)
 ```
 
 ### Environment Variables
 
-Production environment variables are managed through:
-- **Vercel Environment Variables** for frontend and landing page
-- **Convex Environment Variables** for backend secrets
-- **GitHub Organization Secrets** for CI/CD pipelines
+Copy `.env.example` to `.env.local` and fill in your keys. The file is organized by service:
 
-### Domain Configuration
+- **Convex** — deployment URL and keys
+- **WorkOS** — API key, client ID, redirect URI
+- **M-Pesa / Airtel / Stripe** — payment gateway credentials
+- **Africa's Talking** — SMS gateway
+- **Resend** — transactional email
 
-- **Landing Page:** `https://edumyles.com`
-- **School Portals:** `https://{school}.edumyles.com`
-- **API Endpoints:** `https://api.edumyles.com`
-- **Mobile API:** `https://mobile-api.edumyles.com`
+See [docs/setup/](docs/setup/) for production configuration guides.
 
-## 📚 Documentation
+## Architecture
 
-### Project Documentation
-See [`docs/README.md`](docs/README.md) for the complete documentation index.
+### Multi-Tenancy
+Every database query requires `tenantId` — enforced by `requireTenantContext()` in Convex helpers. Each school operates in complete data isolation with its own subdomain.
 
-### Key Documents
-- **Getting Started**: [`docs/README.md`](docs/README.md) - Setup and development guide
-- **Technical Specs**: [`docs/technical/`](docs/technical/) - Architecture and implementation details
-- **Setup Guides**: [`docs/setup/`](docs/setup/) - Production deployment and configuration
-- **API Documentation**: [`docs/api/README.md`](docs/api/README.md) - Backend endpoints and data structures
-- **User Guides**: [`docs/user-guides/`](docs/user-guides/) - End-to-end user workflows
+### Module Gating
+Schools subscribe to a tier (Starter, Standard, Pro, Enterprise). Each tier unlocks a set of modules. The marketplace allows schools to browse and activate modules within their tier.
 
-### Automation & Project Management
-- **Project Board**: https://github.com/orgs/Mylesoft-Technologies/projects/6
-- **Automation Guide**: [`docs/technical/automation-guide.md`](docs/technical/automation-guide.md)
-- **Implementation Tasks**: [`docs/technical/implementation-tasks.md`](docs/technical/implementation-tasks.md)
+### Real-Time
+Convex provides live subscriptions — changes to data are reflected instantly across all connected clients without polling.
 
-## 🤝 Contributing
+### Authentication Flow
+1. User visits `{school}.edumyles.com/auth/login`
+2. WorkOS handles magic link / SSO authentication
+3. Callback creates a Convex session with role + tenant context
+4. Middleware enforces role-based route access
 
-### Development Guidelines
-
-1. **Branch Strategy:** Use feature branches from `develop`
-2. **Code Reviews:** All PRs require review and approval
-3. **Type Safety:** Ensure TypeScript compiles without errors
-4. **Testing:** Write tests for new features and bug fixes
-5. **Documentation:** Update docs for any API or feature changes
-
-### Submitting Changes
+## Development
 
 ```bash
-# Create feature branch
-git checkout -b feature/your-feature-name
-
-# Make changes and test
-npm run type-check
-npm run lint
-npm run test
-
-# Commit and push
-git commit -m "feat: add your feature description"
-git push origin feature/your-feature-name
-
-# Create pull request
-# Link to relevant issues and include screenshots
+npm run type-check   # TypeScript checking across all packages
+npm run lint         # ESLint
+npm run lint:fix     # Auto-fix lint issues
+npm run test         # Run test suite
+npm run format       # Prettier formatting
+npm run build        # Production build
+npm run clean        # Remove build artifacts
 ```
 
-### Code Style
+## Deployment
 
-- **ESLint + Prettier:** Automatic formatting and linting
-- **Conventional Commits:** Use semantic commit messages
-- **Component Naming:** PascalCase for components, camelCase for functions
-- **File Organization:** Group related files in appropriate directories
+- **Frontend + Landing**: Deployed to Vercel with subdomain routing
+- **Backend**: `npx convex deploy` pushes functions to Convex cloud
+- **Environment**: Production secrets managed via Vercel and Convex dashboards
 
-## 🔧 Troubleshooting
+## License
 
-### Common Issues
-
-**Convex Connection Issues**
-```bash
-# Restart Convex development server
-cd convex
-npx convex dev --force
-```
-
-**Environment Variable Issues**
-```bash
-# Verify environment variables
-npm run env:check
-
-# Reset environment
-cp .env.example .env.local
-```
-
-**Build Issues**
-```bash
-# Clean and rebuild
-npm run clean
-npm install
-npm run build
-```
-
-### Getting Help
-
-- **Documentation:** Check `docs/` directory first
-- **Issues:** Create GitHub issue with detailed description
-- **Discussions:** Use GitHub Discussions for questions
-- **Support:** Contact development team for urgent issues
-
-## 📄 License
-
-Proprietary — © Mylesoft Technologies. All rights reserved.
-
----
-
-**EduMyles** - Empowering Education in East Africa Through Technology
+Proprietary — Mylesoft Technologies. All rights reserved.
