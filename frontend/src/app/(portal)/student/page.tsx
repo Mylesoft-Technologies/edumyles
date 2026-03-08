@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@/hooks/useSSRSafeConvex";
+import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
 import { StatCard } from "@/components/shared/StatCard";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -9,12 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Calendar, GraduationCap, Wallet, Bell } from "lucide-react";
 
 export default function StudentDashboard() {
-  const profile = useQuery(api.modules.portal.student.queries.getMyProfile);
-  const grades = useQuery(api.modules.portal.student.queries.getMyGrades, {});
-  const attendance = useQuery(api.modules.portal.student.queries.getMyAttendance, {});
-  const assignments = useQuery(api.modules.portal.student.queries.getMyAssignments, {});
-  const wallet = useQuery(api.modules.portal.student.queries.getMyWalletBalance);
-  const announcements = useQuery(api.modules.portal.student.queries.getAnnouncements);
+  const profile = usePlatformQuery(api.modules.portal.student.queries.getMyProfile, {});
+  const grades = usePlatformQuery(api.modules.portal.student.queries.getMyGrades, {});
+  const attendance = usePlatformQuery(api.modules.portal.student.queries.getMyAttendance, {});
+  const assignments = usePlatformQuery(api.modules.portal.student.queries.getMyAssignments, {});
+  const wallet = usePlatformQuery(api.modules.portal.student.queries.getMyWalletBalance, {});
+  const announcements = usePlatformQuery(api.modules.portal.student.queries.getAnnouncements, {});
 
   const gpa = grades
     ? (
