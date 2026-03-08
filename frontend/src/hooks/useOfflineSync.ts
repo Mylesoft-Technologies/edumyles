@@ -41,10 +41,10 @@ export function useOfflineSync() {
     setPendingOperations(prev => [...prev, operation]);
 
     // Store in IndexedDB for persistence
-    if ('indexedDB' in window) {
+    if (typeof window !== 'undefined' && 'indexedDB' in window) {
       const request = indexedDB.open('edumyles-offline', 1);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
+      request.onsuccess = (event: any) => {
+        const db = (event.target as IDBDatabase);
         const transaction = db.transaction(['operations'], 'readwrite');
         const store = transaction.objectStore('operations');
         store.add(operation);
@@ -61,15 +61,22 @@ export function useOfflineSync() {
       // Get stored operations from IndexedDB
       const operations: OfflineOperation[] = [];
       
-      if ('indexedDB' in window) {
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
         const request = indexedDB.open('edumyles-offline', 1);
-        request.onsuccess = (event) => {
-          const db = event.target.result;
+        
+        request.onsuccess = (event: any) => {
+          const db = (event.target as IDBDatabase);
+          
+          // Create object store if it doesn't exist
+          if (!db.objectStoreNames().contains('operations')) {
+            db.createObjectStore('operations', { keyPath: 'id' });
+          }
+          
           const transaction = db.transaction(['operations'], 'readonly');
           const store = transaction.objectStore('operations');
           
           const getAllRequest = store.getAll();
-          getAllRequest.onsuccess = (e) => {
+          getAllRequest.onsuccess = (e: any) => {
             operations.push(...e.target.result);
             
             // Process each operation
@@ -78,7 +85,7 @@ export function useOfflineSync() {
               console.log('Syncing operation:', operation);
               
               // Simulate API call delay
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              await new Promise<void>(resolve => setTimeout(resolve, 1000));
             }
             
             // Clear synced operations
@@ -101,10 +108,10 @@ export function useOfflineSync() {
   const clearPendingOperations = useCallback(() => {
     setPendingOperations([]);
     
-    if ('indexedDB' in window) {
+    if (typeof window !== 'undefined' && 'indexedDB' in window) {
       const request = indexedDB.open('edumyles-offline', 1);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
+      request.onsuccess = (event: any) => {
+        const db = (event.target as IDBDatabase);
         const transaction = db.transaction(['operations'], 'readwrite');
         const store = transaction.objectStore('operations');
         const clearRequest = store.clear();
@@ -115,12 +122,12 @@ export function useOfflineSync() {
     }
   }, []);
 
+  // Load pending operations on mount
   useEffect(() => {
-    // Load pending operations on mount
-    if ('indexedDB' in window) {
+    if (typeof window !== 'undefined' && 'indexedDB' in window) {
       const request = indexedDB.open('edumyles-offline', 1);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
+      request.onsuccess = (event: any) => {
+        const db = (event.target as IDBDatabase);
         
         // Create object store if it doesn't exist
         if (!db.objectStoreNames().contains('operations')) {
@@ -130,7 +137,7 @@ export function useOfflineSync() {
         const transaction = db.transaction(['operations'], 'readonly');
         const store = transaction.objectStore('operations');
         const getAllRequest = store.getAll();
-        getAllRequest.onsuccess = (e) => {
+        getAllRequest.onsuccess = (e: any) => {
           setPendingOperations(e.target.result || []);
         };
       };
