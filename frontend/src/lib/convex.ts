@@ -22,7 +22,7 @@ export const convexClient = new ConvexReactClient(CONVEX_URL, {
   // Configure authentication to work with session tokens
   // This allows Convex to access the session context
   auth: {
-    isAuthenticated: async () => {
+    async isAuthenticated() {
       // Check if user is authenticated by checking for session token
       const sessionData = localStorage.getItem('convex_auth');
       if (sessionData) {
@@ -48,5 +48,5 @@ export const convexClient = new ConvexReactClient(CONVEX_URL, {
       }
       return null;
     },
-  } as any,
+  },
 });
