@@ -13,38 +13,11 @@ export function usePlatformQuery<T = any>(
   args: any,
   enabled: boolean = true
 ): T | undefined {
-  // In development, skip platform queries if session token looks like a mock
-  const sessionToken = args?.sessionToken;
+  // In development, skip platform queries to prevent authentication errors
   const isDevMode = process.env.NODE_ENV === "development";
-  const isDevMockSession = !sessionToken || 
-    sessionToken === "dev_session_token" ||
-    sessionToken.includes("dev_") ||
-    sessionToken.includes("mock") ||
-    sessionToken.includes("test");
   
-  // Aggressive fallback: skip ALL platform queries in development mode
-  const shouldSkip = !enabled || isDevMode || isDevMockSession;
+  // Skip all platform queries in development mode
+  const shouldSkip = !enabled || isDevMode;
   
-  // Enhanced debug logging
-  console.log("[usePlatformQuery] DEBUG:", {
-    queryName: query?.name || query?.toString?.match(/function (\w+)/)?.[1] || "unknown",
-    sessionToken: sessionToken ? `${sessionToken.substring(0, 12)}...` : "none",
-    sessionTokenLength: sessionToken?.length || 0,
-    isDevMode,
-    isDevMockSession,
-    enabled,
-    shouldSkip,
-    args: args ? { ...args, sessionToken: args.sessionToken ? "***" : undefined } : args
-  });
-  
-  const result = useQuery(query, shouldSkip ? "skip" : args);
-  
-  // Log the result
-  console.log("[usePlatformQuery] RESULT:", {
-    queryName: query?.name || "unknown",
-    result: result ? "SUCCESS" : "UNDEFINED",
-    shouldSkip
-  });
-  
-  return result;
+  return useQuery(query, shouldSkip ? "skip" : args);
 }
