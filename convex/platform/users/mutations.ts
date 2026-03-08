@@ -29,13 +29,39 @@ export const createPlatformAdmin = mutation({
         }
 
         // Get the organization for this tenant
-        const org = await ctx.db
-            .query("organizations")
-            .withIndex("by_tenant", (q) => q.eq("tenantId", tenantCtx.tenantId))
-            .first();
+        // For PLATFORM tenant (master admin operations), create or get default organization
+        let orgId: any = null;
+        if (tenantCtx.tenantId === "PLATFORM") {
+            // For PLATFORM tenant, create or get default organization
+            const existingOrg = await ctx.db
+                .query("organizations")
+                .withIndex("by_tenant", (q) => q.eq("tenantId", "PLATFORM"))
+                .first();
+            
+            if (existingOrg) {
+                orgId = existingOrg._id;
+            } else {
+                // Create default organization for PLATFORM tenant
+                orgId = await ctx.db.insert("organizations", {
+                    tenantId: "PLATFORM",
+                    workosOrgId: "platform-default",
+                    name: "EduMyles Platform",
+                    subdomain: "platform",
+                    tier: "enterprise",
+                    isActive: true,
+                    createdAt: Date.now(),
+                });
+            }
+        } else {
+            const org = await ctx.db
+                .query("organizations")
+                .withIndex("by_tenant", (q) => q.eq("tenantId", tenantCtx.tenantId))
+                .first();
 
-        if (!org) {
-            throw new Error("NOT_FOUND: Organization not found for tenant");
+            if (!org) {
+                throw new Error("NOT_FOUND: Organization not found for tenant");
+            }
+            orgId = org._id;
         }
 
         const userId = `USR-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -49,7 +75,7 @@ export const createPlatformAdmin = mutation({
             lastName: args.lastName,
             role: args.role,
             permissions: [],
-            organizationId: org._id,
+            organizationId: orgId,
             isActive: true,
             createdAt: Date.now(),
         });
@@ -135,7 +161,7 @@ export const updateUserProfile = mutation({
             tenantId: tenantCtx.tenantId,
             actorId: tenantCtx.userId,
             actorEmail: tenantCtx.email,
-            action: "profile.updated",
+            action: "user.updated",
             entityType: "user",
             entityId: tenantCtx.userId,
             after: patch,
@@ -179,7 +205,7 @@ export const saveUserAvatar = mutation({
             tenantId: tenantCtx.tenantId,
             actorId: tenantCtx.userId,
             actorEmail: tenantCtx.email,
-            action: "profile.avatar_updated",
+            action: "user.updated",
             entityType: "user",
             entityId: tenantCtx.userId,
             after: { avatarUrl: url },
