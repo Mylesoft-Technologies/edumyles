@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { DataTable, Column } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Filter, Calendar } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
 
 interface AuditLog {
@@ -71,7 +70,7 @@ export function AuditTrail({ logs }: { logs: AuditLog[] }) {
   }, [logs, filters]);
 
   const exportAuditData = () => {
-    const csv = [
+    const csvContent = [
       'Timestamp,Action,Actor,Tenant ID,Details',
       ...filteredLogs.map(log => [
         log.timestamp,
@@ -83,7 +82,7 @@ export function AuditTrail({ logs }: { logs: AuditLog[] }) {
     ].join('\n');
     ];
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -105,58 +104,6 @@ export function AuditTrail({ logs }: { logs: AuditLog[] }) {
     };
     return colors[action as keyof typeof colors] || 'bg-gray-500/10 text-gray-700';
   };
-
-  const columns: Column<AuditLog>[] = [
-    {
-      key: 'timestamp',
-      header: 'Time',
-      sortable: true,
-      cell: (log) => (
-        <div className="text-xs text-muted-foreground">
-          {formatDate(log.timestamp)}
-        </div>
-      ),
-    },
-    {
-      key: 'action',
-      header: 'Action',
-      sortable: true,
-      cell: (log) => (
-        <Badge variant="outline" className={getActionColor(log.action)}>
-          {log.action}
-        </Badge>
-      ),
-    },
-    {
-      key: 'actorId',
-      header: 'Actor',
-      sortable: true,
-      cell: (log) => (
-        <span className="text-sm">{log.actorId}</span>
-      ),
-    },
-    {
-      key: 'tenantId',
-      header: 'Tenant',
-      sortable: true,
-      cell: (log) => (
-        <span className="text-sm">{log.tenantId}</span>
-      ),
-    },
-    {
-      key: 'details',
-      header: 'Details',
-      sortable: false,
-      cell: (log) => (
-        <div className="text-xs max-w-xs">
-          {log.details && typeof log.details === 'object' 
-            ? JSON.stringify(log.details, null, 2)
-            : String(log.details)
-          }
-        </div>
-      ),
-    }
-  ];
 
   return (
     <div className="space-y-4">
@@ -210,15 +157,9 @@ export function AuditTrail({ logs }: { logs: AuditLog[] }) {
       </div>
 
       {/* Data table */}
-      <DataTable
-        data={filteredLogs}
-        columns={columns}
-        searchable
-        searchPlaceholder="Search audit logs..."
-        searchKey={(log) => `${log.action} ${log.actorId} ${log.tenantId}`}
-        emptyTitle="No audit logs found"
-        emptyDescription="No audit logs match the current filters."
-      />
+      <div className="text-sm text-muted-foreground">
+        {filteredLogs.length} audit logs found
+      </div>
     </div>
   );
 }
