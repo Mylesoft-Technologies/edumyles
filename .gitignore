@@ -6,7 +6,6 @@
 .env
 .env.*
 !.env.example
-!infra/env-templates/.env.example
 
 # ------ Node ------
 node_modules/
@@ -63,8 +62,8 @@ Thumbs.db
 coverage/
 .nyc_output/
 
+# ------ Claude ------
+.claude/
+
 # ------ Docs ------
-# PDFs are stored externally, not in git
 docs/**/*.pdf
-.env.local
-edumyles/
