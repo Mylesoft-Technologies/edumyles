@@ -14,9 +14,21 @@ export function usePlatformQuery<T = any>(
   enabled: boolean = true
 ): T | undefined {
   // In development, skip platform queries if session token looks like a mock
-  const isDevMockSession = args?.sessionToken === "dev_session_token";
+  const sessionToken = args?.sessionToken;
+  const isDevMockSession = !sessionToken || 
+    sessionToken === "dev_session_token" ||
+    sessionToken.includes("dev_") ||
+    sessionToken.includes("mock") ||
+    sessionToken.includes("test");
   
   const shouldSkip = !enabled || isDevMockSession;
+  
+  console.log("[usePlatformQuery]", {
+    query: query?.name || "unknown",
+    sessionToken: sessionToken ? `${sessionToken.substring(0, 8)}...` : "none",
+    isDevMockSession,
+    shouldSkip
+  });
   
   return useQuery(query, shouldSkip ? "skip" : args);
 }
