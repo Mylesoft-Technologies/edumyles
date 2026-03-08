@@ -23,12 +23,25 @@ export function usePlatformQuery<T = any>(
   
   const shouldSkip = !enabled || isDevMockSession;
   
-  console.log("[usePlatformQuery]", {
-    query: query?.name || "unknown",
-    sessionToken: sessionToken ? `${sessionToken.substring(0, 8)}...` : "none",
+  // Enhanced debug logging
+  console.log("[usePlatformQuery] DEBUG:", {
+    queryName: query?.name || query?.toString?.match(/function (\w+)/)?.[1] || "unknown",
+    sessionToken: sessionToken ? `${sessionToken.substring(0, 12)}...` : "none",
+    sessionTokenLength: sessionToken?.length || 0,
     isDevMockSession,
+    enabled,
+    shouldSkip,
+    args: args ? { ...args, sessionToken: args.sessionToken ? "***" : undefined } : args
+  });
+  
+  const result = useQuery(query, shouldSkip ? "skip" : args);
+  
+  // Log the result
+  console.log("[usePlatformQuery] RESULT:", {
+    queryName: query?.name || "unknown",
+    result: result ? "SUCCESS" : "UNDEFINED",
     shouldSkip
   });
   
-  return useQuery(query, shouldSkip ? "skip" : args);
+  return result;
 }

@@ -23,9 +23,9 @@ export function ImpersonationBanner() {
   if (!isImpersonating) return null;
 
   const handleEnd = async () => {
-    if (!firstSession?.targetUserId) return;
+    if (!firstSession?.targetUserId || !sessionToken) return;
     try {
-      await endImpersonation({ targetUserId: firstSession.targetUserId });
+      await endImpersonation({ sessionToken, targetUserId: firstSession.targetUserId });
     } catch (error) {
       console.error("Failed to end impersonation session:", error);
     }
