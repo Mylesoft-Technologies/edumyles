@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@/hooks/useSSRSafeConvex";
+import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +26,10 @@ import { AdminCharts } from "@/components/admin/AdminCharts";
 export default function AdminDashboardPage() {
   const { isLoading, sessionToken } = useAuth();
 
-  const students = useQuery(api.modules.sis.queries.listStudents, sessionToken ? {} : "skip");
-  const staff = useQuery(api.modules.hr.queries.listStaff, sessionToken ? {} : "skip");
-  const applications = useQuery(api.modules.admissions.queries.listApplications, sessionToken ? {} : "skip");
-  const invoices = useQuery(api.modules.finance.queries.listInvoices, sessionToken ? {} : "skip");
+  const students = usePlatformQuery(api.modules.sis.queries.listStudents, { sessionToken }, !!sessionToken);
+  const staff = usePlatformQuery(api.modules.hr.queries.listStaff, { sessionToken }, !!sessionToken);
+  const applications = usePlatformQuery(api.modules.admissions.queries.listApplications, { sessionToken }, !!sessionToken);
+  const invoices = usePlatformQuery(api.modules.finance.queries.listInvoices, { sessionToken }, !!sessionToken);
 
   if (isLoading || students === undefined || staff === undefined || applications === undefined || invoices === undefined) {
     return <LoadingSkeleton variant="page" />;
