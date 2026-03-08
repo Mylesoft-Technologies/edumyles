@@ -142,6 +142,16 @@ export default function ProfilePage() {
     "U";
   const createdAt = profileData?.createdAt ? new Date(profileData.createdAt) : null;
 
+  const profileFields = [
+    profileData?.firstName,
+    profileData?.lastName,
+    profileData?.phone,
+    profileData?.bio,
+    profileData?.location,
+  ];
+  const filledCount = profileFields.filter(Boolean).length;
+  const completeness = Math.round((filledCount / profileFields.length) * 100);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -185,11 +195,13 @@ export default function ProfilePage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Profile Overview Card */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader className="text-center">
+          <Card className="overflow-hidden">
+            {/* Gradient banner */}
+            <div className="h-20 bg-gradient-to-br from-[#056C40] to-[#023c24]" />
+            <CardHeader className="text-center -mt-10">
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
-                  <Avatar className="h-24 w-24">
+                  <Avatar className="h-24 w-24 ring-4 ring-white ring-offset-0">
                     <AvatarImage src={avatarUrl} alt={firstName} />
                     <AvatarFallback className="text-2xl bg-[#056C40] text-white">
                       {isUploadingAvatar ? (
@@ -234,6 +246,21 @@ export default function ProfilePage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Profile completeness */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Profile completeness</span>
+                  <span className={`font-semibold ${completeness === 100 ? "text-green-600" : "text-[#056C40]"}`}>{completeness}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-[#056C40] transition-all"
+                    style={{ width: `${completeness}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{filledCount} of {profileFields.length} fields complete</p>
+              </div>
+
               {(isEditing ? editForm?.location : profileData?.location) && (
                 <div className="flex items-center space-x-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />

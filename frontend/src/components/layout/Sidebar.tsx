@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { NavItem } from "@/lib/routes";
+import { getRoleLabel } from "@/lib/routes";
 
 interface SidebarProps {
   navItems: NavItem[];
@@ -135,13 +136,16 @@ export function Sidebar({ navItems, installedModules, isMobile = false, onClose 
 
       {/* User section at bottom */}
       {!isMobile && (
-        <div className="border-t p-4">
-          <div className={cn(
-            "flex items-center gap-3",
-            collapsed ? "justify-center" : ""
-          )}>
-            <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
-              <span className="text-xs font-medium">
+        <div className="border-t p-3">
+          <Link
+            href="/platform/profile"
+            className={cn(
+              "flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-sidebar-accent/50",
+              collapsed ? "justify-center" : ""
+            )}
+          >
+            <div className="h-8 w-8 rounded-full bg-[#056C40] text-white flex items-center justify-center shrink-0">
+              <span className="text-xs font-semibold">
                 {user?.firstName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U"}
               </span>
             </div>
@@ -150,10 +154,14 @@ export function Sidebar({ navItems, installedModules, isMobile = false, onClose 
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
                   {[user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "User"}
                 </p>
-                <p className="text-xs text-sidebar-foreground/70 truncate">{user?.email ?? ""}</p>
+                {(user as any)?.role && (
+                  <Badge variant="secondary" className="mt-0.5 h-4 text-[10px] px-1.5 py-0">
+                    {getRoleLabel((user as any).role)}
+                  </Badge>
+                )}
               </div>
             )}
-          </div>
+          </Link>
         </div>
       )}
     </>
