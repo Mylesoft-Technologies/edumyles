@@ -1,23 +1,22 @@
 "use client";
 
 import { useQuery } from "./useSSRSafeConvex";
+import { useAuth } from "./useAuth";
 
 /**
  * Wrapper for platform queries that handles session authentication gracefully.
- * In development mode, mock sessions may not exist in the database, causing
- * "UNAUTHENTICATED: Session not found" errors. This hook prevents such queries
- * from being executed when the session token appears to be invalid.
+ * Only executes queries when user is authenticated.
  */
 export function usePlatformQuery<T = any>(
   query: any,
   args: any,
   enabled: boolean = true
 ): T | undefined {
-  // In development, skip platform queries to prevent authentication errors
-  const isDevMode = process.env.NODE_ENV === "development";
+  const { sessionToken } = useAuth();
   
-  // Skip all platform queries in development mode
-  const shouldSkip = !enabled || isDevMode;
+  // Only execute query if enabled and user has session token
+  const shouldSkip = !enabled || !sessionToken;
   
+  // Pass args as-is - Convex handles authentication internally via session context
   return useQuery(query, shouldSkip ? "skip" : args);
 }
