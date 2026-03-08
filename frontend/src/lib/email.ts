@@ -52,10 +52,13 @@ export interface EmailTemplate {
 
 // Email service class
 export class EmailService {
-  private resend: Resend;
+  private resend: Resend | null = null;
 
-  constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY || '');
+  private getResendInstance(): Resend {
+    if (!this.resend) {
+      this.resend = new Resend(process.env.RESEND_API_KEY || '');
+    }
+    return this.resend;
   }
 
   /**
@@ -93,7 +96,7 @@ export class EmailService {
     }>;
   }) {
     try {
-      const result = await this.resend.emails.send({
+      const result = await this.getResendInstance().emails.send({
         from: options.from || process.env.RESEND_FROM_EMAIL || 'EduMyles <noreply@edumyles.com>',
         to: Array.isArray(options.to) ? options.to : [options.to],
         subject: options.subject,
