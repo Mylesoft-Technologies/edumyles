@@ -1,0 +1,49 @@
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
+.text-white {
+  color: var(--color-white) !important;
+}
+
+.text-muted {
+  color: var(--color-text-body) !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.bg-green-dark {
+  background: var(--color-brand-green-900) !important;
+}
+
+.bg-yellow {
+  background: var(--color-brand-yellow-400) !important;
+}
+
+.bg-surface {
+  background: var(--color-surface) !important;
+}
+
+.border-soft {
+  border: 1px solid var(--color-border) !important;
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.radius-lg {
+  border-radius: var(--radius-lg) !important;
+}
+
+.max-content {
+  max-width: var(--max-width-content);
+  margin-left: auto;
+  margin-right: auto;
+}

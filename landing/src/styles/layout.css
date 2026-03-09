@@ -1,0 +1,78 @@
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+.container {
+  width: 100%;
+  max-width: var(--max-width-page);
+  margin: 0 auto;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+.section {
+  padding: var(--section-padding);
+}
+
+.section--tight {
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
+}
+
+.section--dark {
+  background: var(--color-brand-green-900);
+}
+
+.section--light {
+  background: var(--color-white);
+}
+
+.section--accent {
+  background: var(--color-brand-yellow-400);
+}
+
+.stack-sm > * + * {
+  margin-top: var(--space-3);
+}
+
+.stack-md > * + * {
+  margin-top: var(--space-5);
+}
+
+.stack-lg > * + * {
+  margin-top: var(--space-8);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: var(--space-5);
+}
+
+.centered {
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding: var(--section-padding-mobile);
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}

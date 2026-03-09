@@ -1,0 +1,80 @@
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--color-brand-red-600);
+  color: var(--color-white);
+}
+
+.btn-primary:hover {
+  background: var(--color-brand-red-700);
+  box-shadow: 0 4px 12px rgba(228, 37, 39, 0.25);
+}
+
+.btn-secondary {
+  background: var(--color-text-strong);
+  color: var(--color-white);
+}
+
+.btn-secondary:hover {
+  background: #2a2a2a;
+}
+
+.btn-success {
+  background: var(--color-brand-green-800);
+  color: var(--color-white);
+}
+
+.btn-success:hover {
+  background: var(--color-brand-green-700);
+}
+
+.btn-accent {
+  background: var(--color-brand-yellow-400);
+  color: var(--color-text-strong);
+}
+
+.btn-accent:hover {
+  background: var(--color-brand-yellow-500);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-text-strong);
+  border-color: var(--color-border);
+}
+
+.btn-outline:hover {
+  background: var(--color-surface);
+  border-color: var(--color-text-strong);
+}
+
+.btn-full {
+  width: 100%;
+}
