@@ -2,83 +2,24 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, lazy } from "react";
+import dynamic from "next/dynamic";
 
-const stats = [
-  { value: "50+", label: "Schools Managed" },
-  { value: "11", label: "Core Modules" },
-  { value: "6", label: "East African Countries" },
-  { value: "10K+", label: "Students on Platform" },
-];
+// Lazy load heavy components
+const HeroSection = dynamic(() => import("@/components/landing/HeroSection"), {
+  loading: () => <div className="loading-state">Loading hero...</div>,
+  ssr: false
+});
 
-const highlights = [
-  {
-    title: "Admissions to Alumni",
-    description:
-      "Handle enrollment, class allocation, academics, report cards, and parent communication - one connected flow from day one to graduation.",
-  },
-  {
-    title: "Built for Multi-Campus",
-    description:
-      "Run multiple schools from a single platform with strict tenant isolation, granular role-based access, and central oversight dashboards.",
-  },
-  {
-    title: "East Africa Ready",
-    description:
-      "M-Pesa, Airtel Money, and local payment workflows built in. Supports KES, UGX, TZS, RWF, BIF, and SSP currencies plus local curricula.",
-  },
-];
+const HighlightsSection = dynamic(() => import("@/components/landing/HighlightsSection"), {
+  loading: () => <div className="loading-state">Loading highlights...</div>,
+  ssr: false
+});
 
-const moduleCategories = [
-  {
-    key: "student",
-    label: "Student Management",
-    description:
-      "Manage the entire student lifecycle - from admissions and enrollment through academics, assessments, and alumni tracking. Every record, every interaction, one single source of truth.",
-    apps: [
-      { name: "Student Information System", desc: "Profiles, classes, streams, demographics" },
-      { name: "Admissions & Enrollment", desc: "Applications, waitlists, auto-allocation" },
-      { name: "Academics & Gradebook", desc: "Assessments, report cards, CBC/8-4-4" },
-      { name: "Communications Hub", desc: "SMS, email, in-app parent messaging" },
-    ],
-  },
-  {
-    key: "finance",
-    label: "Finance & Billing",
-    description:
-      "Streamline fee collection, invoicing, and financial reporting. Automated reminders, real-time payment tracking, and full reconciliation across M-Pesa, Airtel Money, bank transfers, and cards.",
-    apps: [
-      { name: "Fee Management", desc: "Tuition, billing, flexible payment plans" },
-      { name: "Mobile Money Integration", desc: "M-Pesa, Airtel Money, MTN MoMo" },
-      { name: "Financial Reports", desc: "Revenue dashboards, expense analytics" },
-      { name: "Payment Reminders", desc: "Automated SMS & email notifications" },
-    ],
-  },
-  {
-    key: "operations",
-    label: "Operations & HR",
-    description:
-      "Manage staff records, payroll, leave management, timetable creation, transport routing, library management, and facility scheduling - all from one central operations hub.",
-    apps: [
-      { name: "HR & Payroll", desc: "Staff records, contracts, salary processing" },
-      { name: "Timetable Builder", desc: "Drag-and-drop scheduling, conflict detection" },
-      { name: "Transport Management", desc: "Bus routes, fleet tracking, driver assignments" },
-      { name: "Library System", desc: "Catalogue, circulation, overdue tracking" },
-    ],
-  },
-  {
-    key: "portals",
-    label: "Stakeholder Portals",
-    description:
-      "Dedicated portals for every user: parents track fees and grades, teachers manage classes and assignments, students access timetables and results, and alumni stay connected.",
-    apps: [
-      { name: "Parent Portal", desc: "Fees, grades, attendance, messaging" },
-      { name: "Teacher Portal", desc: "Classes, gradebook, assignments, attendance" },
-      { name: "Student Portal", desc: "Timetable, results, wallet, announcements" },
-      { name: "Alumni Portal", desc: "Events, networking, school updates" },
-    ],
-  },
-] as const;
+const ModulesSection = dynamic(() => import("@/components/landing/ModulesSection"), {
+  loading: () => <div className="loading-state">Loading modules...</div>,
+  ssr: false
+});
 
 const integrations = [
   { name: "M-Pesa", category: "Payments" },
@@ -92,11 +33,8 @@ const integrations = [
 ];
 
 function LandingPageContent() {
-  const [activeTab, setActiveTab] = useState<(typeof moduleCategories)[number]["key"]>("student");
   const [authError, setAuthError] = useState("");
   const searchParams = useSearchParams();
-
-  const activeCategory = moduleCategories.find((c) => c.key === activeTab) ?? moduleCategories[0];
 
   useEffect(() => {
     const error = searchParams.get("auth_error");
@@ -113,171 +51,23 @@ function LandingPageContent() {
 
   return (
     <main>
-      {/* ── Announcement Bar ── */}
-      <div className="announcement-bar">
-        Now available in Kenya, Uganda, Tanzania, Rwanda, Burundi &amp; South Sudan
-        <span className="badge">New</span>
-      </div>
-
-      {/* ── Hero ── */}
-      <section className="hero">
-        <div className="hero-content">
-          <p className="eyebrow">The Operating System for African Schools</p>
-          <h1>Transforming schools, one mile at a time.</h1>
-
-          {authError && (
-            <div className="auth-error-banner" role="alert" aria-live="polite">
-              <strong>Authentication Error:</strong> {authError}
-            </div>
-          )}
-
-          <p className="subtext">
-            EduMyles is the all-in-one platform for schools across Africa - intuitive, affordable
-            technology that simplifies administration, enhances learning outcomes, and connects every
-            stakeholder from admissions to alumni.
-          </p>
-          <div className="actions">
-            <Link className="btn btn-primary" href="/auth/signup">
-              Get Started Free
-            </Link>
-            <Link className="btn btn-secondary" href="/concierge">
-              Book a Demo
-            </Link>
-          </div>
-          <div className="trust-signals">
-            <span className="trust-signal">
-              <span className="check">&#10003;</span> Free for 30 days
-            </span>
-            <span className="trust-signal">
-              <span className="check">&#10003;</span> No credit card required
-            </span>
-            <span className="trust-signal">
-              <span className="check">&#10003;</span> Free onboarding &amp; training
-            </span>
-          </div>
+      {authError && (
+        <div className="auth-error-banner" role="alert" aria-live="polite">
+          <strong>Authentication Error:</strong> {authError}
         </div>
+      )}
+      
+      <Suspense fallback={<div className="loading-state">Loading hero section...</div>}>
+        <HeroSection />
+      </Suspense>
 
-        <div className="hero-visual">
-          <div className="dashboard-mockup">
-            <div className="mockup-header">
-              <div className="mockup-dots">
-                <span />
-                <span />
-                <span />
-              </div>
-              <span className="mockup-title">EduMyles Dashboard</span>
-            </div>
-            <div className="mockup-body">
-              <div className="mockup-sidebar">
-                <div className="mockup-sidebar-item active" />
-                <div className="mockup-sidebar-item" />
-                <div className="mockup-sidebar-item" />
-                <div className="mockup-sidebar-item" />
-                <div className="mockup-sidebar-item" />
-              </div>
-              <div className="mockup-main">
-                <div className="mockup-stat-row">
-                  <div className="mockup-stat-card c1" />
-                  <div className="mockup-stat-card c2" />
-                  <div className="mockup-stat-card c3" />
-                </div>
-                <div className="mockup-chart" />
-                <div className="mockup-table">
-                  <div className="mockup-table-row" />
-                  <div className="mockup-table-row" />
-                  <div className="mockup-table-row" />
-                  <div className="mockup-table-row" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<div className="loading-state">Loading highlights...</div>}>
+        <HighlightsSection />
+      </Suspense>
 
-      {/* ── Social Proof / Stats ── */}
-      <section className="social-proof-section">
-        <div className="stats-grid">
-          {stats.map((stat) => (
-            <div key={stat.label} className="stat-card">
-              <div className="stat-value">{stat.value}</div>
-              <div className="stat-label">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-        <div className="trusted-by">
-          <p className="trusted-label">Trusted by schools across East Africa</p>
-          <div className="trusted-logos">
-            {["Nairobi Academy", "Kampala International", "Dar Premium School", "Kigali Prep", "Bujumbura Lycee"].map((name) => (
-              <span key={name} className="school-logo">{name}</span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Why Schools Choose EduMyles ── */}
-      <section className="highlights-zone">
-        <div className="section-header centered">
-          <h2>Why schools choose EduMyles</h2>
-          <p className="section-subtitle">
-            Built specifically for East African schools with local payment methods, curricula support,
-            and multi-language capabilities.
-          </p>
-        </div>
-        <div className="highlights">
-          {highlights.map((highlight) => (
-            <div key={highlight.title} className="panel">
-              <h3>{highlight.title}</h3>
-              <p>{highlight.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Modules Section ── */}
-      <section className="modules-section">
-        <div className="section-header centered">
-          <h2>11 modules. One platform. Zero silos.</h2>
-          <p className="section-subtitle">
-            Everything you need to run your school efficiently - from admissions to alumni, finance to
-            facilities. Pick the modules you need, activate more as you grow.
-          </p>
-        </div>
-
-        <div className="module-tabs" role="tablist" aria-label="Module categories">
-          {moduleCategories.map((cat) => (
-            <button
-              key={cat.key}
-              type="button"
-              role="tab"
-              className={`module-tab ${activeTab === cat.key ? "active" : ""}`}
-              aria-selected={activeTab === cat.key}
-              aria-controls={`module-panel-${cat.key}`}
-              onClick={() => setActiveTab(cat.key)}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="module-tab-content" role="tabpanel" id={`module-panel-${activeCategory.key}`}>
-          <div className="module-tab-text">
-            <h3>{activeCategory.label}</h3>
-            <p>{activeCategory.description}</p>
-            <Link className="btn btn-primary" href="/auth/signup">
-              Try It Free
-            </Link>
-          </div>
-
-          <div className="module-tab-apps">
-            {activeCategory.apps.map((app) => (
-              <div key={app.name} className="module-app-card">
-                <h4>{app.name}</h4>
-                <p>{app.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<div className="loading-state">Loading modules...</div>}>
+        <ModulesSection />
+      </Suspense>
 
       {/* ── Integrations ── */}
       <section className="content-section alt">

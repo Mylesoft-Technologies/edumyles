@@ -32,6 +32,7 @@ const inter = Inter({
     weight: ["300", "400", "500", "600", "700"],
     variable: "--font-inter",
     display: "swap",
+    preload: true,
 });
 
 const poppins = Poppins({
@@ -39,6 +40,7 @@ const poppins = Poppins({
     weight: ["300", "400", "500", "600", "700", "800"],
     variable: "--font-poppins",
     display: "swap",
+    preload: true,
 });
 
 export default function RootLayout({
@@ -48,6 +50,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
+            <head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            </head>
             {/*
              * font-sans resolves to Inter (product UI default).
              * Components that need Poppins can use className="font-poppins".

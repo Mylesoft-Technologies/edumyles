@@ -37,6 +37,17 @@ export async function requireTenantContext(
     throw new Error("UNAUTHENTICATED: No active session");
   }
 
+  // For development, allow bypassing authentication
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DEV] Bypassing authentication in development mode");
+    return {
+      tenantId: "PLATFORM",
+      userId: "dev_user_id",
+      role: "master_admin",
+      email: "admin@edumyles.local",
+    };
+  }
+
   const session = await ctx.db
     .query("sessions")
     .withIndex("by_token", (q) =>
@@ -71,6 +82,17 @@ export async function requireActionTenantContext(
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
     throw new Error("UNAUTHENTICATED: No active session");
+  }
+
+  // For development, allow bypassing authentication
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DEV] Bypassing authentication in development mode");
+    return {
+      tenantId: "PLATFORM",
+      userId: "dev_user_id",
+      role: "master_admin",
+      email: "admin@edumyles.local",
+    };
   }
 
   // Use internal query to check session since actions can't access DB directly
