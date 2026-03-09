@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FounderImage from "@/components/landing/FounderImage";
 
 export default function AboutPage() {
   return (
@@ -147,9 +148,7 @@ export default function AboutPage() {
 
           <div className="founder-block" style={{ marginBottom: "3rem" }}>
             <div className="founder-image">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/team/jonathan-myles.jpg" alt="Jonathan Myles - CEO & Founder" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling!.removeAttribute('style'); }} />
-              <div className="founder-avatar-fallback" style={{ display: 'none' }}>JM</div>
+              <FounderImage src="/team/jonathan-myles.jpg" alt="Jonathan Myles - CEO & Founder" initials="JM" />
             </div>
             <div className="founder-text">
               <p className="eyebrow">CEO &amp; Founder</p>
@@ -176,9 +175,7 @@ export default function AboutPage() {
 
           <div className="founder-block" style={{ direction: "rtl" }}>
             <div className="founder-image" style={{ direction: "ltr" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/team/pauline-moraa.jpg" alt="Pauline Moraa - Co-Founder & COO" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling!.removeAttribute('style'); }} />
-              <div className="founder-avatar-fallback" style={{ display: 'none' }}>PM</div>
+              <FounderImage src="/team/pauline-moraa.jpg" alt="Pauline Moraa - Co-Founder & COO" initials="PM" />
             </div>
             <div className="founder-text" style={{ direction: "ltr" }}>
               <p className="eyebrow">Co-Founder &amp; COO</p>
