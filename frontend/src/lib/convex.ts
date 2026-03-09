@@ -17,4 +17,14 @@ if (!CONVEX_URL) {
  * Import this wherever you need to pass a client instance directly.
  * For React components, prefer wrapping with `<ConvexProvider>` instead.
  */
-export const convexClient = new ConvexReactClient(CONVEX_URL);
+let convexClient: ConvexReactClient | null = null;
+
+export const getConvexClient = () => {
+  if (!convexClient && typeof window !== 'undefined') {
+    convexClient = new ConvexReactClient(CONVEX_URL);
+  }
+  return convexClient;
+};
+
+// Export a getter function instead of the client directly
+export { convexClient };
