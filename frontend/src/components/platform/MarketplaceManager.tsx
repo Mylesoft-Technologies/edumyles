@@ -391,6 +391,31 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
   const [pendingApprovals, setPendingApprovals] = useState<Module[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Module>>({});
+  const [newModuleData, setNewModuleData] = useState<Partial<Module>>({
+    name: "",
+    description: "",
+    category: "Core",
+    tier: "free",
+    version: "1.0.0",
+    status: "pending",
+    developer: "",
+    downloads: 0,
+    rating: 0,
+    reviews: 0,
+    price: 0,
+    features: [""],
+    requirements: [""],
+    documentation: "",
+    support: "",
+    icon: "Package",
+    metadata: {
+      tags: [],
+      compatibility: ["v3.0"],
+      dependencies: [],
+      size: "0MB",
+      lastUpdated: new Date().toISOString().split('T')[0]
+    }
+  });
 
   const filteredModules = modules.filter(module => {
     const matchesSearch = module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -531,6 +556,133 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
     ];
     
     setModules([...modules, ...additionalModules]);
+    
+    // Show success message
+    alert(`Successfully seeded ${additionalModules.length} new modules to the registry!`);
+  };
+
+  const createNewModule = () => {
+    if (!newModuleData.name || !newModuleData.description || !newModuleData.developer) {
+      alert("Please fill in all required fields (Name, Description, Developer)");
+      return;
+    }
+
+    const newModule: Module = {
+      id: (modules.length + 1).toString(),
+      moduleId: newModuleData.name?.toLowerCase().replace(/\s+/g, '-') || "new-module",
+      name: newModuleData.name || "",
+      description: newModuleData.description || "",
+      category: newModuleData.category || "Core",
+      tier: newModuleData.tier || "free",
+      version: newModuleData.version || "1.0.0",
+      status: "pending",
+      developer: newModuleData.developer || "",
+      downloads: 0,
+      rating: 0,
+      reviews: 0,
+      price: newModuleData.price || 0,
+      features: newModuleData.features?.filter(f => f.trim() !== "") || [],
+      requirements: newModuleData.requirements?.filter(r => r.trim() !== "") || [],
+      documentation: newModuleData.documentation || "",
+      support: newModuleData.support || "",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      approvedAt: 0,
+      approvedBy: "",
+      icon: newModuleData.icon || "Package",
+      metadata: {
+        tags: newModuleData.metadata?.tags || [],
+        compatibility: newModuleData.metadata?.compatibility || ["v3.0"],
+        dependencies: newModuleData.metadata?.dependencies || [],
+        size: newModuleData.metadata?.size || "0MB",
+        lastUpdated: new Date().toISOString().split('T')[0]
+      }
+    };
+
+    setModules([...modules, newModule]);
+    setShowCreateForm(false);
+    
+    // Reset form
+    setNewModuleData({
+      name: "",
+      description: "",
+      category: "Core",
+      tier: "free",
+      version: "1.0.0",
+      status: "pending",
+      developer: "",
+      downloads: 0,
+      rating: 0,
+      reviews: 0,
+      price: 0,
+      features: [""],
+      requirements: [""],
+      documentation: "",
+      support: "",
+      icon: "Package",
+      metadata: {
+        tags: [],
+        compatibility: ["v3.0"],
+        dependencies: [],
+        size: "0MB",
+        lastUpdated: new Date().toISOString().split('T')[0]
+      }
+    });
+
+    alert(`Module "${newModule.name}" has been created and is pending approval!`);
+  };
+
+  const updateNewModuleField = (field: string, value: any) => {
+    if (field.startsWith("metadata.")) {
+      const metadataField = field.replace("metadata.", "");
+      setNewModuleData(prev => ({
+        ...prev,
+        metadata: {
+          ...prev.metadata,
+          [metadataField]: value
+        }
+      }));
+    } else if (field.startsWith("features.")) {
+      const index = parseInt(field.split(".")[1]);
+      const newFeatures = [...(newModuleData.features || [])];
+      newFeatures[index] = value;
+      setNewModuleData(prev => ({ ...prev, features: newFeatures }));
+    } else if (field.startsWith("requirements.")) {
+      const index = parseInt(field.split(".")[1]);
+      const newRequirements = [...(newModuleData.requirements || [])];
+      newRequirements[index] = value;
+      setNewModuleData(prev => ({ ...prev, requirements: newRequirements }));
+    } else {
+      setNewModuleData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const addNewFeature = () => {
+    setNewModuleData(prev => ({
+      ...prev,
+      features: [...(prev.features || []), ""]
+    }));
+  };
+
+  const removeNewFeature = (index: number) => {
+    setNewModuleData(prev => ({
+      ...prev,
+      features: (prev.features || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const addNewRequirement = () => {
+    setNewModuleData(prev => ({
+      ...prev,
+      requirements: [...(prev.requirements || []), ""]
+    }));
+  };
+
+  const removeNewRequirement = (index: number) => {
+    setNewModuleData(prev => ({
+      ...prev,
+      requirements: (prev.requirements || []).filter((_, i) => i !== index)
+    }));
   };
 
   const getModuleIcon = (iconName: string) => {
@@ -1186,6 +1338,246 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add Module Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  Add New Module
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setShowCreateForm(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Tabs defaultValue="basic" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="features">Features</TabsTrigger>
+                  <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                  <TabsTrigger value="metadata">Metadata</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleName">Module Name *</Label>
+                      <Input
+                        id="newModuleName"
+                        value={newModuleData.name || ""}
+                        onChange={(e) => updateNewModuleField("name", e.target.value)}
+                        placeholder="Enter module name"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleVersion">Version</Label>
+                      <Input
+                        id="newModuleVersion"
+                        value={newModuleData.version || ""}
+                        onChange={(e) => updateNewModuleField("version", e.target.value)}
+                        className="font-mono"
+                        placeholder="1.0.0"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleCategory">Category</Label>
+                      <Select value={newModuleData.category} onValueChange={(value) => updateNewModuleField("category", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.filter(cat => cat !== "All").map((category) => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleTier">Tier</Label>
+                      <Select value={newModuleData.tier} onValueChange={(value) => updateNewModuleField("tier", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select tier" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIERS.filter(tier => tier !== "All").map((tier) => (
+                            <SelectItem key={tier} value={tier}>{tier}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newModulePrice">Price (KES)</Label>
+                      <Input
+                        id="newModulePrice"
+                        type="number"
+                        value={newModuleData.price || 0}
+                        onChange={(e) => updateNewModuleField("price", parseInt(e.target.value) || 0)}
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleDeveloper">Developer *</Label>
+                      <Input
+                        id="newModuleDeveloper"
+                        value={newModuleData.developer || ""}
+                        onChange={(e) => updateNewModuleField("developer", e.target.value)}
+                        placeholder="Enter developer name"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newModuleDescription">Description *</Label>
+                    <Textarea
+                      id="newModuleDescription"
+                      value={newModuleData.description || ""}
+                      onChange={(e) => updateNewModuleField("description", e.target.value)}
+                      rows={3}
+                      placeholder="Enter module description"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleDocumentation">Documentation URL</Label>
+                      <Input
+                        id="newModuleDocumentation"
+                        value={newModuleData.documentation || ""}
+                        onChange={(e) => updateNewModuleField("documentation", e.target.value)}
+                        placeholder="https://docs.example.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleSupport">Support Email</Label>
+                      <Input
+                        id="newModuleSupport"
+                        value={newModuleData.support || ""}
+                        onChange={(e) => updateNewModuleField("support", e.target.value)}
+                        placeholder="support@example.com"
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="features" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Module Features</Label>
+                    <Button variant="outline" size="sm" onClick={addNewFeature}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Feature
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {(newModuleData.features || []).map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={feature}
+                          onChange={(e) => updateNewModuleField(`features.${index}`, e.target.value)}
+                          placeholder="Enter feature description"
+                        />
+                        <Button variant="ghost" size="sm" onClick={() => removeNewFeature(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="requirements" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>System Requirements</Label>
+                    <Button variant="outline" size="sm" onClick={addNewRequirement}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Requirement
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {(newModuleData.requirements || []).map((requirement, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={requirement}
+                          onChange={(e) => updateNewModuleField(`requirements.${index}`, e.target.value)}
+                          placeholder="Enter requirement"
+                        />
+                        <Button variant="ghost" size="sm" onClick={() => removeNewRequirement(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="metadata" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleSize">Module Size</Label>
+                      <Input
+                        id="newModuleSize"
+                        value={newModuleData.metadata?.size || ""}
+                        onChange={(e) => updateNewModuleField("metadata.size", e.target.value)}
+                        placeholder="e.g. 45MB"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newModuleTags">Tags (comma-separated)</Label>
+                      <Input
+                        id="newModuleTags"
+                        value={newModuleData.metadata?.tags?.join(", ") || ""}
+                        onChange={(e) => updateNewModuleField("metadata.tags", e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
+                        placeholder="tag1, tag2, tag3"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="newModuleCompatibility">Compatibility (comma-separated)</Label>
+                      <Input
+                        id="newModuleCompatibility"
+                        value={newModuleData.metadata?.compatibility?.join(", ") || ""}
+                        onChange={(e) => updateNewModuleField("metadata.compatibility", e.target.value.split(",").map(version => version.trim()).filter(Boolean))}
+                        placeholder="v3.0, v3.1, v3.2"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="newModuleDependencies">Dependencies (comma-separated)</Label>
+                      <Input
+                        id="newModuleDependencies"
+                        value={newModuleData.metadata?.dependencies?.join(", ") || ""}
+                        onChange={(e) => updateNewModuleField("metadata.dependencies", e.target.value.split(",").map(dep => dep.trim()).filter(Boolean))}
+                        placeholder="module1, module2"
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={createNewModule}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Module
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Edit Module Modal */}
       {showEditModal && editingModule && (
