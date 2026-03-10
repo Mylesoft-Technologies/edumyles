@@ -90,15 +90,29 @@ export default function TicketDetailPage() {
   const [isInternal, setIsInternal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedAssignee, setSelectedAssignee] = useState("");
-  const [selectedPriority, setSelectedPriority] = useState("");
   const [showCcModal, setShowCcModal] = useState(false);
   const [ccEmails, setCcEmails] = useState<string[]>([]);
   const [newCcEmail, setNewCcEmail] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [selectedPriority, setSelectedPriority] = useState("");
 
   // Temporarily disable Convex query to ensure mock data shows
   const { data: ticket, isLoading } = { data: undefined, isLoading: false };
   const updateStatus = useMutation(api.tickets.updateTicketStatus);
   const addComment = useMutation(api.tickets.addComment);
+
+  // Mock users for @mentions
+  const mockUsers = [
+    { id: "agent1", email: "michael.chen@edumyles.com", name: "Michael Chen", role: "Support Agent" },
+    { id: "agent2", email: "sarah.wilson@edumyles.com", name: "Sarah Wilson", role: "Support Agent" },
+    { id: "tech1", email: "david.kim@edumyles.com", name: "David Kim", role: "Technical Lead" },
+    { id: "admin1", email: "john.doe@edumyles.com", name: "John Doe", role: "System Admin" },
+    { id: "customer1", email: "sarah.johnson@nairobi-academy.edu", name: "Sarah Johnson", role: "School Admin" }
+  ];
 
   // Mock ticket data for demonstration
   const mockTicket: Ticket = {
@@ -127,7 +141,7 @@ export default function TicketDetailPage() {
         authorId: "agent1",
         authorEmail: "michael.chen@edumyles.com",
         authorRole: "Support Agent",
-        content: "Hi Sarah,\n\nThank you for reporting this issue. I understand this is urgent for your board meeting.\n\nI've checked your account permissions and can see there might be a configuration issue with your role settings. I'm escalating this to our technical team for immediate resolution.\n\nYou should receive an update within the next 2 hours.\n\nBest regards,\nMichael Chen\nEduMyles Support Team",
+        content: "Hi @Sarah Johnson,\n\nThank you for reporting this issue. I understand this is urgent for your board meeting.\n\nI've checked your account permissions and can see there might be a configuration issue. I'm escalating this to @David Kim for immediate resolution.\n\nYou should receive an update within the next 2 hours.\n\nBest regards,\nMichael Chen",
         isInternal: false,
         attachments: [],
         createdAt: Date.now() - 5 * 60 * 60 * 1000
@@ -137,9 +151,9 @@ export default function TicketDetailPage() {
         authorId: "tech1",
         authorEmail: "david.kim@edumyles.com",
         authorRole: "Technical Lead",
-        content: "Internal Note:\n\nFound the issue - the school's subscription tier doesn't include advanced reporting features. They need to upgrade to Growth tier to access attendance reports.\n\nSLA is breached for first response. Need to communicate this clearly to the customer.",
+        content: "Internal Note:\n\nFound the issue - the school's subscription tier doesn't include advanced reporting features. They need to upgrade to Growth tier to access attendance reports.\n\n@Michael Chen - please communicate this clearly to the customer. We should offer them a temporary upgrade for this month's board meeting.\n\n@John Doe - please review the pricing for temporary upgrades.",
         isInternal: true,
-        attachments: [],
+        attachments: ["pricing_tiers.pdf"],
         createdAt: Date.now() - 4 * 60 * 60 * 1000
       },
       {
@@ -147,9 +161,9 @@ export default function TicketDetailPage() {
         authorId: "agent1",
         authorEmail: "michael.chen@edumyles.com",
         authorRole: "Support Agent",
-        content: "Hi Sarah,\n\nI have an update from our technical team. The issue is related to your current subscription plan. The advanced attendance reporting features are available on our Growth tier and above.\n\nI can see you're currently on the Starter tier. Would you like me to connect you with our sales team to discuss upgrading your plan? We can offer a temporary upgrade for this month to help with your board meeting.\n\nPlease let me know how you'd like to proceed.\n\nBest regards,\nMichael",
+        content: "Hi @Sarah Johnson,\n\nI have an update from @David Kim. The issue is related to your current subscription plan. The advanced attendance reporting features are available on our Growth tier and above.\n\nI can see you're currently on the Starter tier. Would you like me to connect you with @Sarah Wilson to discuss upgrading your plan? We can offer a temporary upgrade for this month to help with your board meeting.\n\nPlease let me know how you'd like to proceed.\n\nBest regards,\nMichael",
         isInternal: false,
-        attachments: [],
+        attachments: ["plan_comparison.pdf"],
         createdAt: Date.now() - 3 * 60 * 60 * 1000
       },
       {
@@ -157,9 +171,9 @@ export default function TicketDetailPage() {
         authorId: "sarah",
         authorEmail: "sarah.johnson@nairobi-academy.edu",
         authorRole: "School Admin",
-        content: "Hi Michael,\n\nThank you for the update. I wasn't aware that attendance reports were a premium feature. Yes, we'd definitely be interested in a temporary upgrade for this month, and we can discuss the long-term plan after our board meeting.\n\nCould you please arrange the temporary upgrade? We need the reports by Friday at the latest.\n\nThank you for your help!\n\nSarah",
+        content: "Hi @Michael Chen,\n\nThank you for the update. I wasn't aware that attendance reports were a premium feature. Yes, we'd definitely be interested in a temporary upgrade for this month, and we can discuss the long-term plan after our board meeting.\n\nCould you please arrange the temporary upgrade? We need the reports by Friday at the latest.\n\nThank you for your help!\n\nSarah",
         isInternal: false,
-        attachments: [],
+        attachments: ["board_meeting_agenda.docx"],
         createdAt: Date.now() - 2 * 60 * 60 * 1000
       },
       {
@@ -167,9 +181,9 @@ export default function TicketDetailPage() {
         authorId: "agent1",
         authorEmail: "michael.chen@edumyles.com",
         authorRole: "Support Agent",
-        content: "Hi Sarah,\n\nPerfect! I've arranged a temporary upgrade to the Growth tier for this month. You should now have access to the attendance reports.\n\nI've also scheduled a call with our sales team for next Tuesday to discuss your long-term needs.\n\nPlease try accessing the reports now and let me know if you encounter any issues.\n\nBest regards,\nMichael",
+        content: "Hi @Sarah Johnson,\n\nPerfect! I've arranged a temporary upgrade to the Growth tier for this month. You should now have access to the attendance reports.\n\nI've also scheduled a call with @Sarah Wilson for next Tuesday to discuss your long-term needs.\n\nPlease try accessing the reports now and let me know if you encounter any issues.\n\nBest regards,\nMichael",
         isInternal: false,
-        attachments: [],
+        attachments: ["upgrade_confirmation.pdf"],
         createdAt: Date.now() - 1 * 60 * 60 * 1000
       }
     ]
@@ -186,15 +200,79 @@ export default function TicketDetailPage() {
   };
 
   const handleAddComment = () => {
-    if (newComment.trim()) {
-      addComment({
-        ticketId,
+    if (newComment.trim() || uploadedFiles.length > 0) {
+      // In a real app, this would call the mutation
+      console.log("Adding comment:", {
         content: newComment,
         isInternal,
+        attachments: uploadedFiles.map(f => f.name),
+        mentionedUsers
       });
+      
+      // Reset form
       setNewComment("");
+      setIsInternal(false);
+      setUploadedFiles([]);
+      setMentionedUsers([]);
     }
   };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const position = e.target.selectionStart;
+    
+    setNewComment(value);
+    setCursorPosition(position);
+    
+    // Check for @mentions
+    const beforeCursor = value.substring(0, position);
+    const mentionMatch = beforeCursor.match(/@(\w*)$/);
+    
+    if (mentionMatch) {
+      setMentionQuery(mentionMatch[1]);
+      setShowMentionSuggestions(true);
+    } else {
+      setShowMentionSuggestions(false);
+      setMentionQuery("");
+    }
+  };
+
+  const handleMentionSelect = (user: typeof mockUsers[0]) => {
+    const beforeMention = newComment.substring(0, cursorPosition - mentionQuery.length - 1);
+    const afterCursor = newComment.substring(cursorPosition);
+    
+    const mentionText = `@${user.name} `;
+    const newCommentText = beforeMention + mentionText + afterCursor;
+    
+    setNewComment(newCommentText);
+    setMentionedUsers([...mentionedUsers, user.email]);
+    setShowMentionSuggestions(false);
+    setMentionQuery("");
+    
+    // Set cursor position after the mention
+    setTimeout(() => {
+      const textarea = document.getElementById('comment-textarea') as HTMLTextAreaElement;
+      if (textarea) {
+        const newPosition = beforeMention.length + mentionText.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+        textarea.focus();
+      }
+    }, 0);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setUploadedFiles([...uploadedFiles, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
+  };
+
+  const filteredUsers = mockUsers.filter(user => 
+    user.name.toLowerCase().includes(mentionQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(mentionQuery.toLowerCase())
+  );
 
   const addCcEmail = () => {
     if (newCcEmail.trim() && !ccEmails.includes(newCcEmail.trim())) {
@@ -514,14 +592,45 @@ export default function TicketDetailPage() {
                             ? "bg-amber-50 border border-amber-200" 
                             : "bg-muted"
                         }`}>
-                          <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                          <div className="text-sm whitespace-pre-wrap">
+                            {comment.content.split(/(@\w+)/).map((part, index) => {
+                              // Check if this part is a mention
+                              if (part.startsWith('@')) {
+                                const userName = part.substring(1);
+                                const mentionedUser = mockUsers.find(u => 
+                                  u.name.toLowerCase().includes(userName.toLowerCase()) ||
+                                  u.email.toLowerCase().includes(userName.toLowerCase())
+                                );
+                                
+                                if (mentionedUser) {
+                                  return (
+                                    <span key={index} className="inline-flex items-center gap-1 px-1 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                      <span>@{mentionedUser.name}</span>
+                                    </span>
+                                  );
+                                }
+                              }
+                              return part;
+                            })}
+                          </div>
                           
                           {comment.attachments && comment.attachments.length > 0 && (
-                            <div className="flex items-center gap-2 mt-2">
-                              <Paperclip className="h-4 w-4" />
-                              <span className="text-xs text-muted-foreground">
-                                {comment.attachments.length} attachment(s)
-                              </span>
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Paperclip className="h-3 w-3" />
+                                <span>{comment.attachments.length} attachment(s)</span>
+                              </div>
+                              <div className="space-y-1">
+                                {comment.attachments.map((attachment, index) => (
+                                  <div key={index} className="flex items-center gap-2 p-2 bg-white rounded border">
+                                    <FileText className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm">{attachment}</span>
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-auto">
+                                      <Download className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -568,22 +677,96 @@ export default function TicketDetailPage() {
                   </div>
                 </div>
                 
-                <Textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Type your comment here..."
-                  className="min-h-24"
-                />
+                {/* Mention Suggestions */}
+                {showMentionSuggestions && mentionQuery && (
+                  <div className="relative">
+                    <div className="absolute top-0 left-0 z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                      {filteredUsers.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-3 p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleMentionSelect(user)}
+                        >
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">{user.name}</div>
+                            <div className="text-xs text-gray-500">{user.email}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="relative">
+                  <Textarea
+                    id="comment-textarea"
+                    value={newComment}
+                    onChange={handleTextareaChange}
+                    placeholder="Type your comment here... Use @ to mention people"
+                    className="min-h-24"
+                  />
+                  
+                  {/* Character count and mention indicators */}
+                  <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                    {newComment.length} chars
+                    {mentionedUsers.length > 0 && (
+                      <span className="ml-2 text-blue-600">
+                        {mentionedUsers.length} mentioned
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* File Attachments */}
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">Attachments</div>
+                    <div className="space-y-2">
+                      {uploadedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                          <div className="flex items-center gap-2">
+                            <Paperclip className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm">{file.name}</span>
+                            <span className="text-xs text-gray-500">
+                              ({(file.size / 1024).toFixed(1)} KB)
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
-                      <Paperclip className="h-4 w-4 mr-1" />
-                      Attach
-                    </Button>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <Button variant="outline" size="sm" type="button">
+                        <Upload className="h-4 w-4 mr-1" />
+                        Attach Files
+                      </Button>
+                    </div>
                     <Button variant="outline" size="sm">
                       <Link className="h-4 w-4 mr-1" />
-                      Link
+                      Add Link
                     </Button>
                   </div>
                   
@@ -599,7 +782,10 @@ export default function TicketDetailPage() {
                       <Reply className="h-4 w-4 mr-1" />
                       Assign to Me
                     </Button>
-                    <Button onClick={handleAddComment} disabled={!newComment.trim()}>
+                    <Button 
+                      onClick={handleAddComment} 
+                      disabled={!newComment.trim() && uploadedFiles.length === 0}
+                    >
                       <Send className="h-4 w-4 mr-1" />
                       Post Comment
                     </Button>
