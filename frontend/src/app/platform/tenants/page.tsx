@@ -33,9 +33,6 @@ export default function TenantsPage() {
   const { isLoading, sessionToken } = useAuth();
   const { hasPermission } = usePermissions();
 
-  // Debug logging
-  console.log("TenantsPage rendering:", { isLoading, hasSessionToken: !!sessionToken });
-
   // Fetch tenants data
   const { data: tenants, isLoading: tenantsLoading } = useQuery(
     api.platform.tenants.queries.listAllTenants,
