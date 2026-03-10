@@ -278,13 +278,26 @@ export default function UsersPage() {
   const [roles, setRoles] = useState<Role[]>(mockRoles);
   const [activities, setActivities] = useState<ActivityLog[]>(mockActivities);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedTenant, setSelectedTenant] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("users");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateRoleDialogOpen, setIsCreateRoleDialogOpen] = useState(false);
+  const [isEditRoleDialogOpen, setIsEditRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [newRoleData, setNewRoleData] = useState({
+    name: "",
+    description: "",
+    permissions: [] as string[]
+  });
+  const [editRoleData, setEditRoleData] = useState({
+    name: "",
+    description: "",
+    permissions: [] as string[]
+  });
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchQuery === "" || 
@@ -292,7 +305,7 @@ export default function UsersPage() {
       user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesRole = selectedRole === "all" || user.role === selectedRole;
+    const matchesRole = selectedRoleFilter === "all" || user.role === selectedRoleFilter;
     const matchesStatus = selectedStatus === "all" || user.status === selectedStatus;
     const matchesTenant = selectedTenant === "all" || user.tenantId === selectedTenant;
     
@@ -351,10 +364,74 @@ export default function UsersPage() {
     setIsEditDialogOpen(true);
   };
 
+  const handleCreateRole = () => {
+    setIsCreateRoleDialogOpen(true);
+  };
+
+  const handleEditRole = (role: Role) => {
+    setSelectedRole(role);
+    setEditRoleData({
+      name: role.name,
+      description: role.description,
+      permissions: role.permissions
+    });
+    setIsEditRoleDialogOpen(true);
+  };
+
+  const handleDeleteRole = (roleId: string) => {
+    const role = roles.find(r => r._id === roleId);
+    if (role?.isSystem) {
+      alert("Cannot delete system roles");
+      return;
+    }
+    if (role?.userCount && role.userCount > 0) {
+      alert("Cannot delete role with assigned users");
+      return;
+    }
+    if (confirm("Are you sure you want to delete this role?")) {
+      setRoles(roles.filter(role => role._id !== roleId));
+    }
+  };
+
+  const handleCreateRoleSubmit = () => {
+    const newRole: Role = {
+      _id: Date.now().toString(),
+      name: newRoleData.name,
+      description: newRoleData.description,
+      permissions: newRoleData.permissions,
+      userCount: 0,
+      isSystem: false,
+      createdAt: Date.now()
+    };
+    setRoles([...roles, newRole]);
+    setIsCreateRoleDialogOpen(false);
+    resetNewRoleData();
+  };
+
+  const resetNewRoleData = () => {
+    setNewRoleData({
+      name: "",
+      description: "",
+      permissions: []
+    });
+  };
+
   const handleDeleteUser = (userId: string) => {
     if (confirm("Are you sure you want to delete this user?")) {
       setUsers(users.filter(user => user._id !== userId));
     }
+  };
+
+  const handleEditRoleSubmit = () => {
+    if (!selectedRole) return;
+    
+    setRoles(roles.map(role => 
+      role._id === selectedRole._id 
+        ? { ...role, ...editRoleData }
+        : role
+    ));
+    setIsEditRoleDialogOpen(false);
+    setSelectedRole(null);
   };
 
   const handleToggleUserStatus = (userId: string, newStatus: User['status']) => {
@@ -441,7 +518,7 @@ export default function UsersPage() {
                   className="w-80"
                 />
               </div>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <Select value={selectedRoleFilter} onValueChange={setSelectedRoleFilter}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
@@ -598,7 +675,7 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Role Management</h2>
-        <Button>
+        <Button onClick={handleCreateRole}>
           <Plus className="h-4 w-4 mr-1" />
           Create Role
         </Button>
@@ -638,11 +715,11 @@ export default function UsersPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{role.userCount} users</span>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleEditRole(role)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   {!role.isSystem && (
-                    <Button variant="ghost" size="sm" className="text-red-500">
+                    <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDeleteRole(role._id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
@@ -890,6 +967,168 @@ export default function UsersPage() {
                 <Button onClick={() => setIsEditDialogOpen(false)}>
                   <Edit className="h-4 w-4 mr-1" />
                   Update User
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Role Dialog */}
+      <Dialog open={isCreateRoleDialogOpen} onOpenChange={setIsCreateRoleDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Create New Role</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="role-name">Role Name *</Label>
+                <Input 
+                  id="role-name" 
+                  placeholder="Enter role name"
+                  value={newRoleData.name}
+                  onChange={(e) => setNewRoleData({...newRoleData, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="role-description">Description</Label>
+                <Input 
+                  id="role-description" 
+                  placeholder="Enter role description"
+                  value={newRoleData.description}
+                  onChange={(e) => setNewRoleData({...newRoleData, description: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label>Permissions</Label>
+              <div className="space-y-2 mt-2">
+                {[
+                  "user_management",
+                  "tenant_management", 
+                  "reporting",
+                  "student_management",
+                  "grade_management",
+                  "parent_communication",
+                  "ticket_management",
+                  "basic_reporting",
+                  "view_reports",
+                  "financial_management",
+                  "system_settings",
+                  "api_access"
+                ].map((permission) => (
+                  <div key={permission} className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id={`perm-${permission}`}
+                      checked={newRoleData.permissions.includes(permission)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setNewRoleData({...newRoleData, permissions: [...newRoleData.permissions, permission]});
+                        } else {
+                          setNewRoleData({...newRoleData, permissions: newRoleData.permissions.filter(p => p !== permission)});
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <Label htmlFor={`perm-${permission}`} className="text-sm">
+                      {permission.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsCreateRoleDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateRoleSubmit}>
+                <Shield className="h-4 w-4 mr-1" />
+                Create Role
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Role Dialog */}
+      <Dialog open={isEditRoleDialogOpen} onOpenChange={setIsEditRoleDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Role</DialogTitle>
+          </DialogHeader>
+          {selectedRole && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-role-name">Role Name *</Label>
+                  <Input 
+                    id="edit-role-name" 
+                    placeholder="Enter role name"
+                    defaultValue={selectedRole.name}
+                    onChange={(e) => setEditRoleData({...editRoleData, name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-role-description">Description</Label>
+                  <Input 
+                    id="edit-role-description" 
+                    placeholder="Enter role description"
+                    defaultValue={selectedRole.description}
+                    onChange={(e) => setEditRoleData({...editRoleData, description: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label>Permissions</Label>
+                <div className="space-y-2 mt-2">
+                  {[
+                    "user_management",
+                    "tenant_management", 
+                    "reporting",
+                    "student_management",
+                    "grade_management",
+                    "parent_communication",
+                    "ticket_management",
+                    "basic_reporting",
+                    "view_reports",
+                    "financial_management",
+                    "system_settings",
+                    "api_access"
+                  ].map((permission) => (
+                    <div key={permission} className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        id={`edit-perm-${permission}`}
+                        checked={editRoleData.permissions.includes(permission) || selectedRole.permissions.includes(permission)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setEditRoleData({...editRoleData, permissions: [...editRoleData.permissions, permission]});
+                          } else {
+                            setEditRoleData({...editRoleData, permissions: editRoleData.permissions.filter(p => p !== permission)});
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <Label htmlFor={`edit-perm-${permission}`} className="text-sm">
+                        {permission.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsEditRoleDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEditRoleSubmit}>
+                  <Shield className="h-4 w-4 mr-1" />
+                  Update Role
                 </Button>
               </div>
             </div>
