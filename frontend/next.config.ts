@@ -88,6 +88,21 @@ const nextConfig: NextConfig = {
       };
     }
     
+    // Fix for "self is not defined" error in Convex
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        self: false,
+      };
+      
+      config.plugins = [
+        ...config.plugins,
+        new config.webpack.DefinePlugin({
+          self: 'undefined',
+        }),
+      ];
+    }
+    
     config.optimization.splitChunks = {
       chunks: 'all',
       cacheGroups: {
