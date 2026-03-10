@@ -162,7 +162,7 @@ export default function TicketsPage() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="pending_school">Pending School</SelectItem>
@@ -175,7 +175,7 @@ export default function TicketsPage() {
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Priority</SelectItem>
+              <SelectItem value="all">All Priority</SelectItem>
               <SelectItem value="P0">P0 - Critical</SelectItem>
               <SelectItem value="P1">P1 - High</SelectItem>
               <SelectItem value="P2">P2 - Medium</SelectItem>
@@ -187,7 +187,7 @@ export default function TicketsPage() {
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               <SelectItem value="billing">Billing</SelectItem>
               <SelectItem value="technical">Technical</SelectItem>
               <SelectItem value="data">Data</SelectItem>
