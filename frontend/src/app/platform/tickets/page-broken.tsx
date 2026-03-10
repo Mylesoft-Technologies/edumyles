@@ -57,7 +57,7 @@ export default function TicketsPage() {
   const [viewType, setViewType] = useState<ViewType>("table");
   const [filters, setFilters] = useState({
     status: "all",
-    priority: "all", 
+    priority: "all",
     category: "all",
     assignedTo: "all",
   });
@@ -69,6 +69,17 @@ export default function TicketsPage() {
     category: "technical",
     priority: "P2",
   });
+
+  const createTicketMutation = useMutation(api.tickets.createTicket);
+  const ticketsQuery = useQuery(api.tickets.getTickets, {
+    status: filters.status === "all" ? undefined : filters.status,
+    priority: filters.priority === "all" ? undefined : filters.priority,
+    category: filters.category === "all" ? undefined : filters.category,
+    assignedTo: filters.assignedTo === "all" ? undefined : filters.assignedTo,
+    limit: 100,
+  });
+
+  const slaStatsQuery = useQuery(api.tickets.getSLAStats, {});
 
   // Mock data for demonstration
   const mockTickets: Ticket[] = [
@@ -178,9 +189,9 @@ export default function TicketsPage() {
     compliance: 85
   };
 
-  // Use mock data
-  const ticketsData = mockTickets;
-  const slaStatsData = mockSlaStats;
+  // Use mock data if no real data available
+  const ticketsData = ticketsQuery?.data || mockTickets;
+  const slaStatsData = slaStatsQuery?.data || mockSlaStats;
 
   // Filter tickets based on search and filters
   const filteredTickets = ticketsData?.filter(ticket => {
@@ -195,49 +206,46 @@ export default function TicketsPage() {
     return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
   }) || [];
 
+  // Debug information
+  console.log("Debug Info:", {
+    totalTickets: ticketsData?.length || 0,
+    filteredCount: filteredTickets.length,
+    searchQuery,
+    filters,
+    userTenantId: user?.tenantId,
+  });
+
   const handleCreateTicket = async () => {
     if (!newTicket.title.trim() || !newTicket.body.trim()) {
       return;
     }
     
     try {
-      // In a real app, this would call the mutation
-      console.log("Creating ticket:", newTicket);
+      // For platform admin, use a default tenant or create one
+      const tenantId = user?.tenantId || "platform";
+
+      await createTicketMutation({
+        tenantId: tenantId,
+        title: newTicket.title,
+        body: newTicket.body,
+        category: newTicket.category as any,
+        priority: newTicket.priority as any,
+      });
+      
+      setNewTicket({
+        title: "",
+        body: "",
+        category: "technical",
+        priority: "P2",
+      });
       setIsCreateDialogOpen(false);
-      setNewTicket({ title: "", body: "", category: "technical", priority: "P2" });
+      
+      // Show success message
+      alert("Ticket created successfully!");
     } catch (error) {
       console.error("Failed to create ticket:", error);
+      alert("Failed to create ticket: " + (error as Error).message);
     }
-  };
-
-  const handleExport = () => {
-    // Export functionality
-    const csvContent = [
-      ["ID", "Title", "School", "Priority", "Status", "Category", "Assigned To"],
-      ...filteredTickets.map(ticket => [
-        ticket._id,
-        ticket.title,
-        ticket.tenantName,
-        ticket.priority,
-        ticket.status,
-        ticket.category,
-        ticket.assignedTo || "Unassigned"
-      ])
-    ].map(row => row.join(",")).join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "tickets.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const handleRefresh = () => {
-    // Refresh functionality - in real app would refetch data
-    console.log("Refreshing tickets...");
-    window.location.reload();
   };
 
   const KanbanView = () => {
@@ -246,7 +254,7 @@ export default function TicketsPage() {
       { id: "in_progress", title: "In Progress", status: "in_progress" },
       { id: "pending_school", title: "Pending School", status: "pending_school" },
       { id: "resolved", title: "Resolved", status: "resolved" },
-      { id: "closed", title: "Closed", status: "closed" }
+      { id: "closed", title: "Closed", status: "closed" },
     ];
 
     return (
@@ -311,8 +319,13 @@ export default function TicketsPage() {
                             </span>
                           </div>
                           <h4 className="font-medium text-sm line-clamp-2">{ticket.title}</h4>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Building className="h-3 w-3 mr-1" />
                             {ticket.tenantName}
+                          </div>
+                          <div className={`flex items-center text-xs ${formatTimeRemaining(ticket.slaResolutionDL).color}`}>
+                            <Clock className="h-3 w-3 mr-1" />
+                            {formatTimeRemaining(ticket.slaResolutionDL).text}
                           </div>
                         </div>
                       </CardContent>
@@ -437,22 +450,22 @@ export default function TicketsPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "P0": return "bg-red-100 text-red-700 border-red-200";
-      case "P1": return "bg-orange-100 text-orange-700 border-orange-200";
-      case "P2": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "P3": return "bg-gray-100 text-gray-700 border-gray-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case "P0": return "bg-danger-bg text-danger border-danger";
+      case "P1": return "bg-warning-bg text-em-accent-dark border-warning";
+      case "P2": return "bg-info-bg text-info border-info";
+      case "P3": return "bg-muted text-muted-foreground border-muted";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "open": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "in_progress": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "pending_school": return "bg-purple-100 text-purple-700 border-purple-200";
-      case "resolved": return "bg-green-100 text-green-700 border-green-200";
-      case "closed": return "bg-gray-100 text-gray-700 border-gray-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case "open": return "bg-info-bg text-info";
+      case "in_progress": return "bg-warning-bg text-em-accent-dark";
+      case "pending_school": return "bg-secondary-bg text-secondary";
+      case "resolved": return "bg-success-bg text-success";
+      case "closed": return "bg-muted text-muted-foreground";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -461,7 +474,7 @@ export default function TicketsPage() {
     const timeLeft = deadline - now;
     
     if (timeLeft < 0) {
-      return { text: "Overdue", color: "text-red-600" };
+      return { text: "Overdue", color: "text-danger" };
     }
     
     const hours = Math.floor(timeLeft / (1000 * 60 * 60));
@@ -469,10 +482,10 @@ export default function TicketsPage() {
     
     if (hours > 24) {
       const days = Math.floor(hours / 24);
-      return { text: `${days}d ${hours % 24}h`, color: "text-yellow-600" };
+      return { text: `${days}d ${hours % 24}h`, color: "text-warning" };
     }
     
-    return { text: `${hours}h ${minutes}m`, color: hours < 2 ? "text-red-600" : "text-yellow-600" };
+    return { text: `${hours}h ${minutes}m`, color: hours < 2 ? "text-danger" : "text-warning" };
   };
 
   const TableView = () => (
@@ -485,30 +498,32 @@ export default function TicketsPage() {
             <Badge variant="secondary">{filteredTickets?.length}</Badge>
           </CardTitle>
           <div className="flex items-center space-x-2">
-            <Button
-              variant={viewType === "table" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewType("table")}
-            >
-              <Table className="h-4 w-4 mr-1" />
-              Table
-            </Button>
-            <Button
-              variant={viewType === "kanban" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewType("kanban")}
-            >
-              <Grid3X3 className="h-4 w-4 mr-1" />
-              Kanban
-            </Button>
-            <Button
-              variant={viewType === "calendar" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewType("calendar")}
-            >
-              <CalendarDays className="h-4 w-4 mr-1" />
-              Calendar
-            </Button>
+            <div className="flex items-center space-x-1">
+              <Button
+                variant={viewType === "table" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewType("table")}
+              >
+                <Layout className="h-4 w-4 mr-1" />
+                Table
+              </Button>
+              <Button
+                variant={viewType === "kanban" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewType("kanban")}
+              >
+                <Layout className="h-4 w-4 mr-1" />
+                Kanban
+              </Button>
+              <Button
+                variant={viewType === "calendar" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewType("calendar")}
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                Calendar
+              </Button>
+            </div>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
               New Ticket
@@ -529,7 +544,7 @@ export default function TicketsPage() {
                 className="w-80"
               />
             </div>
-            <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+            <Select value={filters.status || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -542,7 +557,7 @@ export default function TicketsPage() {
                 <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filters.priority} onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value }))}>
+            <Select value={filters.priority || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value }))}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
@@ -554,7 +569,7 @@ export default function TicketsPage() {
                 <SelectItem value="P3">P3 - Low</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
+            <Select value={filters.category || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -572,11 +587,11 @@ export default function TicketsPage() {
             </Select>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={handleExport}>
+            <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-1" />
               Export
             </Button>
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <Button variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-1" />
               Refresh
             </Button>
@@ -656,7 +671,7 @@ export default function TicketsPage() {
                       <div className={`flex items-center space-x-1 ${timeRemaining.color}`}>
                         <Clock className="h-4 w-4" />
                         <span className="text-sm font-medium">{timeRemaining.text}</span>
-                        {ticket.slaBreached && <AlertTriangle className="h-4 w-4 text-red-600" />}
+                        {ticket.slaBreached && <AlertTriangle className="h-4 w-4 text-danger" />}
                       </div>
                     </td>
                     <td className="p-3">
@@ -678,6 +693,10 @@ export default function TicketsPage() {
       </CardContent>
     </Card>
   );
+
+  if (ticketsQuery.isLoading) {
+    return <div>Loading tickets...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -706,7 +725,7 @@ export default function TicketsPage() {
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
               <Select 
-                value={newTicket.category} 
+                value={newTicket.category || "technical"} 
                 onValueChange={(value) => setNewTicket(prev => ({ ...prev, category: value }))}
               >
                 <SelectTrigger>
@@ -727,7 +746,7 @@ export default function TicketsPage() {
             <div className="grid gap-2">
               <Label htmlFor="priority">Priority</Label>
               <Select 
-                value={newTicket.priority} 
+                value={newTicket.priority || "P2"} 
                 onValueChange={(value) => setNewTicket(prev => ({ ...prev, priority: value }))}
               >
                 <SelectTrigger>
