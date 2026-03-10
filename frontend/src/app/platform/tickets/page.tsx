@@ -292,7 +292,7 @@ export default function TicketsPage() {
     </Card>
   );
 
-  if (ticketsQuery.isLoading || !ticketsQuery.data) {
+  if (ticketsQuery.isLoading) {
     return <div>Loading tickets...</div>;
   }
 
