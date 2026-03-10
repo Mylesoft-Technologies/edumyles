@@ -8,7 +8,6 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { DashboardKPIGrid } from "@/components/platform/DashboardKPI";
 import { DashboardCharts } from "@/components/platform/DashboardCharts";
 import { ActivityFeed } from "@/components/platform/ActivityFeed";
-import { DashboardTest } from "@/components/platform/DashboardTest";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAccessibility } from "@/hooks/useAccessibility";
@@ -140,9 +139,6 @@ export default function PlatformDashboardPage() {
         showViewAll={true}
         className=""
       />
-
-      {/* Debug Test Component - Remove after fixing */}
-      <DashboardTest />
     </div>
   );
 }
