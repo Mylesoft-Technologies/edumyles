@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { ConvexAuthProvider } from "@/components/ConvexAuthProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -60,8 +61,10 @@ export default function RootLayout({
                 className={`${inter.variable} ${poppins.variable} font-sans antialiased`}
             >
                 <ErrorBoundary>
-    {children}
-</ErrorBoundary>
+                    <ConvexAuthProvider>
+                        {children}
+                    </ConvexAuthProvider>
+                </ErrorBoundary>
                 <Toaster />
                 <SpeedInsights />
             </body>
