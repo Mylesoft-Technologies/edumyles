@@ -39,6 +39,7 @@ export const platformNavItems: NavItem[] = [
   { label: "CRM Pipeline", href: "/platform/crm", icon: TrendingUp },
   { label: "Proposals", href: "/platform/crm/proposals", icon: FileText },
   { label: "Users", href: "/platform/users", icon: Users },
+  { label: "Staff Performance", href: "/platform/staff-performance", icon: BarChart3 },
   { label: "Tickets", href: "/platform/tickets", icon: Headphones },
   { label: "Analytics", href: "/platform/analytics", icon: BarChart3 },
   { label: "Marketplace", href: "/platform/marketplace", icon: ShoppingCart },
