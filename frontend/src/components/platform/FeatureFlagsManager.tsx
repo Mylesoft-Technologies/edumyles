@@ -180,6 +180,21 @@ export function FeatureFlagsManager({ className = "" }: FeatureFlagsManagerProps
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newFlag, setNewFlag] = useState<Partial<FeatureFlag>>({
+    name: "",
+    description: "",
+    type: "module",
+    status: "inactive",
+    value: false,
+    metadata: {
+      createdBy: "current-user@edumyles.co.ke",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      lastModifiedBy: "current-user@edumyles.co.ke",
+      category: "Features",
+      tags: []
+    }
+  });
 
   const filteredFlags = flags.filter(flag => {
     const matchesSearch = flag.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -224,6 +239,74 @@ export function FeatureFlagsManager({ className = "" }: FeatureFlagsManagerProps
       }
     };
     setFlags(prev => [...prev, newFlag]);
+  };
+
+  const createFlag = () => {
+    if (!newFlag.name || !newFlag.description) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    const flag: FeatureFlag = {
+      id: `flag-${Date.now()}`,
+      name: newFlag.name,
+      description: newFlag.description,
+      type: newFlag.type as "global" | "module" | "tenant" | "beta",
+      status: newFlag.status as "active" | "inactive" | "disabled",
+      value: newFlag.value || false,
+      conditions: newFlag.conditions,
+      metadata: {
+        ...newFlag.metadata!,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      },
+      tags: newFlag.tags || []
+    };
+
+    setFlags(prev => [...prev, flag]);
+    setShowCreateForm(false);
+    setNewFlag({
+      name: "",
+      description: "",
+      type: "module",
+      status: "inactive",
+      value: false,
+      metadata: {
+        createdBy: "current-user@edumyles.co.ke",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        lastModifiedBy: "current-user@edumyles.co.ke",
+        category: "Features",
+        tags: []
+      }
+    });
+  };
+
+  const updateNewFlag = (field: string, value: any) => {
+    if (field.startsWith("metadata.")) {
+      const metadataField = field.replace("metadata.", "");
+      setNewFlag(prev => ({
+        ...prev,
+        metadata: {
+          ...prev.metadata!,
+          [metadataField]: value
+        }
+      }));
+    } else if (field.startsWith("conditions.")) {
+      const conditionField = field.replace("conditions.", "");
+      setNewFlag(prev => ({
+        ...prev,
+        conditions: {
+          ...prev.conditions,
+          [conditionField]: value
+        }
+      }));
+    } else {
+      setNewFlag(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const getTypeIcon = (type: string) => {
@@ -496,6 +579,175 @@ export function FeatureFlagsManager({ className = "" }: FeatureFlagsManagerProps
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Flag Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Create New Feature Flag</span>
+                <Button variant="ghost" size="sm" onClick={() => setShowCreateForm(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="flagName">Flag Name *</Label>
+                  <Input
+                    id="flagName"
+                    placeholder="e.g. new-feature-toggle"
+                    value={newFlag.name || ""}
+                    onChange={(e) => updateNewFlag("name", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="flagType">Flag Type *</Label>
+                  <Select value={newFlag.type} onValueChange={(value) => updateNewFlag("type", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="global">Global</SelectItem>
+                      <SelectItem value="module">Module</SelectItem>
+                      <SelectItem value="tenant">Tenant</SelectItem>
+                      <SelectItem value="beta">Beta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="flagDescription">Description *</Label>
+                <Input
+                  id="flagDescription"
+                  placeholder="Describe what this flag controls..."
+                  value={newFlag.description || ""}
+                  onChange={(e) => updateNewFlag("description", e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="flagCategory">Category</Label>
+                  <Select value={newFlag.metadata?.category} onValueChange={(value) => updateNewFlag("metadata.category", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="flagStatus">Initial Status</Label>
+                  <Select value={newFlag.status} onValueChange={(value) => updateNewFlag("status", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="disabled">Disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Conditional Fields Based on Type */}
+              {newFlag.type === "global" && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Global flags affect all users immediately.</strong> Use with caution and ensure proper testing before activation.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {(newFlag.type === "tenant" || newFlag.type === "beta") && (
+                <div className="space-y-4">
+                  <h4 className="font-medium">Targeting Conditions</h4>
+                  
+                  {newFlag.type === "tenant" && (
+                    <div className="space-y-2">
+                      <Label>Target Tenants (Optional)</Label>
+                      <Input
+                        placeholder="Enter tenant IDs separated by commas"
+                        onChange={(e) => updateNewFlag("conditions.tenantIds", e.target.value.split(",").map(id => id.trim()).filter(Boolean))}
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Target Plans (Optional)</Label>
+                    <div className="space-y-2">
+                      {PLAN_OPTIONS.map((plan) => (
+                        <div key={plan} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`plan-${plan}`}
+                            checked={newFlag.conditions?.plans?.includes(plan) || false}
+                            onCheckedChange={(checked) => {
+                              const currentPlans = newFlag.conditions?.plans || [];
+                              const updatedPlans = checked 
+                                ? [...currentPlans, plan]
+                                : currentPlans.filter((p: string) => p !== plan);
+                              updateNewFlag("conditions.plans", updatedPlans);
+                            }}
+                          />
+                          <Label htmlFor={`plan-${plan}`} className="capitalize">{plan}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {newFlag.type === "beta" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="rolloutPercentage">Rollout Percentage</Label>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          id="rolloutPercentage"
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="25"
+                          value={newFlag.conditions?.rolloutPercentage || ""}
+                          onChange={(e) => updateNewFlag("conditions.rolloutPercentage", parseInt(e.target.value) || 0)}
+                        />
+                        <span className="text-sm text-muted-foreground">%</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="flagTags">Tags (Optional)</Label>
+                <Input
+                  id="flagTags"
+                  placeholder="Enter tags separated by commas"
+                  onChange={(e) => updateNewFlag("tags", e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={createFlag}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Flag
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
