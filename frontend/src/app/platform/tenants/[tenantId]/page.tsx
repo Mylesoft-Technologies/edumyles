@@ -94,7 +94,7 @@ export default function TenantDetailPage() {
   };
 
   // Use mock data for now since backend function doesn't exist
-  const tenantData = mockTenant; // Always use mock data
+  const tenantData = mockTenant; // Always use mock data - v2
 
   if (isLoading || tenantLoading) {
     return <LoadingSkeleton />;
