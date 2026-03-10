@@ -51,8 +51,46 @@ import {
   Code,
   GitBranch,
   Lock,
-  Unlock
+  Unlock,
+  BookOpen,
+  GraduationCap,
+  Briefcase,
+  Brain,
+  Library,
+  Bus,
+  Building,
+  CreditCard,
+  MessageSquare,
+  FileCheck,
+  Award,
+  Target,
+  ArrowUp,
+  ArrowDown,
+  MoreHorizontal
 } from "lucide-react";
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Treemap
+} from "recharts";
 
 interface Module {
   id: string;
@@ -76,6 +114,7 @@ interface Module {
   updatedAt: number;
   approvedAt: number;
   approvedBy: string;
+  icon: string;
   metadata: {
     tags: string[];
     compatibility: string[];
@@ -104,6 +143,7 @@ const MOCK_MODULES: Module[] = [
     rating: 4.8,
     reviews: 89,
     price: 0,
+    icon: "GraduationCap",
     features: [
       "AI-powered grading assistant",
       "Advanced analytics dashboard",
@@ -144,6 +184,7 @@ const MOCK_MODULES: Module[] = [
     rating: 4.6,
     reviews: 67,
     price: 5000,
+    icon: "Briefcase",
     features: [
       "Staff management and records",
       "Payroll processing",
@@ -184,6 +225,7 @@ const MOCK_MODULES: Module[] = [
     rating: 4.9,
     reviews: 12,
     price: 15000,
+    icon: "Brain",
     features: [
       "Personalized learning paths",
       "Real-time student assistance",
@@ -225,6 +267,7 @@ const MOCK_MODULES: Module[] = [
     rating: 4.5,
     reviews: 34,
     price: 3000,
+    icon: "Library",
     features: [
       "Digital catalog management",
       "Book circulation tracking",
@@ -265,6 +308,7 @@ const MOCK_MODULES: Module[] = [
     rating: 3.8,
     reviews: 18,
     price: 4000,
+    icon: "Bus",
     features: [
       "Route planning and optimization",
       "Vehicle tracking",
@@ -359,6 +403,156 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
     return matchesSearch && matchesCategory && matchesTier && matchesStatus;
   });
 
+  const seedRegistry = () => {
+    const additionalModules: Module[] = [
+      {
+        id: "6",
+        moduleId: "billing-system",
+        name: "Advanced Billing System",
+        description: "Comprehensive billing and payment processing with M-Pesa integration",
+        category: "Core",
+        tier: "growth",
+        version: "4.0.0",
+        status: "active",
+        developer: "Mylesoft Team",
+        downloads: 2100,
+        rating: 4.7,
+        reviews: 145,
+        price: 0,
+        icon: "CreditCard",
+        features: [
+          "M-Pesa integration",
+          "Automated invoicing",
+          "Payment reminders",
+          "Financial reporting",
+          "Multi-currency support"
+        ],
+        requirements: [
+          "EduMyles Platform v3.0+",
+          "M-Pesa Business API",
+          "SSL certificate"
+        ],
+        documentation: "https://docs.edumyles.co.ke/billing",
+        support: "billing@edumyles.co.ke",
+        createdAt: Date.now() - 60 * 24 * 60 * 60 * 1000,
+        updatedAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+        approvedAt: Date.now() - 55 * 24 * 60 * 60 * 1000,
+        approvedBy: "admin@edumyles.co.ke",
+        metadata: {
+          tags: ["billing", "payments", "m-pesa", "invoicing"],
+          compatibility: ["v3.0", "v3.1", "v3.2"],
+          dependencies: ["communications"],
+          size: "38MB",
+          lastUpdated: "2024-03-07"
+        }
+      },
+      {
+        id: "7",
+        moduleId: "communications-hub",
+        name: "Communications Hub",
+        description: "Multi-channel communication system with SMS, email, and in-app messaging",
+        category: "Core",
+        tier: "starter",
+        version: "2.5.0",
+        status: "active",
+        developer: "Mylesoft Team",
+        downloads: 3200,
+        rating: 4.9,
+        reviews: 234,
+        price: 0,
+        icon: "MessageSquare",
+        features: [
+          "SMS notifications",
+          "Email campaigns",
+          "In-app messaging",
+          "Parent communication",
+          "Template management"
+        ],
+        requirements: [
+          "EduMyles Platform v3.0+",
+          "SMS gateway API",
+          "Email service"
+        ],
+        documentation: "https://docs.edumyles.co.ke/communications",
+        support: "comms@edumyles.co.ke",
+        createdAt: Date.now() - 150 * 24 * 60 * 60 * 1000,
+        updatedAt: Date.now() - 20 * 24 * 60 * 60 * 1000,
+        approvedAt: Date.now() - 145 * 24 * 60 * 60 * 1000,
+        approvedBy: "admin@edumyles.co.ke",
+        metadata: {
+          tags: ["communications", "sms", "email", "messaging"],
+          compatibility: ["v3.0", "v3.1", "v3.2"],
+          dependencies: [],
+          size: "42MB",
+          lastUpdated: "2024-02-20"
+        }
+      },
+      {
+        id: "8",
+        moduleId: "exam-system",
+        name: "Examination Management System",
+        description: "Complete examination workflow with online and offline capabilities",
+        category: "Advanced",
+        tier: "pro",
+        version: "3.2.0",
+        status: "active",
+        developer: "EduExam Solutions",
+        downloads: 890,
+        rating: 4.6,
+        reviews: 78,
+        price: 6000,
+        icon: "FileCheck",
+        features: [
+          "Online examinations",
+          "Automated grading",
+          "Question bank management",
+          "Result analytics",
+          "Offline mode support"
+        ],
+        requirements: [
+          "EduMyles Platform v3.1+",
+          "Pro tier subscription",
+          "Secure exam environment"
+        ],
+        documentation: "https://docs.edumyles.co.ke/exams",
+        support: "exams@edumyles.co.ke",
+        createdAt: Date.now() - 90 * 24 * 60 * 60 * 1000,
+        updatedAt: Date.now() - 12 * 24 * 60 * 60 * 1000,
+        approvedAt: Date.now() - 85 * 24 * 60 * 60 * 1000,
+        approvedBy: "admin@edumyles.co.ke",
+        metadata: {
+          tags: ["exams", "assessment", "grading", "analytics"],
+          compatibility: ["v3.1", "v3.2"],
+          dependencies: ["academics", "billing"],
+          size: "55MB",
+          lastUpdated: "2024-02-28"
+        }
+      }
+    ];
+    
+    setModules([...modules, ...additionalModules]);
+  };
+
+  const getModuleIcon = (iconName: string) => {
+    const icons: { [key: string]: any } = {
+      GraduationCap,
+      Briefcase,
+      Brain,
+      Library,
+      Bus,
+      CreditCard,
+      MessageSquare,
+      FileCheck,
+      Building,
+      Shield,
+      Zap,
+      BookOpen,
+      Award,
+      Target
+    };
+    return icons[iconName] || Package;
+  };
+
   const openEditModal = (module: Module) => {
     setEditingModule(module);
     setEditFormData({
@@ -415,21 +609,30 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
     }
   };
 
-  const renderModuleCard = (module: Module) => (
+  const renderModuleCard = (module: Module) => {
+  const ModuleIcon = getModuleIcon(module.icon);
+  return (
     <Card key={module.id} className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold text-lg">{module.name}</h3>
-              <Badge className={getStatusColor(module.status)}>
-                {module.status}
-              </Badge>
-              <Badge className={getTierColor(module.tier)}>
-                {module.tier}
-              </Badge>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-em-accent/20 to-em-accent/10 rounded-lg flex items-center justify-center">
+                <ModuleIcon className="h-6 w-6 text-em-accent" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-lg">{module.name}</h3>
+                  <Badge className={getStatusColor(module.status)}>
+                    {module.status}
+                  </Badge>
+                  <Badge className={getTierColor(module.tier)}>
+                    {module.tier}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-sm">{module.description}</p>
+              </div>
             </div>
-            <p className="text-muted-foreground text-sm mb-3">{module.description}</p>
             
             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
               <div className="flex items-center gap-1">
@@ -487,6 +690,7 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
       </CardContent>
     </Card>
   );
+};
 
   const renderAnalytics = () => (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -539,7 +743,7 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
           <p className="text-muted-foreground">Manage modules, registry, approvals, and analytics</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={seedRegistry}>
             <Database className="h-4 w-4 mr-2" />
             Seed Registry
           </Button>
@@ -643,21 +847,26 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <LineChart className="h-5 w-5" />
-                Download Trends
+                Download Trends & User Growth
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="h-64 bg-gradient-to-r from-blue-50 to-em-accent/10 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <Activity className="h-12 w-12 mx-auto mb-2 text-blue-600" />
-                    <p className="text-sm text-muted-foreground">Download Trends Chart</p>
-                    <p className="text-xs text-muted-foreground">6-month growth: +260%</p>
-                  </div>
-                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsLineChart data={ANALYTICS_DATA.downloadTrends}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip />
+                    <Legend />
+                    <Line yAxisId="left" type="monotone" dataKey="downloads" stroke="#3b82f6" strokeWidth={2} name="Downloads" />
+                    <Line yAxisId="right" type="monotone" dataKey="newUsers" stroke="#10b981" strokeWidth={2} name="New Users" />
+                  </RechartsLineChart>
+                </ResponsiveContainer>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                   {ANALYTICS_DATA.downloadTrends.map((data, index) => (
-                    <div key={index} className="text-center">
+                    <div key={index} className="text-center p-2 border rounded">
                       <div className="text-sm font-medium">{data.month}</div>
                       <div className="text-lg font-bold text-blue-600">{data.downloads}</div>
                       <div className="text-xs text-muted-foreground">+{data.newUsers} new</div>
@@ -668,8 +877,9 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
             </CardContent>
           </Card>
 
-          {/* Category Distribution */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Advanced Analytics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Category Distribution - Real Pie Chart */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -678,105 +888,223 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {ANALYTICS_DATA.categoryDistribution.map((cat, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full bg-${cat.color}-500`} />
-                        <span className="text-sm">{cat.category}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`bg-${cat.color}-500 h-2 rounded-full`}
-                            style={{ width: `${cat.value}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">{cat.value}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RechartsPieChart>
+                    <Pie
+                      data={ANALYTICS_DATA.categoryDistribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {ANALYTICS_DATA.categoryDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'][index]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
 
+            {/* Tier Revenue Analysis */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Tier Distribution
+                  Tier Revenue Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {ANALYTICS_DATA.tierDistribution.map((tier, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium">{tier.tier}</div>
-                        <div className="text-xs text-muted-foreground">{tier.count} modules</div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={ANALYTICS_DATA.tierDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="tier" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="revenue" fill="#3b82f6" name="Revenue (KES)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Geographic Distribution - Treemap */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Geographic Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <Treemap
+                    data={ANALYTICS_DATA.geographicData}
+                    dataKey="users"
+                    aspectRatio={4/3}
+                    stroke="#fff"
+                    fill="#3b82f6"
+                  >
+                    <Tooltip content={({ payload }) => {
+                      if (payload && payload[0]) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-white p-2 border rounded shadow">
+                            <p className="font-medium">{data.country}</p>
+                            <p className="text-sm">Users: {data.users.toLocaleString()}</p>
+                            <p className="text-sm">Percentage: {data.percentage}%</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }} />
+                  </Treemap>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Developer Performance Radar */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Developer Performance Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadarChart data={ANALYTICS_DATA.developerMetrics}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="developer" />
+                    <PolarRadiusAxis />
+                    <Radar name="Modules" dataKey="modules" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                    <Radar name="Downloads" dataKey="downloads" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
+                    <Radar name="Rating" dataKey="rating" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.6} />
+                    <Legend />
+                    <Tooltip />
+                  </RadarChart>
+                </ResponsiveContainer>
+                
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Developer Rankings</h4>
+                  {ANALYTICS_DATA.developerMetrics.map((dev, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-em-accent rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">{index + 1}</span>
+                        </div>
+                        <div>
+                          <div className="font-medium">{dev.developer}</div>
+                          <div className="text-sm text-muted-foreground">{dev.modules} modules</div>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold">
-                          {tier.revenue === 0 ? "Free" : `KES ${(tier.revenue / 1000).toFixed(0)}K`}
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          <span className="font-medium">{dev.rating}</span>
                         </div>
+                        <div className="text-sm text-muted-foreground">{dev.downloads.toLocaleString()} downloads</div>
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Advanced Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Revenue Growth Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Revenue Growth Trend
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart data={ANALYTICS_DATA.downloadTrends}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="newUsers" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name="Revenue Growth" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Module Performance Heatmap */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Module Performance Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">92%</div>
+                      <div className="text-sm text-muted-foreground">Active Modules</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">4.7</div>
+                      <div className="text-sm text-muted-foreground">Avg Rating</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">87%</div>
+                      <div className="text-sm text-muted-foreground">User Satisfaction</div>
+                    </div>
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">156</div>
+                      <div className="text-sm text-muted-foreground">Daily Active Users</div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Geographic Distribution */}
+          {/* Real-time Activity Feed */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Geographic Distribution
+                <Activity className="h-5 w-5" />
+                Recent Marketplace Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {ANALYTICS_DATA.geographicData.map((geo, index) => (
-                  <div key={index} className="text-center p-4 border rounded-lg">
-                    <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                    <div className="font-medium">{geo.country}</div>
-                    <div className="text-lg font-bold">{geo.users.toLocaleString()}</div>
-                    <div className="text-sm text-muted-foreground">{geo.percentage}%</div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Developer Metrics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Developer Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {ANALYTICS_DATA.developerMetrics.map((dev, index) => (
+              <div className="space-y-3">
+                {[
+                  { action: "New module installed", module: "AI Tutor Assistant", time: "2 mins ago", type: "install" },
+                  { action: "Module updated", module: "Academics Module V2", time: "15 mins ago", type: "update" },
+                  { action: "New review", module: "HR Management Suite", time: "1 hour ago", type: "review" },
+                  { action: "Module downloaded", module: "Communications Hub", time: "2 hours ago", type: "download" },
+                  { action: "New module submitted", module: "Exam System Pro", time: "3 hours ago", type: "submit" }
+                ].map((activity, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-em-accent rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-white" />
-                      </div>
+                      <div className={`w-2 h-2 rounded-full ${
+                        activity.type === 'install' ? 'bg-green-500' :
+                        activity.type === 'update' ? 'bg-blue-500' :
+                        activity.type === 'review' ? 'bg-yellow-500' :
+                        activity.type === 'download' ? 'bg-purple-500' :
+                        'bg-orange-500'
+                      }`} />
                       <div>
-                        <div className="font-medium">{dev.developer}</div>
-                        <div className="text-sm text-muted-foreground">{dev.modules} modules</div>
+                        <div className="font-medium">{activity.action}</div>
+                        <div className="text-sm text-muted-foreground">{activity.module}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <span className="font-medium">{dev.rating}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">{dev.downloads.toLocaleString()} downloads</div>
-                    </div>
+                    <div className="text-sm text-muted-foreground">{activity.time}</div>
                   </div>
                 ))}
               </div>
