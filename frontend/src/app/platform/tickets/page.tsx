@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation } from "@/hooks/useSSRSafeConvex";
 import { api } from "@/convex/_generated/api";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +46,7 @@ export default function TicketsPage() {
   });
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: tickets, isLoading } = useQuery(api.tickets.getTickets, {
+  const ticketsQuery = useQuery(api.tickets.getTickets, {
     status: filters.status || undefined,
     priority: filters.priority || undefined,
     category: filters.category || undefined,
@@ -54,10 +54,10 @@ export default function TicketsPage() {
     limit: 100,
   });
 
-  const { data: slaStats } = useQuery(api.tickets.getSLAStats, {});
+  const slaStatsQuery = useQuery(api.tickets.getSLAStats, {});
 
   // Filter tickets based on search
-  const filteredTickets = tickets?.filter(ticket => 
+  const filteredTickets = ticketsQuery?.data?.filter(ticket => 
     ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     ticket.tenantName.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
@@ -201,26 +201,26 @@ export default function TicketsPage() {
         </div>
 
         {/* SLA Stats */}
-        {slaStats && (
+        {slaStatsQuery?.data && (
           <div className="grid grid-cols-5 gap-4 mb-6 p-4 bg-success-bg/10 rounded-lg">
             <div className="text-center">
-              <div className="text-2xl font-bold text-success">{slaStats.total}</div>
+              <div className="text-2xl font-bold text-success">{slaStatsQuery.data.total}</div>
               <div className="text-sm text-muted-foreground">Total Tickets</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-info">{slaStats.open}</div>
+              <div className="text-2xl font-bold text-info">{slaStatsQuery.data.open}</div>
               <div className="text-sm text-muted-foreground">Open</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-warning">{slaStats.atRisk}</div>
+              <div className="text-2xl font-bold text-warning">{slaStatsQuery.data.atRisk}</div>
               <div className="text-sm text-muted-foreground">At Risk</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-danger">{slaStats.breached}</div>
+              <div className="text-2xl font-bold text-danger">{slaStatsQuery.data.breached}</div>
               <div className="text-sm text-muted-foreground">Breached</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-em-accent">{slaStats.compliance}%</div>
+              <div className="text-2xl font-bold text-em-accent">{slaStatsQuery.data.compliance}%</div>
               <div className="text-sm text-muted-foreground">SLA Compliance</div>
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function TicketsPage() {
     </Card>
   );
 
-  if (isLoading) {
+  if (ticketsQuery.isLoading) {
     return <div>Loading tickets...</div>;
   }
 
