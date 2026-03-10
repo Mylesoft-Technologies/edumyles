@@ -80,6 +80,15 @@ interface TenantDetailTabsProps {
 export function TenantDetailTabs({ tenant, isLoading = false, className = "" }: TenantDetailTabsProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Debug logging
+  console.log("TenantDetailTabs rendering:", { 
+    tenantName: tenant.name, 
+    isLoading, 
+    activeTab,
+    modulesCount: tenant.modules?.length || 0,
+    userCount: tenant.userCount || 0
+  });
+
   if (isLoading) {
     return (
       <div className="space-y-6">
