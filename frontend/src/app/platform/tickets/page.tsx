@@ -544,7 +544,7 @@ export default function TicketsPage() {
                 className="w-80"
               />
             </div>
-            <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+            <Select value={filters.status || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -557,7 +557,7 @@ export default function TicketsPage() {
                 <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filters.priority} onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value }))}>
+            <Select value={filters.priority || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value }))}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
@@ -569,7 +569,7 @@ export default function TicketsPage() {
                 <SelectItem value="P3">P3 - Low</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
+            <Select value={filters.category || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -725,7 +725,7 @@ export default function TicketsPage() {
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
               <Select 
-                value={newTicket.category} 
+                value={newTicket.category || "technical"} 
                 onValueChange={(value) => setNewTicket(prev => ({ ...prev, category: value }))}
               >
                 <SelectTrigger>
@@ -746,7 +746,7 @@ export default function TicketsPage() {
             <div className="grid gap-2">
               <Label htmlFor="priority">Priority</Label>
               <Select 
-                value={newTicket.priority} 
+                value={newTicket.priority || "P2"} 
                 onValueChange={(value) => setNewTicket(prev => ({ ...prev, priority: value }))}
               >
                 <SelectTrigger>
