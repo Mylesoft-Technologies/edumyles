@@ -60,6 +60,27 @@ interface Deal {
   notes: string;
 }
 
+interface DealFormData {
+  _id: string;
+  schoolName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  county: string;
+  schoolType: string;
+  currentStudents: number;
+  potentialStudents: number;
+  stage: "lead" | "qualified" | "proposal" | "negotiation" | "closed_won" | "closed_lost";
+  value: number;
+  currency: string;
+  source: string;
+  assignedTo: string;
+  expectedCloseDate: string;
+  probability: number;
+  tags: string;
+  notes: string;
+}
+
 let initialDeals: Deal[] = [
   {
     _id: "1",
@@ -191,11 +212,12 @@ export default function CompleteCRMPage() {
   const [viewMode, setViewMode] = useState<"pipeline" | "list">("pipeline");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
+  const [editingDeal, setEditingDeal] = useState<DealFormData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
   
-  const [newDeal, setNewDeal] = useState({
+  const [newDeal, setNewDeal] = useState<DealFormData>({
+    _id: "",
     schoolName: "",
     contactPerson: "",
     email: "",
@@ -204,7 +226,7 @@ export default function CompleteCRMPage() {
     schoolType: "",
     currentStudents: 0,
     potentialStudents: 0,
-    stage: "lead" as const,
+    stage: "lead",
     value: 0,
     currency: "KES",
     source: "",
@@ -259,6 +281,38 @@ export default function CompleteCRMPage() {
     return filteredDeals.reduce((total, deal) => total + (deal.value * deal.probability / 100), 0);
   };
 
+  const getStageWeightedValue = (stage: string) => {
+    return filteredDeals
+      .filter(deal => deal.stage === stage)
+      .reduce((total, deal) => total + (deal.value * deal.probability / 100), 0);
+  };
+
+  const getDealsByStage = (stage: string) => {
+    return filteredDeals.filter(deal => deal.stage === stage);
+  };
+
+  const getAverageDealSize = () => {
+    return filteredDeals.length > 0 ? getTotalValue() / filteredDeals.length : 0;
+  };
+
+  const getAverageProbability = () => {
+    return filteredDeals.length > 0 
+      ? Math.round(filteredDeals.reduce((total, deal) => total + deal.probability, 0) / filteredDeals.length)
+      : 0;
+  };
+
+  const getConversionRate = () => {
+    const totalDeals = filteredDeals.length;
+    const wonDeals = filteredDeals.filter(deal => deal.stage === "closed_won").length;
+    return totalDeals > 0 ? Math.round((wonDeals / totalDeals) * 100) : 0;
+  };
+
+  const getDaysInStage = (deal: Deal) => {
+    // This would normally be calculated from stage change history
+    // For now, we'll use a simple calculation based on last activity
+    return Math.round((Date.now() - deal.lastActivity) / (1000 * 60 * 60 * 24));
+  };
+
   const handleAddDeal = () => {
     if (!newDeal.schoolName || !newDeal.contactPerson || !newDeal.email) {
       alert("Please fill in required fields");
@@ -284,7 +338,7 @@ export default function CompleteCRMPage() {
       lastActivity: Date.now(),
       expectedCloseDate: newDeal.expectedCloseDate ? new Date(newDeal.expectedCloseDate).getTime() : Date.now() + 30 * 24 * 60 * 60 * 1000,
       probability: newDeal.probability,
-      tags: newDeal.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
+      tags: newDeal.tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0),
       notes: newDeal.notes
     };
 
@@ -296,15 +350,33 @@ export default function CompleteCRMPage() {
   const handleEditDeal = () => {
     if (!editingDeal) return;
     
-    const updatedDeals = deals.map(deal => 
-      deal._id === editingDeal._id 
-        ? {
-            ...editingDeal,
-            tags: editingDeal.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
-            expectedCloseDate: editingDeal.expectedCloseDate ? new Date(editingDeal.expectedCloseDate).getTime() : editingDeal.expectedCloseDate
-          }
-        : deal
-    );
+    // Find the original deal and update it
+    const updatedDeals = deals.map(deal => {
+      if (deal._id === editingDeal._id) {
+        return {
+          ...deal,
+          schoolName: editingDeal.schoolName,
+          contactPerson: editingDeal.contactPerson,
+          email: editingDeal.email,
+          phone: editingDeal.phone,
+          county: editingDeal.county,
+          schoolType: editingDeal.schoolType,
+          currentStudents: editingDeal.currentStudents,
+          potentialStudents: editingDeal.potentialStudents,
+          stage: editingDeal.stage,
+          value: editingDeal.value,
+          currency: editingDeal.currency,
+          source: editingDeal.source,
+          assignedTo: editingDeal.assignedTo,
+          expectedCloseDate: editingDeal.expectedCloseDate ? new Date(editingDeal.expectedCloseDate).getTime() : deal.expectedCloseDate,
+          probability: editingDeal.probability,
+          tags: editingDeal.tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0),
+          notes: editingDeal.notes,
+          lastActivity: Date.now()
+        };
+      }
+      return deal;
+    });
     
     setDeals(updatedDeals);
     setIsEditDialogOpen(false);
@@ -331,9 +403,24 @@ export default function CompleteCRMPage() {
     e.preventDefault();
     if (!draggedDeal) return;
 
+    // Update probability based on stage
+    const stageProbabilities: Record<string, number> = {
+      "lead": 20,
+      "qualified": 40,
+      "proposal": 60,
+      "negotiation": 80,
+      "closed_won": 100,
+      "closed_lost": 0
+    };
+
     const updatedDeals = deals.map(deal => 
       deal._id === draggedDeal._id 
-        ? { ...deal, stage: targetStage as Deal['stage'], lastActivity: Date.now() }
+        ? { 
+            ...deal, 
+            stage: targetStage as Deal['stage'], 
+            lastActivity: Date.now(),
+            probability: stageProbabilities[targetStage] || deal.probability
+          }
         : deal
     );
     
@@ -375,6 +462,7 @@ export default function CompleteCRMPage() {
 
   const resetNewDeal = () => {
     setNewDeal({
+      _id: "",
       schoolName: "",
       contactPerson: "",
       email: "",
@@ -397,9 +485,24 @@ export default function CompleteCRMPage() {
 
   const openEditDialog = (deal: Deal) => {
     setEditingDeal({
-      ...deal,
+      _id: deal._id,
+      schoolName: deal.schoolName,
+      contactPerson: deal.contactPerson,
+      email: deal.email,
+      phone: deal.phone,
+      county: deal.county,
+      schoolType: deal.schoolType,
+      currentStudents: deal.currentStudents,
+      potentialStudents: deal.potentialStudents,
+      stage: deal.stage,
+      value: deal.value,
+      currency: deal.currency,
+      source: deal.source,
+      assignedTo: deal.assignedTo,
       expectedCloseDate: new Date(deal.expectedCloseDate).toISOString().split('T')[0],
-      tags: deal.tags.join(", ")
+      probability: deal.probability,
+      tags: deal.tags.join(", "),
+      notes: deal.notes
     });
     setIsEditDialogOpen(true);
   };
@@ -603,7 +706,7 @@ export default function CompleteCRMPage() {
       </div>
 
       {/* Pipeline Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-600">{filteredDeals.length}</div>
@@ -630,6 +733,18 @@ export default function CompleteCRMPage() {
             <div className="text-sm text-muted-foreground">Win Probability</div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-cyan-600">{formatCurrency(getAverageDealSize(), "KES")}</div>
+            <div className="text-sm text-muted-foreground">Avg Deal Size</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-pink-600">{getConversionRate()}%</div>
+            <div className="text-sm text-muted-foreground">Conversion Rate</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Pipeline Stages */}
@@ -637,6 +752,10 @@ export default function CompleteCRMPage() {
         {pipelineStages.map((stage) => {
           const stageDeals = filteredDeals.filter(deal => deal.stage === stage.id);
           const stageValue = getPipelineValue(stage.id);
+          const stageWeightedValue = getStageWeightedValue(stage.id);
+          const stageAvgProbability = stageDeals.length > 0 
+            ? Math.round(stageDeals.reduce((total, deal) => total + deal.probability, 0) / stageDeals.length)
+            : 0;
           
           return (
             <Card 
@@ -655,6 +774,12 @@ export default function CompleteCRMPage() {
                   </Badge>
                   <div className="text-xs text-muted-foreground">
                     {formatCurrency(stageValue, "KES")}
+                  </div>
+                  <div className="text-xs font-medium text-blue-600">
+                    Weighted: {formatCurrency(stageWeightedValue, "KES")}
+                  </div>
+                  <div className="text-xs text-purple-600">
+                    Avg: {stageAvgProbability}%
                   </div>
                 </div>
               </CardHeader>
@@ -708,8 +833,13 @@ export default function CompleteCRMPage() {
                             {formatCurrency(deal.value, "KES")}
                           </div>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Closes: {formatDate(deal.expectedCloseDate)}
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs text-muted-foreground">
+                            Closes: {formatDate(deal.expectedCloseDate)}
+                          </div>
+                          <div className="text-xs text-blue-600 font-medium">
+                            {formatCurrency(deal.value * deal.probability / 100, "KES")}
+                          </div>
                         </div>
                         {deal.tags.length > 0 && (
                           <div className="flex items-center gap-1 flex-wrap">
@@ -725,6 +855,9 @@ export default function CompleteCRMPage() {
                             )}
                           </div>
                         )}
+                        <div className="text-xs text-gray-500">
+                          {getDaysInStage(deal)} days in stage
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
