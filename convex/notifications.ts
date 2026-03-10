@@ -12,7 +12,13 @@ export const getNotifications = query({
     
     // For now, return empty notifications
     // TODO: Implement proper notification system with Resend integration
-    return [];
+    const notifications = await ctx.db
+      .query("notifications")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(limit);
+
+    return notifications;
   },
 });
 
