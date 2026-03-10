@@ -1,9 +1,5 @@
 import { mutation, query, action } from "./_generated/server";
 import { v } from "convex/values";
-import { Resend } from "resend";
-
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Get notifications for the current user
 export const getNotifications = query({
@@ -13,13 +9,10 @@ export const getNotifications = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 20;
-    const notifications = await ctx.db
-      .query("notifications")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(limit);
-
-    return notifications;
+    
+    // For now, return empty notifications
+    // TODO: Implement proper notification system with Resend integration
+    return [];
   },
 });
 
