@@ -21,6 +21,7 @@ import {
   Eye,
   Headphones,
   Flag,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,6 +36,7 @@ export interface NavItem {
 export const platformNavItems: NavItem[] = [
   { label: "Dashboard", href: "/platform", icon: LayoutDashboard },
   { label: "Tenants", href: "/platform/tenants", icon: Building2 },
+  { label: "CRM", href: "/platform/crm", icon: TrendingUp },
   { label: "Users", href: "/platform/users", icon: Users },
   { label: "Tickets", href: "/platform/tickets", icon: Headphones },
   { label: "Analytics", href: "/platform/analytics", icon: BarChart3 },
