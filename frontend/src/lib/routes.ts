@@ -20,6 +20,7 @@ import {
   BarChart3,
   Eye,
   Headphones,
+  Flag,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,6 +40,7 @@ export const platformNavItems: NavItem[] = [
   { label: "Analytics", href: "/platform/analytics", icon: BarChart3 },
   { label: "Marketplace", href: "/platform/marketplace", icon: ShoppingCart },
   { label: "Billing", href: "/platform/billing", icon: DollarSign },
+  { label: "Feature Flags", href: "/platform/feature-flags", icon: Flag },
   { label: "Impersonation", href: "/platform/impersonation", icon: Eye },
   { label: "Audit Log", href: "/platform/audit", icon: FileText },
   { label: "Settings", href: "/platform/settings", icon: Settings },
