@@ -2,15 +2,27 @@
 
 import { useQuery } from "@/hooks/useSSRSafeConvex";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "./useAuth";
 
 export function useDashboardKPIs() {
-  return useQuery(api.platform.dashboard.getDashboardKPIs, {});
+  const { sessionToken } = useAuth();
+  return useQuery(api.platform.dashboard.getDashboardKPIs, { 
+    sessionToken: sessionToken || "" 
+  });
 }
 
 export function useDashboardCharts(timeRange?: "7d" | "30d" | "90d" | "12m") {
-  return useQuery(api.platform.dashboard.getDashboardCharts, { timeRange });
+  const { sessionToken } = useAuth();
+  return useQuery(api.platform.dashboard.getDashboardCharts, { 
+    sessionToken: sessionToken || "",
+    timeRange: timeRange || "12m"
+  });
 }
 
 export function useActivityFeed(limit?: number) {
-  return useQuery(api.platform.dashboard.getActivityFeed, { limit });
+  const { sessionToken } = useAuth();
+  return useQuery(api.platform.dashboard.getActivityFeed, { 
+    sessionToken: sessionToken || "",
+    limit: limit || 20
+  });
 }
