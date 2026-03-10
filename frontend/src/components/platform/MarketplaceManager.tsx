@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Package,
   Users,
@@ -40,7 +41,17 @@ import {
   Save,
   Ban,
   CheckSquare,
-  Square
+  Square,
+  LineChart,
+  PieChart,
+  Activity,
+  Calendar,
+  MapPin,
+  User,
+  Code,
+  GitBranch,
+  Lock,
+  Unlock
 } from "lucide-react";
 
 interface Module {
@@ -280,6 +291,45 @@ const MOCK_MODULES: Module[] = [
   }
 ];
 
+// Analytics data
+const ANALYTICS_DATA = {
+  downloadTrends: [
+    { month: "Jan", downloads: 450, newUsers: 89 },
+    { month: "Feb", downloads: 680, newUsers: 124 },
+    { month: "Mar", downloads: 920, newUsers: 156 },
+    { month: "Apr", downloads: 1150, newUsers: 198 },
+    { month: "May", downloads: 1380, newUsers: 234 },
+    { month: "Jun", downloads: 1620, newUsers: 267 }
+  ],
+  categoryDistribution: [
+    { category: "Core", value: 45, color: "blue" },
+    { category: "Advanced", value: 30, color: "green" },
+    { category: "Innovation", value: 15, color: "purple" },
+    { category: "Integration", value: 10, color: "orange" }
+  ],
+  tierDistribution: [
+    { tier: "Free", count: 120, revenue: 0 },
+    { tier: "Starter", count: 280, revenue: 280000 },
+    { tier: "Growth", count: 450, revenue: 1350000 },
+    { tier: "Pro", count: 320, revenue: 1600000 },
+    { tier: "Enterprise", count: 85, revenue: 1275000 }
+  ],
+  geographicData: [
+    { country: "Kenya", users: 2847, percentage: 65 },
+    { country: "Uganda", users: 892, percentage: 20 },
+    { country: "Tanzania", users: 523, percentage: 12 },
+    { country: "Rwanda", users: 178, percentage: 4 },
+    { country: "Others", users: 87, percentage: 2 }
+  ],
+  developerMetrics: [
+    { developer: "Mylesoft Team", modules: 3, downloads: 2890, rating: 4.7 },
+    { developer: "Mylesoft Partners", modules: 2, downloads: 1456, rating: 4.5 },
+    { developer: "EduAI Labs", modules: 1, downloads: 156, rating: 4.9 },
+    { developer: "LibraryTech Solutions", modules: 1, downloads: 567, rating: 4.5 },
+    { developer: "Transit Solutions", modules: 1, downloads: 234, rating: 3.8 }
+  ]
+};
+
 const CATEGORIES = ["All", "Core", "Advanced", "Innovation", "Integration", "Security"];
 const TIERS = ["All", "free", "starter", "growth", "pro", "enterprise"];
 const STATUSES = ["All", "active", "beta", "deprecated", "pending"];
@@ -293,6 +343,7 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState<Module[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const filteredModules = modules.filter(module => {
     const matchesSearch = module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -305,160 +356,253 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
     return matchesSearch && matchesCategory && matchesTier && matchesStatus;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active": return "bg-em-success/10 text-em-success border-em-success/20";
-      case "beta": return "bg-purple-100 text-purple-700 border-purple-200";
-      case "deprecated": return "bg-red-100 text-red-700 border-red-200";
-      case "pending": return "bg-orange-100 text-orange-700 border-orange-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
+  // ... rest of the code remains the same ...
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Edit className="h-5 w-5" />
+                  Edit Module: {editingModule.name}
+                </span>
+                <Button variant="ghost" size="sm" onClick={closeEditModal}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Tabs defaultValue="basic" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="features">Features</TabsTrigger>
+                  <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                  <TabsTrigger value="metadata">Metadata</TabsTrigger>
+                </TabsList>
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case "free": return "bg-gray-100 text-gray-700 border-gray-200";
-      case "starter": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "growth": return "bg-green-100 text-green-700 border-green-200";
-      case "pro": return "bg-em-accent/10 text-em-accent-dark border-em-accent/20";
-      case "enterprise": return "bg-purple-100 text-purple-700 border-purple-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
+                <TabsContent value="basic" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleName">Module Name</Label>
+                      <Input
+                        id="moduleName"
+                        value={editFormData.name || ""}
+                        onChange={(e) => updateEditFormField("name", e.target.value)}
+                      />
+                    </div>
 
-  const renderModuleCard = (module: Module) => (
-    <Card key={module.id} className="hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold text-lg">{module.name}</h3>
-              <Badge className={getStatusColor(module.status)}>
-                {module.status}
-              </Badge>
-              <Badge className={getTierColor(module.tier)}>
-                {module.tier}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground text-sm mb-3">{module.description}</p>
-            
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-              <div className="flex items-center gap-1">
-                <Package className="h-4 w-4" />
-                <span>{module.category}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>{module.developer}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Download className="h-4 w-4" />
-                <span>{module.downloads}</span>
-              </div>
-            </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleVersion">Version</Label>
+                      <Input
+                        id="moduleVersion"
+                        value={editFormData.version || ""}
+                        onChange={(e) => updateEditFormField("version", e.target.value)}
+                        className="font-mono"
+                      />
+                    </div>
 
-            <div className="flex items-center gap-4 text-sm mb-3">
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <span>{module.rating}</span>
-                <span className="text-muted-foreground">({module.reviews} reviews)</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <DollarSign className="h-4 w-4" />
-                <span>{module.price === 0 ? "Free" : `KES ${module.price.toLocaleString()}`}</span>
-              </div>
-            </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleCategory">Category</Label>
+                      <Select value={editFormData.category} onValueChange={(value) => updateEditFormField("category", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.filter(cat => cat !== "All").map((category) => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-            <div className="flex flex-wrap gap-1 mb-3">
-              {module.metadata.tags.map((tag, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleTier">Tier</Label>
+                      <Select value={editFormData.tier} onValueChange={(value) => updateEditFormField("tier", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select tier" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIERS.filter(tier => tier !== "All").map((tier) => (
+                            <SelectItem key={tier} value={tier}>{tier}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-          <div className="flex items-center gap-2 ml-4">
-            <Button variant="ghost" size="sm">
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setEditingModule(module)}>
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-red-500">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleStatus">Status</Label>
+                      <Select value={editFormData.status} onValueChange={(value) => updateEditFormField("status", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUSES.filter(status => status !== "All").map((status) => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="modulePrice">Price (KES)</Label>
+                      <Input
+                        id="modulePrice"
+                        type="number"
+                        value={editFormData.price || 0}
+                        onChange={(e) => updateEditFormField("price", parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="moduleDescription">Description</Label>
+                    <Textarea
+                      id="moduleDescription"
+                      value={editFormData.description || ""}
+                      onChange={(e) => updateEditFormField("description", e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleDeveloper">Developer</Label>
+                      <Input
+                        id="moduleDeveloper"
+                        value={editFormData.developer || ""}
+                        onChange={(e) => updateEditFormField("developer", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleSupport">Support Email</Label>
+                      <Input
+                        id="moduleSupport"
+                        value={editFormData.support || ""}
+                        onChange={(e) => updateEditFormField("support", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="features" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Module Features</Label>
+                    <Button variant="outline" size="sm" onClick={addFeature}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Feature
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {(editFormData.features || []).map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={feature}
+                          onChange={(e) => updateEditFormField(`features.${index}`, e.target.value)}
+                          placeholder="Enter feature description"
+                        />
+                        <Button variant="ghost" size="sm" onClick={() => removeFeature(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="requirements" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>System Requirements</Label>
+                    <Button variant="outline" size="sm" onClick={addRequirement}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Requirement
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {(editFormData.requirements || []).map((requirement, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={requirement}
+                          onChange={(e) => updateEditFormField(`requirements.${index}`, e.target.value)}
+                          placeholder="Enter requirement"
+                        />
+                        <Button variant="ghost" size="sm" onClick={() => removeRequirement(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="metadata" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleSize">Module Size</Label>
+                      <Input
+                        id="moduleSize"
+                        value={editFormData.metadata?.size || ""}
+                        onChange={(e) => updateEditFormField("metadata.size", e.target.value)}
+                        placeholder="e.g. 45MB"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="moduleDocumentation">Documentation URL</Label>
+                      <Input
+                        id="moduleDocumentation"
+                        value={editFormData.documentation || ""}
+                        onChange={(e) => updateEditFormField("documentation", e.target.value)}
+                        placeholder="https://docs.example.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="moduleTags">Tags (comma-separated)</Label>
+                      <Input
+                        id="moduleTags"
+                        value={editFormData.metadata?.tags?.join(", ") || ""}
+                        onChange={(e) => updateEditFormField("metadata.tags", e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
+                        placeholder="tag1, tag2, tag3"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="moduleCompatibility">Compatibility (comma-separated)</Label>
+                      <Input
+                        id="moduleCompatibility"
+                        value={editFormData.metadata?.compatibility?.join(", ") || ""}
+                        onChange={(e) => updateEditFormField("metadata.compatibility", e.target.value.split(",").map(version => version.trim()).filter(Boolean))}
+                        placeholder="v3.0, v3.1, v3.2"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="moduleDependencies">Dependencies (comma-separated)</Label>
+                      <Input
+                        id="moduleDependencies"
+                        value={editFormData.metadata?.dependencies?.join(", ") || ""}
+                        onChange={(e) => updateEditFormField("metadata.dependencies", e.target.value.split(",").map(dep => dep.trim()).filter(Boolean))}
+                        placeholder="module1, module2"
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button variant="outline" onClick={closeEditModal}>
+                  Cancel
+                </Button>
+                <Button onClick={saveModuleChanges}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t">
-          <span>v{module.version} • {module.metadata.size}</span>
-          <span>Updated: {new Date(module.updatedAt).toLocaleDateString()}</span>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderAnalytics = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Card>
-        <CardContent className="p-6 text-center">
-          <Package className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-          <div className="text-2xl font-bold">{modules.length}</div>
-          <div className="text-sm text-muted-foreground">Total Modules</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6 text-center">
-          <Download className="h-8 w-8 mx-auto mb-2 text-green-600" />
-          <div className="text-2xl font-bold">
-            {modules.reduce((sum, m) => sum + m.downloads, 0).toLocaleString()}
-          </div>
-          <div className="text-sm text-muted-foreground">Total Downloads</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6 text-center">
-          <Star className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
-          <div className="text-2xl font-bold">
-            {(modules.reduce((sum, m) => sum + m.rating * m.reviews, 0) / 
-              modules.reduce((sum, m) => sum + m.reviews, 0)).toFixed(1)}
-          </div>
-          <div className="text-sm text-muted-foreground">Average Rating</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-6 text-center">
-          <TrendingUp className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-          <div className="text-2xl font-bold">
-            {modules.filter(m => m.status === "active").length}
-          </div>
-          <div className="text-sm text-muted-foreground">Active Modules</div>
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
-
-  return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Module Marketplace</h2>
-          <p className="text-muted-foreground">Manage modules, registry, approvals, and analytics</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Database className="h-4 w-4 mr-2" />
-            Seed Registry
-          </Button>
-          <Button onClick={() => setShowCreateForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Module
-          </Button>
+}
         </div>
       </div>
 
@@ -550,14 +694,147 @@ export function MarketplaceManager({ className = "" }: MarketplaceManagerProps) 
         <TabsContent value="analytics" className="space-y-6">
           {renderAnalytics()}
           
+          {/* Download Trends Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Download Trends</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <LineChart className="h-5 w-5" />
+                Download Trends
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 flex items-center justify-center text-muted-foreground">
-                <BarChart3 className="h-8 w-8 mr-2" />
-                Analytics dashboard would be implemented here
+              <div className="space-y-4">
+                <div className="h-64 bg-gradient-to-r from-blue-50 to-em-accent/10 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <Activity className="h-12 w-12 mx-auto mb-2 text-blue-600" />
+                    <p className="text-sm text-muted-foreground">Download Trends Chart</p>
+                    <p className="text-xs text-muted-foreground">6-month growth: +260%</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                  {ANALYTICS_DATA.downloadTrends.map((data, index) => (
+                    <div key={index} className="text-center">
+                      <div className="text-sm font-medium">{data.month}</div>
+                      <div className="text-lg font-bold text-blue-600">{data.downloads}</div>
+                      <div className="text-xs text-muted-foreground">+{data.newUsers} new</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Distribution */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="h-5 w-5" />
+                  Category Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {ANALYTICS_DATA.categoryDistribution.map((cat, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full bg-${cat.color}-500`} />
+                        <span className="text-sm">{cat.category}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`bg-${cat.color}-500 h-2 rounded-full`}
+                            style={{ width: `${cat.value}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{cat.value}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Tier Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {ANALYTICS_DATA.tierDistribution.map((tier, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium">{tier.tier}</div>
+                        <div className="text-xs text-muted-foreground">{tier.count} modules</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold">
+                          {tier.revenue === 0 ? "Free" : `KES ${(tier.revenue / 1000).toFixed(0)}K`}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Geographic Distribution */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Geographic Distribution
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {ANALYTICS_DATA.geographicData.map((geo, index) => (
+                  <div key={index} className="text-center p-4 border rounded-lg">
+                    <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                    <div className="font-medium">{geo.country}</div>
+                    <div className="text-lg font-bold">{geo.users.toLocaleString()}</div>
+                    <div className="text-sm text-muted-foreground">{geo.percentage}%</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Developer Metrics */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Developer Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {ANALYTICS_DATA.developerMetrics.map((dev, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-em-accent rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium">{dev.developer}</div>
+                        <div className="text-sm text-muted-foreground">{dev.modules} modules</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        <span className="font-medium">{dev.rating}</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">{dev.downloads.toLocaleString()} downloads</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
