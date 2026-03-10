@@ -174,9 +174,6 @@ export default function TicketDetailPage() {
     ]
   };
 
-  // Use mock data if no real data available
-  const ticketData = ticket || mockTicket;
-
   const handleStatusUpdate = () => {
     if (selectedStatus) {
       updateStatus({
@@ -249,7 +246,10 @@ export default function TicketDetailPage() {
     return { text: `${hours}h ${minutes}m`, color: hours < 2 ? "text-red-600" : "text-yellow-600" };
   };
 
-  if (isLoading) {
+  // Use mock data if no real data available
+  const ticketData = ticket || mockTicket;
+
+  if (isLoading && !ticket) {
     return <div>Loading ticket...</div>;
   }
 
