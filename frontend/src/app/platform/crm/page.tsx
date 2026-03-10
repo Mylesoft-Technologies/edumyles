@@ -267,43 +267,47 @@ export default function CompleteCRMPage() {
     return new Date(timestamp).toLocaleDateString('en-KE');
   };
 
-  const getPipelineValue = (stage: string) => {
-    return filteredDeals
+  const getPipelineValue = (stage: string, dealsToUse: Deal[] = filteredDeals) => {
+    return dealsToUse
       .filter(deal => deal.stage === stage)
       .reduce((total, deal) => total + deal.value, 0);
   };
 
-  const getTotalValue = () => {
-    return filteredDeals.reduce((total, deal) => total + deal.value, 0);
+  const getTotalValue = (dealsToUse: Deal[] = filteredDeals) => {
+    const total = dealsToUse.reduce((total, deal) => total + deal.value, 0);
+    console.log("getTotalValue called with", dealsToUse.length, "deals, total:", total);
+    return total;
   };
 
-  const getWeightedValue = () => {
-    return filteredDeals.reduce((total, deal) => total + (deal.value * deal.probability / 100), 0);
+  const getWeightedValue = (dealsToUse: Deal[] = filteredDeals) => {
+    const weighted = dealsToUse.reduce((total, deal) => total + (deal.value * deal.probability / 100), 0);
+    console.log("getWeightedValue called with", dealsToUse.length, "deals, weighted:", weighted);
+    return weighted;
   };
 
-  const getStageWeightedValue = (stage: string) => {
-    return filteredDeals
+  const getStageWeightedValue = (stage: string, dealsToUse: Deal[] = filteredDeals) => {
+    return dealsToUse
       .filter(deal => deal.stage === stage)
       .reduce((total, deal) => total + (deal.value * deal.probability / 100), 0);
   };
 
-  const getDealsByStage = (stage: string) => {
-    return filteredDeals.filter(deal => deal.stage === stage);
+  const getDealsByStage = (stage: string, dealsToUse: Deal[] = filteredDeals) => {
+    return dealsToUse.filter(deal => deal.stage === stage);
   };
 
-  const getAverageDealSize = () => {
-    return filteredDeals.length > 0 ? getTotalValue() / filteredDeals.length : 0;
+  const getAverageDealSize = (dealsToUse: Deal[] = filteredDeals) => {
+    return dealsToUse.length > 0 ? getTotalValue(dealsToUse) / dealsToUse.length : 0;
   };
 
-  const getAverageProbability = () => {
-    return filteredDeals.length > 0 
-      ? Math.round(filteredDeals.reduce((total, deal) => total + deal.probability, 0) / filteredDeals.length)
+  const getAverageProbability = (dealsToUse: Deal[] = filteredDeals) => {
+    return dealsToUse.length > 0 
+      ? Math.round(dealsToUse.reduce((total, deal) => total + deal.probability, 0) / dealsToUse.length)
       : 0;
   };
 
-  const getConversionRate = () => {
-    const totalDeals = filteredDeals.length;
-    const wonDeals = filteredDeals.filter(deal => deal.stage === "closed_won").length;
+  const getConversionRate = (dealsToUse: Deal[] = filteredDeals) => {
+    const totalDeals = dealsToUse.length;
+    const wonDeals = dealsToUse.filter(deal => deal.stage === "closed_won").length;
     return totalDeals > 0 ? Math.round((wonDeals / totalDeals) * 100) : 0;
   };
 
@@ -413,6 +417,9 @@ export default function CompleteCRMPage() {
       "closed_lost": 0
     };
 
+    console.log("Dropping deal:", draggedDeal.schoolName, "from", draggedDeal.stage, "to", targetStage);
+    console.log("Old probability:", draggedDeal.probability, "New probability:", stageProbabilities[targetStage]);
+
     const updatedDeals = deals.map(deal => 
       deal._id === draggedDeal._id 
         ? { 
@@ -424,8 +431,16 @@ export default function CompleteCRMPage() {
         : deal
     );
     
+    console.log("Updated deals:", updatedDeals.map(d => ({name: d.schoolName, stage: d.stage, prob: d.probability, value: d.value})));
+    
     setDeals(updatedDeals);
     setDraggedDeal(null);
+    
+    // Force a re-render by updating a dummy state
+    setTimeout(() => {
+      console.log("Total value after drop:", getTotalValue(updatedDeals));
+      console.log("Weighted value after drop:", getWeightedValue(updatedDeals));
+    }, 100);
   };
 
   const handleRefresh = async () => {
