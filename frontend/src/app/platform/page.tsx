@@ -8,6 +8,7 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { DashboardKPIGrid } from "@/components/platform/DashboardKPI";
 import { DashboardCharts } from "@/components/platform/DashboardCharts";
 import { ActivityFeed } from "@/components/platform/ActivityFeed";
+import { QuickActions } from "@/components/platform/QuickActions";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAccessibility } from "@/hooks/useAccessibility";
@@ -119,6 +120,9 @@ export default function PlatformDashboardPage() {
 
       {/* Master Dashboard KPI Widgets */}
       <DashboardKPIGrid kpis={kpis || defaultKPIs} isLoading={kpisLoading} />
+
+      {/* Quick Actions */}
+      <QuickActions variant="grid" />
 
       {/* Dashboard Charts */}
       <DashboardCharts 
