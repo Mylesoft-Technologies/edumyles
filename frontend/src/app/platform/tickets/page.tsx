@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Clock, 
   AlertTriangle, 
@@ -18,8 +21,12 @@ import {
   Plus,
   Eye,
   Calendar,
-  Layout
+  Layout,
+  User,
+  Building,
+  X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type ViewType = "table" | "kanban" | "calendar";
 
@@ -37,30 +44,272 @@ interface Ticket {
 }
 
 export default function TicketsPage() {
+  const router = useRouter();
   const [viewType, setViewType] = useState<ViewType>("table");
   const [filters, setFilters] = useState({
-    status: "",
-    priority: "",
-    category: "",
-    assignedTo: "",
+    status: "all",
+    priority: "all",
+    category: "all",
+    assignedTo: "all",
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newTicket, setNewTicket] = useState({
+    title: "",
+    body: "",
+    category: "technical",
+    priority: "P2",
+  });
 
+  const createTicketMutation = useMutation(api.tickets.createTicket);
   const ticketsQuery = useQuery(api.tickets.getTickets, {
-    status: filters.status || undefined,
-    priority: filters.priority || undefined,
-    category: filters.category || undefined,
-    assignedTo: filters.assignedTo || undefined,
+    status: filters.status === "all" ? undefined : filters.status,
+    priority: filters.priority === "all" ? undefined : filters.priority,
+    category: filters.category === "all" ? undefined : filters.category,
+    assignedTo: filters.assignedTo === "all" ? undefined : filters.assignedTo,
     limit: 100,
   });
 
   const slaStatsQuery = useQuery(api.tickets.getSLAStats, {});
 
-  // Filter tickets based on search
-  const filteredTickets = ticketsQuery?.data?.filter(ticket => 
-    ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ticket.tenantName.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  // Filter tickets based on search and filters
+  const filteredTickets = ticketsQuery?.data?.filter(ticket => {
+    const matchesSearch = searchQuery === "" || 
+      ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.tenantName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = filters.status === "all" || ticket.status === filters.status;
+    const matchesPriority = filters.priority === "all" || ticket.priority === filters.priority;
+    const matchesCategory = filters.category === "all" || ticket.category === filters.category;
+    
+    return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
+  }) || [];
+
+  const handleCreateTicket = async () => {
+    if (!newTicket.title.trim() || !newTicket.body.trim()) {
+      return;
+    }
+    
+    try {
+      await createTicketMutation({
+        tenantId: "temp_tenant_id", // TODO: Get actual tenant ID
+        title: newTicket.title,
+        body: newTicket.body,
+        category: newTicket.category as any,
+        priority: newTicket.priority as any,
+      });
+      
+      setNewTicket({
+        title: "",
+        body: "",
+        category: "technical",
+        priority: "P2",
+      });
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create ticket:", error);
+    }
+  };
+
+  const KanbanView = () => {
+    const columns = [
+      { id: "open", title: "Open", status: "open" },
+      { id: "in_progress", title: "In Progress", status: "in_progress" },
+      { id: "pending_school", title: "Pending School", status: "pending_school" },
+      { id: "resolved", title: "Resolved", status: "resolved" },
+      { id: "closed", title: "Closed", status: "closed" },
+    ];
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Kanban Board</h2>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={viewType === "table" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("table")}
+            >
+              <Layout className="h-4 w-4 mr-1" />
+              Table
+            </Button>
+            <Button
+              variant={viewType === "kanban" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("kanban")}
+            >
+              <Layout className="h-4 w-4 mr-1" />
+              Kanban
+            </Button>
+            <Button
+              variant={viewType === "calendar" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("calendar")}
+            >
+              <Calendar className="h-4 w-4 mr-1" />
+              Calendar
+            </Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              New Ticket
+            </Button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {columns.map((column) => (
+            <Card key={column.id} className="min-h-[400px]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">{column.title}</CardTitle>
+                <Badge variant="secondary" className="w-fit">
+                  {filteredTickets.filter(t => t.status === column.status).length}
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {filteredTickets
+                  .filter(ticket => ticket.status === column.status)
+                  .map((ticket) => (
+                    <Card key={ticket._id} className="cursor-pointer hover:shadow-md transition-shadow"
+                          onClick={() => router.push(`/platform/tickets/${ticket._id}`)}>
+                      <CardContent className="p-3">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Badge className={getPriorityColor(ticket.priority)}>
+                              {ticket.priority}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {ticket.category}
+                            </span>
+                          </div>
+                          <h4 className="font-medium text-sm line-clamp-2">{ticket.title}</h4>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Building className="h-3 w-3 mr-1" />
+                            {ticket.tenantName}
+                          </div>
+                          <div className={`flex items-center text-xs ${formatTimeRemaining(ticket.slaResolutionDL).color}`}>
+                            <Clock className="h-3 w-3 mr-1" />
+                            {formatTimeRemaining(ticket.slaResolutionDL).text}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const CalendarView = () => {
+    const getTicketsByDate = () => {
+      const ticketsByDate: { [key: string]: typeof filteredTickets } = {};
+      
+      filteredTickets.forEach(ticket => {
+        const date = new Date(ticket.createdAt).toDateString();
+        if (!ticketsByDate[date]) {
+          ticketsByDate[date] = [];
+        }
+        ticketsByDate[date].push(ticket);
+      });
+      
+      return ticketsByDate;
+    };
+
+    const ticketsByDate = getTicketsByDate();
+    const dates = Object.keys(ticketsByDate).sort();
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Calendar View</h2>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={viewType === "table" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("table")}
+            >
+              <Layout className="h-4 w-4 mr-1" />
+              Table
+            </Button>
+            <Button
+              variant={viewType === "kanban" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("kanban")}
+            >
+              <Layout className="h-4 w-4 mr-1" />
+              Kanban
+            </Button>
+            <Button
+              variant={viewType === "calendar" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("calendar")}
+            >
+              <Calendar className="h-4 w-4 mr-1" />
+              Calendar
+            </Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              New Ticket
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          {dates.map((date) => (
+            <Card key={date}>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  {new Date(date).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </CardTitle>
+                <Badge variant="secondary">
+                  {ticketsByDate[date].length} tickets
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {ticketsByDate[date].map((ticket) => (
+                    <div key={ticket._id} 
+                         className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                         onClick={() => router.push(`/platform/tickets/${ticket._id}`)}>
+                      <div className="flex items-center space-x-3">
+                        <Badge className={getPriorityColor(ticket.priority)}>
+                          {ticket.priority}
+                        </Badge>
+                        <div>
+                          <h4 className="font-medium">{ticket.title}</h4>
+                          <div className="flex items-center text-sm text-muted-foreground space-x-2">
+                            <span>{ticket.category}</span>
+                            <span>•</span>
+                            <span>{ticket.tenantName}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getStatusColor(ticket.status)}>
+                          {ticket.status.replace("_", " ")}
+                        </Badge>
+                        <div className={`flex items-center text-xs ${formatTimeRemaining(ticket.slaResolutionDL).color}`}>
+                          <Clock className="h-3 w-3 mr-1" />
+                          {formatTimeRemaining(ticket.slaResolutionDL).text}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -138,7 +387,7 @@ export default function TicketsPage() {
                 Calendar
               </Button>
             </div>
-            <Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
               New Ticket
             </Button>
@@ -277,7 +526,11 @@ export default function TicketsPage() {
                       </div>
                     </td>
                     <td className="p-3">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => router.push(`/platform/tickets/${ticket._id}`)}
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
@@ -304,7 +557,86 @@ export default function TicketsPage() {
         breadcrumbs={[{ label: "Tickets", href: "/platform/tickets" }]}
       />
       
-      <TableView />
+      {/* Create Ticket Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Ticket</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={newTicket.title}
+                onChange={(e) => setNewTicket(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter ticket title"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="category">Category</Label>
+              <Select 
+                value={newTicket.category} 
+                onValueChange={(value) => setNewTicket(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="billing">Billing</SelectItem>
+                  <SelectItem value="technical">Technical</SelectItem>
+                  <SelectItem value="data">Data</SelectItem>
+                  <SelectItem value="feature">Feature</SelectItem>
+                  <SelectItem value="onboarding">Onboarding</SelectItem>
+                  <SelectItem value="account">Account</SelectItem>
+                  <SelectItem value="legal">Legal</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select 
+                value={newTicket.priority} 
+                onValueChange={(value) => setNewTicket(prev => ({ ...prev, priority: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="P0">P0 - Critical</SelectItem>
+                  <SelectItem value="P1">P1 - High</SelectItem>
+                  <SelectItem value="P2">P2 - Medium</SelectItem>
+                  <SelectItem value="P3">P3 - Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="body">Description</Label>
+              <Textarea
+                id="body"
+                value={newTicket.body}
+                onChange={(e) => setNewTicket(prev => ({ ...prev, body: e.target.value }))}
+                placeholder="Describe the issue in detail"
+                rows={4}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateTicket}>
+              Create Ticket
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Render the appropriate view */}
+      {viewType === "table" && <TableView />}
+      {viewType === "kanban" && <KanbanView />}
+      {viewType === "calendar" && <CalendarView />}
     </div>
   );
 }
