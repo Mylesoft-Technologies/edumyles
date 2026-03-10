@@ -19,6 +19,9 @@ import {
   Bell,
   BarChart3,
   Eye,
+  Headphones,
+  Flag,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,10 +36,15 @@ export interface NavItem {
 export const platformNavItems: NavItem[] = [
   { label: "Dashboard", href: "/platform", icon: LayoutDashboard },
   { label: "Tenants", href: "/platform/tenants", icon: Building2 },
+  { label: "CRM Pipeline", href: "/platform/crm", icon: TrendingUp },
+  { label: "Proposals", href: "/platform/crm/proposals", icon: FileText },
   { label: "Users", href: "/platform/users", icon: Users },
+  { label: "Staff Performance", href: "/platform/staff-performance", icon: BarChart3 },
+  { label: "Tickets", href: "/platform/tickets", icon: Headphones },
   { label: "Analytics", href: "/platform/analytics", icon: BarChart3 },
   { label: "Marketplace", href: "/platform/marketplace", icon: ShoppingCart },
   { label: "Billing", href: "/platform/billing", icon: DollarSign },
+  { label: "Feature Flags", href: "/platform/feature-flags", icon: Flag },
   { label: "Impersonation", href: "/platform/impersonation", icon: Eye },
   { label: "Audit Log", href: "/platform/audit", icon: FileText },
   { label: "Settings", href: "/platform/settings", icon: Settings },
@@ -55,6 +63,7 @@ export const adminNavItems: NavItem[] = [
   { label: "Library", href: "/admin/library", icon: Library, module: "library" },
   { label: "Transport", href: "/admin/transport", icon: Bus, module: "transport" },
   { label: "Communications", href: "/admin/communications", icon: MessageSquare, module: "communications" },
+  { label: "Support Tickets", href: "/admin/tickets", icon: Headphones, module: "tickets" },
   { label: "eWallet", href: "/admin/ewallet", icon: Wallet, module: "ewallet" },
   { label: "eCommerce", href: "/admin/ecommerce", icon: ShoppingCart, module: "ecommerce" },
   { label: "Marketplace", href: "/admin/marketplace", icon: ShoppingCart },
@@ -69,6 +78,7 @@ export const teacherNavItems: NavItem[] = [
   { label: "Attendance", href: "/portal/teacher/attendance", icon: Calendar },
   { label: "Assignments", href: "/portal/teacher/assignments", icon: FileText },
   { label: "Timetable", href: "/portal/teacher/timetable", icon: Calendar },
+  { label: "Support Tickets", href: "/support/tickets", icon: Headphones },
 ];
 
 export const studentNavItems: NavItem[] = [
@@ -77,6 +87,7 @@ export const studentNavItems: NavItem[] = [
   { label: "Timetable", href: "/portal/student/timetable", icon: Calendar },
   { label: "Assignments", href: "/portal/student/assignments", icon: FileText },
   { label: "Attendance", href: "/portal/student/attendance", icon: ClipboardList },
+  { label: "Support Tickets", href: "/support/tickets", icon: Headphones },
   { label: "Wallet", href: "/portal/student/wallet", icon: Wallet },
   { label: "Report Cards", href: "/portal/student/report-cards", icon: FileText },
 ];
@@ -87,6 +98,7 @@ export const parentNavItems: NavItem[] = [
   { label: "Fees", href: "/portal/parent/fees", icon: DollarSign },
   { label: "Messages", href: "/portal/parent/messages", icon: MessageSquare },
   { label: "Announcements", href: "/portal/parent/announcements", icon: Bell },
+  { label: "Support Tickets", href: "/support/tickets", icon: Headphones },
 ];
 
 export const alumniNavItems: NavItem[] = [
@@ -94,6 +106,7 @@ export const alumniNavItems: NavItem[] = [
   { label: "Transcripts", href: "/portal/alumni/transcripts", icon: FileText },
   { label: "Directory", href: "/portal/alumni/directory", icon: Users },
   { label: "Events", href: "/portal/alumni/events", icon: Calendar },
+  { label: "Support Tickets", href: "/support/tickets", icon: Headphones },
 ];
 
 export const partnerNavItems: NavItem[] = [
@@ -102,6 +115,7 @@ export const partnerNavItems: NavItem[] = [
   { label: "Reports", href: "/portal/partner/reports", icon: FileText },
   { label: "Payments", href: "/portal/partner/payments", icon: DollarSign },
   { label: "Messages", href: "/portal/partner/messages", icon: MessageSquare },
+  { label: "Support Tickets", href: "/support/tickets", icon: Headphones },
   { label: "Profile", href: "/portal/partner/profile", icon: Building2 },
 ];
 

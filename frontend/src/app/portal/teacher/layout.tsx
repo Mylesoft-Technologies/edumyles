@@ -1,5 +1,6 @@
 "use client";
 
+import { ConvexAuthProvider } from "@/components/ConvexAuthProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { RoleGuard } from "@/components/shared/RoleGuard";
 import { teacherNavItems } from "@/lib/routes";
@@ -14,10 +15,12 @@ const TEACHER_ROLES = [
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RoleGuard allowedRoles={TEACHER_ROLES}>
-      <AppShell navItems={teacherNavItems}>
-        {children}
-      </AppShell>
-    </RoleGuard>
+    <ConvexAuthProvider>
+      <RoleGuard allowedRoles={TEACHER_ROLES}>
+        <AppShell navItems={teacherNavItems}>
+          {children}
+        </AppShell>
+      </RoleGuard>
+    </ConvexAuthProvider>
   );
 }

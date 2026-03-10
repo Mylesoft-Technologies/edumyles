@@ -1,5 +1,6 @@
 "use client";
 
+import { ConvexAuthProvider } from "@/components/ConvexAuthProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { RoleGuard } from "@/components/shared/RoleGuard";
 import { alumniNavItems } from "@/lib/routes";
@@ -13,10 +14,12 @@ const ALUMNI_ROLES = [
 
 export default function AlumniLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RoleGuard allowedRoles={ALUMNI_ROLES}>
-      <AppShell navItems={alumniNavItems}>
-        {children}
-      </AppShell>
-    </RoleGuard>
+    <ConvexAuthProvider>
+      <RoleGuard allowedRoles={ALUMNI_ROLES}>
+        <AppShell navItems={alumniNavItems}>
+          {children}
+        </AppShell>
+      </RoleGuard>
+    </ConvexAuthProvider>
   );
 }

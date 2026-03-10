@@ -18,7 +18,6 @@ const leadership: TeamMember[] = [
     role: "CEO & Founder",
     bio: "Full-stack software engineer with deep expertise in scalable web applications and distributed systems. Founded EduMyles after witnessing how schools across East Africa struggled with fragmented management tools. Leads product development and technical architecture.",
     location: "Nairobi, Kenya",
-    image: "/team/jonathan-myles.jpg",
     initials: "JM",
   },
   {
@@ -26,7 +25,6 @@ const leadership: TeamMember[] = [
     role: "Co-Founder & COO",
     bio: "Background in sales and business operations across B2B and enterprise markets in East Africa. Oversees go-to-market strategy, partnerships, customer success, and daily operations. Built the school onboarding process from the ground up.",
     location: "Nairobi, Kenya",
-    image: "/team/pauline-moraa.jpg",
     initials: "PM",
   },
 ];
@@ -262,7 +260,7 @@ export default function TeamPage() {
       <section className="content-section green-bg">
         <div className="content-inner">
           <div className="section-header centered">
-            <h2 style={{ color: "var(--white)" }}>Join our team</h2>
+            <h2 className="text-white">Join our team</h2>
             <p className="section-subtitle light">
               We are always looking for talented people who are passionate about education and
               technology across Africa. If you want to make a real impact, we would love to hear from you.

@@ -63,14 +63,14 @@ export function BulkOperations({ items, itemType, onBulkAction }: BulkOperationP
   return (
     <div className="space-y-4">
       {/* Selection controls */}
-      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+      <div className="flex items-center justify-between p-4 bg-muted rounded-lg border">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={selectAll}
               onCheckedChange={handleSelectAll}
             />
-            <label className="text-sm font-medium">
+            <label className="text-sm font-medium text-foreground">
               Select All ({getCount()} of {getItemCount()})
             </label>
           </div>
@@ -109,9 +109,9 @@ export function BulkOperations({ items, itemType, onBulkAction }: BulkOperationP
 
       {/* Selected items summary */}
       {selectedItems.length > 0 && (
-        <div className="p-4 bg-blue-50 rounded-lg border">
+        <div className="p-4 bg-info-bg rounded-lg border">
           <div className="flex items-center space-x-2 mb-2">
-            <AlertTriangle className="h-4 w-4 text-blue-500" />
+            <AlertTriangle className="h-4 w-4 text-info" />
             <span className="text-sm font-medium">
               {selectedItems.length} {itemType} selected for {action}
             </span>
@@ -133,7 +133,7 @@ export function BulkOperations({ items, itemType, onBulkAction }: BulkOperationP
                         }
                       }}
                     />
-                    <span className="text-sm">{getItemName(item)}</span>
+                    <span className="text-sm text-foreground">{getItemName(item)}</span>
                   </div>
                   <Badge variant={item.status === 'active' ? 'default' : 'secondary'}>
                     {item.status || 'Inactive'}
@@ -142,7 +142,7 @@ export function BulkOperations({ items, itemType, onBulkAction }: BulkOperationP
               );
             })}
             {selectedItems.length > 10 && (
-              <div className="text-center p-2 text-sm text-gray-500">
+              <div className="text-center p-2 text-sm text-muted-foreground">
                 ... and {selectedItems.length - 10} more
               </div>
             )}
