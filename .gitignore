@@ -67,3 +67,5 @@ coverage/
 
 # ------ Docs ------
 docs/**/*.pdf
+.vercel
+.env*.local
