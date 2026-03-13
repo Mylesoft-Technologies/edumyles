@@ -1,21 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import "./globals.css";
 import ConditionalLayout from "../components/ConditionalLayout";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
-  title: "EduMyles — School Management for East Africa",
+  title: "Mylesoft Technologies — AI-Powered Software Solutions for East Africa",
   description:
-    "Replace disconnected spreadsheets and messaging groups with one unified platform for admissions, billing, academics, HR, and communication across East Africa.",
+    "Transforming businesses across East Africa with innovative software solutions for education, healthcare, agriculture, and more. 20+ AI-powered products built for African markets.",
   other: {
-    "msapplication-TileColor": "#056C40",
+    "msapplication-TileColor": "#1A395B",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#056C40",
+  themeColor: "#1A395B",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -25,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
