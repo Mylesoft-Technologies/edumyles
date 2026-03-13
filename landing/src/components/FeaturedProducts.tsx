@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, GraduationCap, Car, Hospital, Users, Tractor, Brain } from "lucide-react";
 
@@ -81,45 +80,16 @@ export default function FeaturedProducts() {
   return (
     <section className="featured-products-section">
       <div className="container">
-        <motion.div
-          className="section-header centered"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
+        <div className="section-header centered">
           <h2>Featured Products</h2>
           <p className="section-subtitle">
             6 powerful solutions designed to transform critical industries across East Africa
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="products-grid"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          viewport={{ once: true }}
-        >
+        <div className="products-grid">
           {products.map((product, index) => (
-            <motion.div
-              key={product.name}
-              className="product-card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ 
-                duration: 0.6, 
-                delay: index * 0.1,
-                type: "spring",
-                stiffness: 100
-              }}
-              viewport={{ once: true }}
-              whileHover={{
-                y: -8,
-                boxShadow: "0 20px 40px rgba(26,57,91,0.15)",
-                borderColor: "var(--gold)"
-              }}
-            >
+            <div key={product.name} className="product-card">
               <div className="product-icon" style={{ color: product.color }}>
                 {product.icon}
               </div>
@@ -141,22 +111,16 @@ export default function FeaturedProducts() {
                   <ArrowRight size={16} />
                 </Link>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="products-cta"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          viewport={{ once: true }}
-        >
+        <div className="products-cta">
           <Link href="/products" className="btn btn-secondary">
             View All 20+ Products
             <ArrowRight size={16} />
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
