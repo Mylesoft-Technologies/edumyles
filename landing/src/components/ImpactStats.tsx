@@ -46,6 +46,7 @@ function AnimatedCounter({ value }: { value: string }) {
 
       return () => clearInterval(timer);
     }
+    return undefined;
   }, [inView, hasAnimated, value]);
 
   return (
