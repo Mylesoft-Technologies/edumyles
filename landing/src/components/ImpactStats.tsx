@@ -24,8 +24,9 @@ function AnimatedCounter({ value }: { value: string }) {
   useEffect(() => {
     if (!hasAnimated && ref.current) {
       const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting && !hasAnimated) {
+        (entries) => {
+          const entry = entries[0];
+          if (entry?.isIntersecting && !hasAnimated) {
             setHasAnimated(true);
             const targetValue = parseInt(value.replace(/[^0-9]/g, ""));
             const duration = 2000;
