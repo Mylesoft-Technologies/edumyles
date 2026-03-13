@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { WorkOS } from "@workos-inc/node";
 
+// Required for static export mode
+export const dynamic = "force-static";
+export const revalidate = false;
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Required for static export mode
+export const dynamic = "force-static";
+export const revalidate = false;
+
 export async function GET(req: NextRequest) {
   const res = NextResponse.redirect(req.nextUrl.origin + "/");
   const isProduction = process.env.NODE_ENV === "production";
