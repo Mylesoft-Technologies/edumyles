@@ -8,6 +8,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [],
   },
+  output: undefined, // Force SSR mode instead of static generation
 };
 
 module.exports = nextConfig;
