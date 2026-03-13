@@ -3,17 +3,34 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
+import { Menu, X, ChevronDown, Globe, Phone, Mail } from "lucide-react";
 
 const navItems = [
   {
-    label: "Features",
-    href: "/features",
+    label: "Home",
+    href: "/",
+  },
+  {
+    label: "Products",
+    href: "/products",
     dropdown: [
-      { label: "Platform Overview", href: "/features#platform", desc: "Unified school management" },
-      { label: "All 11 Modules", href: "/features#modules", desc: "Student, finance, operations & more" },
-      { label: "Integrations", href: "/features#integrations", desc: "M-Pesa, Airtel Money, Stripe" },
-      { label: "AI & Automation", href: "/features#ai", desc: "Smart scheduling & insights" },
+      { label: "EduMyles", href: "/products/edumyles", desc: "Complete school management" },
+      { label: "EduRyde", href: "/products/eduryde", desc: "School transport management" },
+      { label: "MylesCare", href: "/products/mylescare", desc: "Hospital management system" },
+      { label: "MylesCRM", href: "/products/mylescrm", desc: "Customer relationship management" },
+      { label: "AgriMyles", href: "/products/agrimyles", desc: "Agricultural management" },
+      { label: "Myles AI", href: "/products/myles-ai", desc: "AI-powered intelligence" },
+    ],
+  },
+  {
+    label: "Services",
+    href: "/services",
+    dropdown: [
+      { label: "Implementation", href: "/services/implementation", desc: "Setup & data migration" },
+      { label: "Custom Development", href: "/services/custom", desc: "Bespoke software solutions" },
+      { label: "System Integration", href: "/services/integration", desc: "Connect with existing systems" },
+      { label: "AI Consulting", href: "/services/ai-consulting", desc: "Custom analytics models" },
+      { label: "Support & Maintenance", href: "/services/support", desc: "SLA-based technical support" },
     ],
   },
   {
@@ -21,62 +38,27 @@ const navItems = [
     href: "/pricing",
   },
   {
-    label: "Solutions",
-    href: "/solutions",
-    dropdown: [
-      { label: "For Primary Schools", href: "/solutions#primary", desc: "Simplified management for junior schools" },
-      { label: "For Secondary Schools", href: "/solutions#secondary", desc: "Full academic & admin management" },
-      { label: "For School Groups", href: "/solutions#groups", desc: "Multi-campus unified control" },
-      { label: "For Partners", href: "/solutions#partners", desc: "White-label & API access" },
-    ],
-  },
-  {
-    label: "Success Stories",
-    href: "/#stories",
-  },
-  {
-    label: "Resources",
-    href: "/resources",
-    dropdown: [
-      { label: "Blog", href: "/blog", desc: "Articles, guides & insights" },
-      { label: "Product Videos", href: "/resources#videos", desc: "Walkthrough & tutorial videos" },
-      { label: "Webinars", href: "/resources#webinars", desc: "Live & recorded sessions" },
-      { label: "Guides", href: "/resources#guides", desc: "Implementation & best practices" },
-    ],
-  },
-  {
     label: "About",
     href: "/about",
-    dropdown: [
-      { label: "Our Story", href: "/about", desc: "Mission, values & journey" },
-      { label: "Team", href: "/team", desc: "Meet the people behind EduMyles" },
-    ],
   },
   {
-    label: "Concierge",
-    href: "/concierge",
+    label: "Blog",
+    href: "/blog",
+  },
+  {
+    label: "Careers",
+    href: "/careers",
+  },
+  {
+    label: "Contact",
+    href: "/contact",
   },
 ];
-
-interface UserInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  avatar: string;
-}
-
-function getUserFromCookie(): UserInfo | null {
-  // ALWAYS return null on landing page - this is a marketing page, not an authenticated app
-  return null;
-}
-
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
-  // ALWAYS null user on landing page - never show logged-in state
-  const user = null;
 
   const pathname = usePathname();
 
@@ -92,31 +74,12 @@ export default function Navbar() {
     setOpenDropdown(null);
   }, [pathname]);
 
-  const initials = ""; // No user on landing page, so no initials
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-
-  const handleLogout = () => {
-    // Use server-side logout to properly clear httpOnly cookies
-    window.location.href = `${appUrl}/auth/logout`;
-  };
-
-  const handleMobileLogout = () => {
-    setMobileMenuOpen(false);
-    window.location.href = `${appUrl}/auth/logout`;
-  };
-
   return (
     <>
-      {/* Announcement Bar */}
-      <div className="announcement-bar">
-        <span>Introducing EduMyles — The Operating System for Schools in East Africa</span>
-        <span className="badge">NEW</span>
-      </div>
-
       {/* Navbar */}
       <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
         <Link href="/" className="navbar-logo">
-          EduMyles
+          Mylesoft
         </Link>
 
         <ul className="navbar-links">
@@ -127,7 +90,10 @@ export default function Navbar() {
               onMouseEnter={() => item.dropdown && setOpenDropdown(item.label)}
               onMouseLeave={() => setOpenDropdown(null)}
             >
-              <Link href={item.href}>{item.label}</Link>
+              <Link href={item.href}>
+                {item.label}
+                {item.dropdown && <ChevronDown size={16} />}
+              </Link>
               {item.dropdown && (
                 <div className={`nav-dropdown ${openDropdown === item.label ? "open" : ""}`}>
                   {item.dropdown.map((sub) => (
@@ -143,40 +109,20 @@ export default function Navbar() {
         </ul>
 
         <div className="navbar-actions">
-          {false ? ( // ALWAYS false on landing page - never show logged-in state
-            <>
-              <div className="navbar-user">
-                <div className="navbar-avatar">{initials}</div>
-                <span className="navbar-username">User</span>
-              </div>
-              <button
-                type="button"
-                className="navbar-login"
-                onClick={handleLogout}
-              >
-                Log Out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link className="navbar-login" href={`${appUrl}/auth/login`}>
-                Log In
-              </Link>
-              <Link className="navbar-get-started" href={`${appUrl}/auth/login`}>
-                Get Started
-              </Link>
-              <Link className="navbar-signup" href={`${appUrl}/auth/login`}>
-                Sign Up Free
-              </Link>
-            </>
-          )}
+          <Link className="navbar-login" href="/contact">
+            <Phone size={16} />
+            +254 743 993 715
+          </Link>
+          <Link className="navbar-cta" href="/book-demo">
+            Book a Demo
+          </Link>
 
           <button
             className="mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            <span className={`hamburger ${mobileMenuOpen ? "open" : ""}`} />
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </nav>
@@ -201,34 +147,13 @@ export default function Navbar() {
             </div>
           ))}
           <div className="mobile-auth-actions">
-            {false ? ( // ALWAYS false on landing page - never show logged-in state
-              <>
-                <div className="mobile-user-info">
-                  <div className="navbar-avatar">{initials}</div>
-                  <span>User</span>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleMobileLogout}
-                >
-                  Log Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href={`${appUrl}/auth/login`} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
-                  Log In
-                </Link>
-                <Link href={`${appUrl}/auth/login`} className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
-                  Get Started
-                </Link>
-                <Link href={`${appUrl}/auth/login`} className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
-                  Sign Up Free
-                </Link>
-              </>
-            )}
-
+            <Link href="/contact" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>
+              <Phone size={16} />
+              Contact Us
+            </Link>
+            <Link href="/book-demo" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>
+              Book a Demo
+            </Link>
           </div>
         </div>
       )}
