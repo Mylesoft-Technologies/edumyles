@@ -31,14 +31,14 @@ import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 
 export default function ParentPaymentsPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, sessionToken } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
 
   const invoices = useQuery(
     api.modules.finance.queries.listInvoices,
-    user ? { studentId: user._id } : "skip"
+    user ? { sessionToken: sessionToken ?? undefined, studentId: user._id } : "skip"
   );
 
   const payments = useQuery(

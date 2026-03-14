@@ -30,7 +30,7 @@ export default function AdminDashboardPage() {
   const students = usePlatformQuery(api.modules.sis.queries.listStudents, { sessionToken }, !!sessionToken);
   const staff = usePlatformQuery(api.modules.hr.queries.listStaff, { sessionToken }, !!sessionToken);
   const applications = usePlatformQuery(api.modules.admissions.queries.listApplications, { sessionToken }, !!sessionToken);
-  const invoices = usePlatformQuery(api.modules.finance.queries.listInvoices, {}, !!sessionToken);
+  const invoices = usePlatformQuery(api.modules.finance.queries.listInvoices, { sessionToken }, !!sessionToken);
 
   if (isLoading || students === undefined || staff === undefined || applications === undefined || invoices === undefined) {
     return <LoadingSkeleton variant="page" />;

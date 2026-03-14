@@ -34,7 +34,7 @@ export default function InvoicesPage() {
 
     const invoices = usePlatformQuery(
         api.modules.finance.queries.listInvoices,
-        statusFilter === "all" ? {} : { status: statusFilter as any },
+        statusFilter === "all" ? { sessionToken } : { sessionToken, status: statusFilter as any },
         !!sessionToken
     );
 

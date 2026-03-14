@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query } from "../../_generated/server";
-import { requireTenantContext } from "../../helpers/tenantGuard";
+import { requireTenantContext, requireTenantSession } from "../../helpers/tenantGuard";
 import { requirePermission } from "../../helpers/authorize";
 import { requireModule } from "../../helpers/moduleGuard";
 
@@ -38,33 +38,40 @@ export const listFeeStructures = query({
 
 export const listInvoices = query({
     args: {
+        sessionToken: v.optional(v.string()),
         studentId: v.optional(v.string()),
         status: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "finance");
-        requirePermission(tenant, "finance:read");
+        try {
+            const tenant = args.sessionToken
+                ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+                : await requireTenantContext(ctx);
+            await requireModule(ctx, tenant.tenantId, "finance");
+            requirePermission(tenant, "finance:read");
 
-        let invoicesQuery = ctx.db
-            .query("invoices")
-            .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
+            let invoicesQuery = ctx.db
+                .query("invoices")
+                .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
 
-        if (args.studentId) {
-            invoicesQuery = ctx.db
-                .query("invoices")
-                .withIndex("by_tenant_student", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("studentId", args.studentId!)
-                );
-        } else if (args.status) {
-            invoicesQuery = ctx.db
-                .query("invoices")
-                .withIndex("by_tenant_status", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
-                );
+            if (args.studentId) {
+                invoicesQuery = ctx.db
+                    .query("invoices")
+                    .withIndex("by_tenant_student", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("studentId", args.studentId!)
+                    );
+            } else if (args.status) {
+                invoicesQuery = ctx.db
+                    .query("invoices")
+                    .withIndex("by_tenant_status", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
+                    );
+            }
+
+            return await invoicesQuery.order("desc").collect();
+        } catch {
+            return [];
         }
-
-        return await invoicesQuery.order("desc").collect();
     },
 });
 
