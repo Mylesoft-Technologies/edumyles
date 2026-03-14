@@ -729,6 +729,35 @@ export default function ProfilePage() {
     }
   };
 
+  // Extract variables for JSX use
+  const firstName = isEditing ? (editForm?.firstName ?? "") : (profileData?.firstName ?? sessionUser?.firstName ?? "");
+  const lastName = isEditing ? (editForm?.lastName ?? "") : (profileData?.lastName ?? sessionUser?.lastName ?? "");
+  const email = profileData?.email ?? sessionUser?.email ?? "";
+  const role = profileData?.role ?? sessionUser?.role ?? "";
+  const avatarUrl = profileData?.avatarUrl ?? sessionUser?.avatarUrl;
+  const initials =
+    `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() ||
+    email[0]?.toUpperCase() ||
+    "U";
+  const createdAt = profileData?.createdAt ? new Date(profileData.createdAt) : null;
+  const hasExistingPassword = !!profileData?.passwordHash;
+  const twoFactorEnabled = !!profileData?.twoFactorEnabled;
+
+  const profileFields = [
+    profileData?.firstName,
+    profileData?.lastName,
+    profileData?.phone,
+    profileData?.bio,
+    profileData?.location,
+  ];
+  const filledCount = profileFields.filter(Boolean).length;
+  const completeness = Math.round((filledCount / profileFields.length) * 100);
+
+  // Filter activity logs for current user
+  const userActivity = Array.isArray(activityLog)
+    ? activityLog.filter((log: any) => log.actorId === sessionUser?._id).slice(0, 10)
+    : [];
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !sessionToken) return;
