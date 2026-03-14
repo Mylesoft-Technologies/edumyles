@@ -80,3 +80,55 @@ export const dismissNotification = mutation({
     await ctx.db.delete(args.notificationId);
   },
 });
+
+export const backfillNotificationReadAndLink = mutation({
+  args: {
+    sessionToken: v.string(),
+    dryRun: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await requirePlatformSession(ctx, args);
+    const dryRun = args.dryRun ?? false;
+
+    const notifications = await ctx.db.query("notifications").collect();
+    let updated = 0;
+    let wouldUpdate = 0;
+
+    for (const notification of notifications) {
+      const legacy = notification as unknown as {
+        read?: boolean;
+        actionUrl?: string;
+      };
+
+      const patch: {
+        isRead?: boolean;
+        link?: string;
+      } = {};
+
+      if (notification.isRead === undefined) {
+        patch.isRead = typeof legacy.read === "boolean" ? legacy.read : false;
+      }
+
+      if (!notification.link && typeof legacy.actionUrl === "string" && legacy.actionUrl.length > 0) {
+        patch.link = legacy.actionUrl;
+      }
+
+      if (Object.keys(patch).length === 0) continue;
+
+      if (dryRun) {
+        wouldUpdate += 1;
+        continue;
+      }
+
+      await ctx.db.patch(notification._id, patch);
+      updated += 1;
+    }
+
+    return {
+      scanned: notifications.length,
+      updated,
+      wouldUpdate,
+      dryRun,
+    };
+  },
+});
