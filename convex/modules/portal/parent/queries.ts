@@ -62,6 +62,33 @@ async function assertClassOwnership(
     throw new Error("FORBIDDEN: Class not linked to any child");
   }
 }
+
+export const getParentProfile = query({
+  args: {},
+  handler: async (ctx) => {
+    try {
+      const tenant = await requireTenantContext(ctx);
+      await requireModule(ctx, tenant.tenantId, "sis");
+
+      const guardian = await ctx.db
+        .query("guardians")
+        .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId))
+        .filter((q) => q.eq(q.field("userId"), tenant.userId))
+        .first();
+
+      if (!guardian) {
+        console.log("Guardian not found for userId:", tenant.userId);
+        return null;
+      }
+
+      return guardian;
+    } catch (error) {
+      console.error("Error in getParentProfile:", error);
+      throw error;
+    }
+  },
+});
+
 export const getChildren = query({
   args: {},
   handler: async (ctx) => {
