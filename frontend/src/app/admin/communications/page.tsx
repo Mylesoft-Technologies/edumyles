@@ -34,7 +34,7 @@ export default function CommunicationsPage() {
 
     const announcements = useQuery(
         api.modules.communications.queries.listAnnouncements,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     // Mock stats - in real app, this would come from API

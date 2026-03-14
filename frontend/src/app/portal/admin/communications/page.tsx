@@ -54,7 +54,7 @@ export default function CommunicationsPage() {
 
   const announcementsRaw = useQuery(
     api.modules.communications.queries.listAnnouncements,
-    sessionToken ? {} : "skip"
+    sessionToken ? { sessionToken } : "skip"
   ) as Announcement[] | undefined;
 
   const createAnnouncement = useMutation(api.modules.communications.mutations.createAnnouncement);
