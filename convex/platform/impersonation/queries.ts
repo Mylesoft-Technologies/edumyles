@@ -9,7 +9,11 @@ export const listImpersonationSessions = query({
         activeOnly: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        await requirePlatformSession(ctx, args);
+        try {
+            await requirePlatformSession(ctx, args);
+        } catch {
+            return [];
+        }
 
         let sessions = await ctx.db.query("impersonationSessions").order("desc").collect();
 
