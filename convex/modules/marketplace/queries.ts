@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { requireTenantContext } from "../../helpers/tenantGuard";
 import { requireRole } from "../../helpers/authorize";
 import { TIER_MODULES } from "./tierModules";
+import { CORE_MODULE_IDS } from "./moduleDefinitions";
 
 /**
  * List all modules in the registry (public catalog).
@@ -13,17 +14,13 @@ export const getModuleRegistry = query({
   handler: async (ctx) => {
     await requireTenantContext(ctx);
 
+    // moduleRegistry uses "published" status (not "active")
     const modules = await ctx.db
       .query("moduleRegistry")
-      .withIndex("by_status", (q) => q.eq("status", "active"))
+      .withIndex("by_status", (q) => q.eq("status", "published"))
       .collect();
 
-    const betaModules = await ctx.db
-      .query("moduleRegistry")
-      .withIndex("by_status", (q) => q.eq("status", "beta"))
-      .collect();
-
-    return [...modules, ...betaModules];
+    return modules;
   },
 });
 
@@ -40,6 +37,29 @@ export const getInstalledModules = query({
       .query("installedModules")
       .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
       .collect();
+  },
+});
+
+/**
+ * Get just the installed module IDs for the caller's tenant.
+ * Always includes core modules. Used by sidebar for nav filtering.
+ */
+export const getInstalledModuleIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const { tenantId } = await requireTenantContext(ctx);
+
+    const installed = await ctx.db
+      .query("installedModules")
+      .withIndex("by_tenant_status", (q) =>
+        q.eq("tenantId", tenantId).eq("status", "active")
+      )
+      .collect();
+
+    const installedIds = installed.map((m) => m.moduleId);
+    // Always include core modules
+    const allIds = new Set([...CORE_MODULE_IDS, ...installedIds]);
+    return Array.from(allIds);
   },
 });
 
@@ -64,18 +84,12 @@ export const getAvailableForTier = query({
     const tier = tenant.plan ?? "free";
     const allowedModuleIds = TIER_MODULES[tier] || TIER_MODULES["free"];
 
-    console.log("getAvailableForTier:", {
-      tenantId,
-      tier,
-      allowedModuleIds,
-      hasTier: !!TIER_MODULES[tier]
-    });
-
     const allModules = await ctx.db.query("moduleRegistry").collect();
 
     return allModules.map((mod) => ({
       ...mod,
-      availableForTier: allowedModuleIds!.includes(mod.moduleId),
+      isCore: mod.isCore ?? CORE_MODULE_IDS.includes(mod.moduleId),
+      availableForTier: CORE_MODULE_IDS.includes(mod.moduleId) || allowedModuleIds!.includes(mod.moduleId),
     }));
   },
 });

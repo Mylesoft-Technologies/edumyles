@@ -4,6 +4,7 @@ import { requireTenantContext } from "../../helpers/tenantGuard";
 import { requireRole } from "../../helpers/authorize";
 import { logAction } from "../../helpers/auditLog";
 import { TIER_MODULES } from "./tierModules";
+import { isCoreModule, CORE_MODULE_IDS } from "./moduleDefinitions";
 
 // Module dependency map — some modules require others to be installed first
 const MODULE_DEPENDENCIES: Record<string, string[]> = {
@@ -158,6 +159,13 @@ export const uninstallModule = mutation({
     assertTenantMatch(tenantCtx.tenantId, args.tenantId);
 
     const { tenantId } = tenantCtx;
+
+    // Core modules cannot be uninstalled
+    if (isCoreModule(args.moduleId)) {
+      throw new Error(
+        `CORE_MODULE: Cannot uninstall '${args.moduleId}' — it is a core module required by the platform.`
+      );
+    }
 
     // Check if installed
     const installed = await ctx.db
@@ -379,6 +387,13 @@ export const toggleModuleStatus = mutation({
 
     if (!installed) {
       throw new Error("MODULE_NOT_INSTALLED");
+    }
+
+    // Core modules cannot be deactivated
+    if (args.status === "inactive" && isCoreModule(args.moduleId)) {
+      throw new Error(
+        `CORE_MODULE: Cannot deactivate '${args.moduleId}' — it is a core module.`
+      );
     }
 
     // If deactivating, check that no active module depends on this one
