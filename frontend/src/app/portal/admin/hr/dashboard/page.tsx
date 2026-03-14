@@ -41,13 +41,13 @@ interface PayrollStats {
 }
 
 export default function HRDashboardPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, sessionToken } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState("current");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
 
   const staff = useQuery(
     api.modules.hr.queries.listStaff,
-    user ? { status: "active" } : "skip"
+    user ? { sessionToken: sessionToken ?? undefined, status: "active" } : "skip"
   );
 
   const contracts = useQuery(

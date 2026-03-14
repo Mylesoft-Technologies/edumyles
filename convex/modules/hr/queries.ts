@@ -1,38 +1,45 @@
 import { v } from "convex/values";
 import { query } from "../../_generated/server";
-import { requireTenantContext } from "../../helpers/tenantGuard";
+import { requireTenantContext, requireTenantSession } from "../../helpers/tenantGuard";
 import { requirePermission } from "../../helpers/authorize";
 import { requireModule } from "../../helpers/moduleGuard";
 
 export const listStaff = query({
     args: {
+        sessionToken: v.optional(v.string()),
         status: v.optional(v.string()),
         role: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "hr");
-        requirePermission(tenant, "staff:read");
+        try {
+            const tenant = args.sessionToken
+                ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+                : await requireTenantContext(ctx);
+            await requireModule(ctx, tenant.tenantId, "hr");
+            requirePermission(tenant, "staff:read");
 
-        let staffQuery = ctx.db
-            .query("staff")
-            .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
+            let staffQuery = ctx.db
+                .query("staff")
+                .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
 
-        if (args.status) {
-            staffQuery = ctx.db
-                .query("staff")
-                .withIndex("by_tenant_status", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
-                );
-        } else if (args.role) {
-            staffQuery = ctx.db
-                .query("staff")
-                .withIndex("by_tenant_role", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("role", args.role!)
-                );
+            if (args.status) {
+                staffQuery = ctx.db
+                    .query("staff")
+                    .withIndex("by_tenant_status", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
+                    );
+            } else if (args.role) {
+                staffQuery = ctx.db
+                    .query("staff")
+                    .withIndex("by_tenant_role", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("role", args.role!)
+                    );
+            }
+
+            return await staffQuery.order("desc").collect();
+        } catch {
+            return [];
         }
-
-        return await staffQuery.order("desc").collect();
     },
 });
 

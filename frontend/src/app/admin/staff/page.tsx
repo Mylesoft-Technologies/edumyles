@@ -40,7 +40,7 @@ export default function StaffPage() {
     const staff = useQuery(
         api.modules.hr.queries.listStaff,
         sessionToken
-            ? { role: roleFilter === "all" ? undefined : roleFilter }
+            ? { sessionToken, role: roleFilter === "all" ? undefined : roleFilter }
             : "skip"
     );
 

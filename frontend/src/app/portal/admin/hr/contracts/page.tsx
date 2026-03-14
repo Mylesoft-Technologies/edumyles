@@ -26,14 +26,14 @@ import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 
 export default function HRContractsPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, sessionToken } = useAuth();
   const [selectedStaff, setSelectedStaff] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
 
   const staff = useQuery(
     api.modules.hr.queries.listStaff,
-    user ? { status: "active" } : "skip"
+    user ? { sessionToken: sessionToken ?? undefined, status: "active" } : "skip"
   );
 
   const contracts = useQuery(

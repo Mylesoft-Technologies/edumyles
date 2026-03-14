@@ -31,12 +31,12 @@ export default function LeaveRequestsPage() {
 
     const leaveRequests = useQuery(
         api.modules.hr.queries.listLeave,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     const staff = useQuery(
         api.modules.hr.queries.listStaff,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     if (isLoading) return <LoadingSkeleton variant="page" />;
