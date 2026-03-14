@@ -19,6 +19,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
+import { MarketplaceErrorBoundary } from "../MarketplaceErrorBoundary";
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   academic_tools: <GraduationCap className="h-5 w-5" />,
@@ -63,6 +64,14 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
 }
 
 export default function ModuleDetailPage() {
+  return (
+    <MarketplaceErrorBoundary>
+      <ModuleDetailContent />
+    </MarketplaceErrorBoundary>
+  );
+}
+
+function ModuleDetailContent() {
   const params = useParams();
   const router = useRouter();
   const { sessionToken } = useAuth();

@@ -20,6 +20,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
+import { MarketplaceErrorBoundary } from "./MarketplaceErrorBoundary";
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   academic_tools: <GraduationCap className="h-5 w-5" />,
@@ -77,6 +78,14 @@ function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
 }
 
 export default function MarketplacePage() {
+  return (
+    <MarketplaceErrorBoundary>
+      <MarketplaceContent />
+    </MarketplaceErrorBoundary>
+  );
+}
+
+function MarketplaceContent() {
   const router = useRouter();
   const { sessionToken } = useAuth();
   const [activeTab, setActiveTab] = useState("discover");
