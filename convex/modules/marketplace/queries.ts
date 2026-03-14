@@ -61,13 +61,7 @@ export const getAvailableForTier = query({
       throw new Error("TENANT_NOT_FOUND");
     }
 
-    const org = await ctx.db
-      .query("organizations")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
-      .first();
-
-    const tier = org?.tier ?? tenant.plan ?? "free";
-
+    const tier = tenant.plan ?? "free";
     const allowedModuleIds = TIER_MODULES[tier] ?? TIER_MODULES["free"];
 
     const allModules = await ctx.db.query("moduleRegistry").collect();
