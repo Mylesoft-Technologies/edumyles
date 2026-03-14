@@ -49,6 +49,7 @@ import {
   Layers,
   ArrowRight,
   MoreHorizontal,
+  Star,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlatformQuery } from "@/hooks/usePlatformQuery";
@@ -623,7 +624,7 @@ export default function AutomationCenterPage() {
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               <SelectItem value="onboarding">Onboarding</SelectItem>
               <SelectItem value="offboarding">Offboarding</SelectItem>
               <SelectItem value="compliance">Compliance</SelectItem>
@@ -640,7 +641,7 @@ export default function AutomationCenterPage() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
@@ -901,7 +902,7 @@ export default function AutomationCenterPage() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="running">Running</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="failed">Failed</SelectItem>
@@ -1023,7 +1024,7 @@ export default function AutomationCenterPage() {
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               <SelectItem value="onboarding">Onboarding</SelectItem>
               <SelectItem value="offboarding">Offboarding</SelectItem>
               <SelectItem value="compliance">Compliance</SelectItem>
