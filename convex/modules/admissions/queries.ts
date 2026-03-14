@@ -1,31 +1,38 @@
 import { v } from "convex/values";
 import { query } from "../../_generated/server";
-import { requireTenantContext } from "../../helpers/tenantGuard";
+import { requireTenantContext, requireTenantSession } from "../../helpers/tenantGuard";
 import { requirePermission } from "../../helpers/authorize";
 import { requireModule } from "../../helpers/moduleGuard";
 
 export const listApplications = query({
     args: {
+        sessionToken: v.optional(v.string()),
         status: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "admissions");
-        requirePermission(tenant, "students:read");
+        try {
+            const tenant = args.sessionToken
+                ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+                : await requireTenantContext(ctx);
+            await requireModule(ctx, tenant.tenantId, "admissions");
+            requirePermission(tenant, "students:read");
 
-        let applicationsQuery = ctx.db
-            .query("admissionApplications")
-            .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
-
-        if (args.status) {
-            applicationsQuery = ctx.db
+            let applicationsQuery = ctx.db
                 .query("admissionApplications")
-                .withIndex("by_tenant_status", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
-                );
-        }
+                .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
 
-        return await applicationsQuery.order("desc").collect();
+            if (args.status) {
+                applicationsQuery = ctx.db
+                    .query("admissionApplications")
+                    .withIndex("by_tenant_status", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
+                    );
+            }
+
+            return await applicationsQuery.order("desc").collect();
+        } catch {
+            return [];
+        }
     },
 });
 

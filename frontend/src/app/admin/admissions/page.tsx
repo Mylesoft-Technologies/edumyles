@@ -41,7 +41,7 @@ export default function AdmissionsPage() {
     const applications = useQuery(
         api.modules.admissions.queries.listApplications,
         sessionToken
-            ? { status: statusFilter === "all" ? undefined : statusFilter }
+            ? { sessionToken, status: statusFilter === "all" ? undefined : statusFilter }
             : "skip"
     );
 
