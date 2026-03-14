@@ -64,17 +64,17 @@ export default function TransportPage() {
 
     const routes = useQuery(
         api.modules.transport.queries.listRoutes,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     const vehicles = useQuery(
         api.modules.transport.queries.listVehicles,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     const drivers = useQuery(
         api.modules.transport.queries.listDrivers,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     if (isLoading) return <LoadingSkeleton variant="page" />;
