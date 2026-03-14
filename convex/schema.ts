@@ -178,6 +178,8 @@ export default defineSchema({
     ),
     status: v.union(v.literal("draft"), v.literal("published"), v.literal("deprecated")),
     version: v.string(),
+    isCore: v.optional(v.boolean()),
+    iconName: v.optional(v.string()),
     pricing: v.object({
       monthly: v.number(),
       quarterly: v.optional(v.number()),

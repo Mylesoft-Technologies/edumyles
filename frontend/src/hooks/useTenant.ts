@@ -1,5 +1,22 @@
 "use client";
+
+import { useQuery } from "@/hooks/useSSRSafeConvex";
+import { api } from "@/convex/_generated/api";
+
+/** Core module IDs — always considered installed regardless of DB state */
+const CORE_MODULE_IDS = ["sis", "communications", "users"];
+
 export function useTenant() {
+  // Query installed module IDs from Convex (includes core modules)
+  const installedModuleIds = useQuery(
+    api.modules.marketplace.queries.getInstalledModuleIds
+  );
+
+  // Always include core modules even if the query hasn't loaded yet
+  const resolvedModules = installedModuleIds
+    ? installedModuleIds
+    : CORE_MODULE_IDS;
+
   return {
     tenantId: "demo-tenant-001",
     tenant: {
@@ -14,8 +31,8 @@ export function useTenant() {
       county: "Nairobi"
     },
     organization: { _id: "demo-org-001", name: "Demo School", tier: "pro" },
-    installedModules: ["sis", "admissions", "finance", "timetable", "academics", "hr", "library", "transport", "communications"],
+    installedModules: resolvedModules,
     tier: "pro",
-    isLoading: false,
+    isLoading: installedModuleIds === undefined,
   };
 }

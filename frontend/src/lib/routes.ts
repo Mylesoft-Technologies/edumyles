@@ -73,6 +73,7 @@ export const adminNavItems: NavItem[] = [
   { label: "Support Tickets", href: "/admin/tickets", icon: Headphones, module: "tickets" },
   { label: "eWallet", href: "/admin/ewallet", icon: Wallet, module: "ewallet" },
   { label: "eCommerce", href: "/admin/ecommerce", icon: ShoppingCart, module: "ecommerce" },
+  { label: "Users", href: "/admin/users", icon: Users, module: "users" },
   { label: "Marketplace", href: "/admin/marketplace", icon: ShoppingCart },
   { label: "Settings", href: "/admin/settings", icon: Settings },
   { label: "Audit Log", href: "/admin/audit", icon: FileText },

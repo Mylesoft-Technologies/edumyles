@@ -6,9 +6,11 @@ import { useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { adminNavItems } from "@/lib/routes";
+import { useTenant } from "@/hooks/useTenant";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { installedModules } = useTenant();
 
   const handleMobileMenuToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -27,30 +29,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   return (
-    <ConvexAuthProvider>
-      <div className="min-h-screen bg-background relative z-[500] admin-layout">
-        <Header onMobileMenuToggle={handleMobileMenuToggle} />
-        <div className="flex min-h-[calc(100vh-4rem)]">
-          {/* Desktop Sidebar */}
-          <div className="hidden md:block">
-            <Sidebar navItems={adminNavItems} />
-          </div>
-          
-          {/* Mobile Sidebar */}
-          {mobileMenuOpen && (
-            <Sidebar 
-              navItems={adminNavItems} 
-              isMobile={true} 
-              onClose={handleMobileMenuClose}
-            />
-          )}
-          
-          {/* Main Content */}
-          <main className="flex-1 bg-muted/20 p-4 md:p-6">
-            <div className="mx-auto max-w-[1400px]">{children}</div>
-          </main>
+    <div className="min-h-screen bg-background relative z-[500] admin-layout">
+      <Header onMobileMenuToggle={handleMobileMenuToggle} />
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <Sidebar navItems={adminNavItems} installedModules={installedModules} />
         </div>
+
+        {/* Mobile Sidebar */}
+        {mobileMenuOpen && (
+          <Sidebar
+            navItems={adminNavItems}
+            installedModules={installedModules}
+            isMobile={true}
+            onClose={handleMobileMenuClose}
+          />
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 bg-muted/20 p-4 md:p-6">
+          <div className="mx-auto max-w-[1400px]">{children}</div>
+        </main>
       </div>
+    </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ConvexAuthProvider>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
     </ConvexAuthProvider>
   );
 }
