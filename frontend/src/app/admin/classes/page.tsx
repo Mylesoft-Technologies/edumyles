@@ -27,7 +27,7 @@ export default function ClassesPage() {
 
     const classes = useQuery(
         api.modules.sis.queries.listClasses,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     if (isLoading) return <LoadingSkeleton variant="page" />;

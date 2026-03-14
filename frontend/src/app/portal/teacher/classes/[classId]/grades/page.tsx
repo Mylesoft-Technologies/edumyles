@@ -21,11 +21,14 @@ export default function ClassGradesPage({
   params: Promise<{ classId: string }>;
 }) {
   const { classId } = use(params);
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, sessionToken } = useAuth();
   const [term, setTerm] = useState<string>("Term 1");
   const [grades, setGrades] = useState<Record<string, { score: string; remarks: string }>>({});
 
-  const classData = useQuery(api.modules.sis.queries.listClasses, {})?.find(c => c._id === classId);
+  const classData = useQuery(
+    api.modules.sis.queries.listClasses,
+    sessionToken ? { sessionToken } : "skip"
+  )?.find((c) => c._id === classId);
   const students = useQuery(api.modules.academics.queries.getClassStudents, { classId });
 
   const enterGradesMutation = useMutation(api.modules.academics.mutations.enterGrades);

@@ -19,12 +19,12 @@ export default function ClassDetailPage() {
 
     const classes = useQuery(
         api.modules.sis.queries.listClasses,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     const students = useQuery(
         api.modules.sis.queries.listStudents,
-        sessionToken && classId ? { classId } : "skip"
+        sessionToken && classId ? { sessionToken, classId } : "skip"
     );
 
     if (isLoading || classes === undefined) return <LoadingSkeleton variant="page" />;

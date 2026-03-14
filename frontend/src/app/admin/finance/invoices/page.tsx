@@ -38,7 +38,7 @@ export default function InvoicesPage() {
         !!sessionToken
     );
 
-    const students = usePlatformQuery(api.modules.sis.queries.listStudents, {}, !!sessionToken);
+    const students = usePlatformQuery(api.modules.sis.queries.listStudents, { sessionToken }, !!sessionToken);
 
     if (isLoading) return <LoadingSkeleton variant="page" />;
 

@@ -67,7 +67,7 @@ export default function CreateStudentPage() {
 
     const classes = useQuery(
         api.modules.sis.queries.listClasses,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     const createStudent = useMutation(api.modules.sis.mutations.createStudent);

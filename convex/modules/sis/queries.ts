@@ -1,45 +1,54 @@
 import { v } from "convex/values";
 import { query } from "../../_generated/server";
-import { requireTenantContext } from "../../helpers/tenantGuard";
+import { requireTenantContext, requireTenantSession } from "../../helpers/tenantGuard";
 import { requirePermission } from "../../helpers/authorize";
 import { requireModule } from "../../helpers/moduleGuard";
 
 export const listStudents = query({
     args: {
+        sessionToken: v.optional(v.string()),
         status: v.optional(v.string()),
         classId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "sis");
-        requirePermission(tenant, "students:read");
+        try {
+            const tenant = args.sessionToken
+                ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+                : await requireTenantContext(ctx);
+            await requireModule(ctx, tenant.tenantId, "sis");
+            requirePermission(tenant, "students:read");
 
-        let studentsQuery = ctx.db
-            .query("students")
-            .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
+            let studentsQuery = ctx.db
+                .query("students")
+                .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
 
-        if (args.status) {
-            studentsQuery = ctx.db
-                .query("students")
-                .withIndex("by_tenant_status", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
-                );
-        } else if (args.classId) {
-            studentsQuery = ctx.db
-                .query("students")
-                .withIndex("by_tenant_class", (q) =>
-                    q.eq("tenantId", tenant.tenantId).eq("classId", args.classId)
-                );
+            if (args.status) {
+                studentsQuery = ctx.db
+                    .query("students")
+                    .withIndex("by_tenant_status", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("status", args.status!)
+                    );
+            } else if (args.classId) {
+                studentsQuery = ctx.db
+                    .query("students")
+                    .withIndex("by_tenant_class", (q) =>
+                        q.eq("tenantId", tenant.tenantId).eq("classId", args.classId)
+                    );
+            }
+
+            return await studentsQuery.order("desc").collect();
+        } catch {
+            return [];
         }
-
-        return await studentsQuery.order("desc").collect();
     },
 });
 
 export const getStudent = query({
-    args: { studentId: v.id("students") },
+    args: { studentId: v.id("students"), sessionToken: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
+        const tenant = args.sessionToken
+            ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+            : await requireTenantContext(ctx);
         await requireModule(ctx, tenant.tenantId, "sis");
         requirePermission(tenant, "students:read");
 
@@ -70,9 +79,11 @@ export const getStudent = query({
 });
 
 export const getStudentStats = query({
-    args: {},
-    handler: async (ctx) => {
-        const tenant = await requireTenantContext(ctx);
+    args: { sessionToken: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        const tenant = args.sessionToken
+            ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+            : await requireTenantContext(ctx);
         await requireModule(ctx, tenant.tenantId, "sis");
         requirePermission(tenant, "students:read");
 
@@ -92,41 +103,50 @@ export const getStudentStats = query({
 
 export const listClasses = query({
     args: {
+        sessionToken: v.optional(v.string()),
         academicYear: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
-        await requireModule(ctx, tenant.tenantId, "sis");
-        requirePermission(tenant, "students:read");
+        try {
+            const tenant = args.sessionToken
+                ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+                : await requireTenantContext(ctx);
+            await requireModule(ctx, tenant.tenantId, "sis");
+            requirePermission(tenant, "students:read");
 
-        let classesQuery = ctx.db
-            .query("classes")
-            .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
+            let classesQuery = ctx.db
+                .query("classes")
+                .withIndex("by_tenant", (q) => q.eq("tenantId", tenant.tenantId));
 
-        const classes = await classesQuery.collect();
-        const enrichedClasses = await Promise.all(
-            classes.map(async (c) => {
-                const students = await ctx.db
-                    .query("students")
-                    .withIndex("by_tenant_class", (q) =>
-                        q.eq("tenantId", tenant.tenantId).eq("classId", c._id)
-                    )
-                    .collect();
-                return { ...c, studentCount: students.length };
-            })
-        );
+            const classes = await classesQuery.collect();
+            const enrichedClasses = await Promise.all(
+                classes.map(async (c) => {
+                    const students = await ctx.db
+                        .query("students")
+                        .withIndex("by_tenant_class", (q) =>
+                            q.eq("tenantId", tenant.tenantId).eq("classId", c._id)
+                        )
+                        .collect();
+                    return { ...c, studentCount: students.length };
+                })
+            );
 
-        if (args.academicYear) {
-            return enrichedClasses.filter((c) => c.academicYear === args.academicYear);
+            if (args.academicYear) {
+                return enrichedClasses.filter((c) => c.academicYear === args.academicYear);
+            }
+            return enrichedClasses;
+        } catch {
+            return [];
         }
-        return enrichedClasses;
     },
 });
 
 export const listGuardians = query({
-    args: {},
+    args: { sessionToken: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        const tenant = await requireTenantContext(ctx);
+        const tenant = args.sessionToken
+            ? await requireTenantSession(ctx, { sessionToken: args.sessionToken })
+            : await requireTenantContext(ctx);
         await requireModule(ctx, tenant.tenantId, "sis");
         requirePermission(tenant, "students:read");
 

@@ -27,7 +27,7 @@ import { AdminCharts } from "@/components/admin/AdminCharts";
 export default function AdminDashboardPage() {
   const { isLoading, sessionToken } = useAuth();
 
-  const students = usePlatformQuery(api.modules.sis.queries.listStudents, {}, !!sessionToken);
+  const students = usePlatformQuery(api.modules.sis.queries.listStudents, { sessionToken }, !!sessionToken);
   const staff = usePlatformQuery(api.modules.hr.queries.listStaff, {}, !!sessionToken);
   const applications = usePlatformQuery(api.modules.admissions.queries.listApplications, {}, !!sessionToken);
   const invoices = usePlatformQuery(api.modules.finance.queries.listInvoices, {}, !!sessionToken);

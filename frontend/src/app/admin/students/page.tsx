@@ -39,13 +39,13 @@ export default function StudentsPage() {
     const students = useQuery(
         api.modules.sis.queries.listStudents,
         sessionToken
-            ? { status: statusFilter === "all" ? undefined : statusFilter }
+            ? { sessionToken, status: statusFilter === "all" ? undefined : statusFilter }
             : "skip"
     );
 
     const classes = useQuery(
         api.modules.sis.queries.listClasses,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     if (isLoading) return <LoadingSkeleton variant="page" />;

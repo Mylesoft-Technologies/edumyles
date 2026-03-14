@@ -31,11 +31,12 @@ type Assignment = {
 
 export default function ClassDetailsPage({ params }: { params: Promise<{ classId: string }> }) {
   const { classId } = use(params);
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, sessionToken } = useAuth();
 
-  const classData = useQuery(api.modules.sis.queries.listClasses, {})?.find(
-    (c) => c._id === classId
-  );
+  const classData = useQuery(
+    api.modules.sis.queries.listClasses,
+    sessionToken ? { sessionToken } : "skip"
+  )?.find((c) => c._id === classId);
   const students = useQuery(api.modules.academics.queries.getClassStudents, { classId });
   const assignments = useQuery(api.modules.academics.queries.getAssignments, { classId });
 

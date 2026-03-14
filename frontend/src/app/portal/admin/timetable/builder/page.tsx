@@ -61,7 +61,7 @@ const COLORS = [
 
 export default function TimetableBuilderPage() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, sessionToken } = useAuth();
   const [selectedDay, setSelectedDay] = useState(1); // Monday
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("2024");
@@ -69,7 +69,7 @@ export default function TimetableBuilderPage() {
 
   const classes = useQuery(
     api.modules.sis.queries.listClasses,
-    user ? {} : "skip"
+    user ? { sessionToken: sessionToken ?? undefined } : "skip"
   );
 
   const slots = useQuery(
