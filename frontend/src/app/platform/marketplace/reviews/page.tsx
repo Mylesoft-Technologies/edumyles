@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { MarketplaceErrorBoundary } from "../MarketplaceErrorBoundary";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("en-KE", { year: "numeric", month: "short", day: "numeric" });
@@ -34,6 +35,14 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export default function ReviewModerationPage() {
+  return (
+    <MarketplaceErrorBoundary>
+      <ReviewModerationContent />
+    </MarketplaceErrorBoundary>
+  );
+}
+
+function ReviewModerationContent() {
   const { sessionToken } = useAuth();
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<any>(null);

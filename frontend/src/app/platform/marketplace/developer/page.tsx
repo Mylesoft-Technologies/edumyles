@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
+import { MarketplaceErrorBoundary } from "../MarketplaceErrorBoundary";
 
 function formatPrice(cents: number) {
   return `KES ${(cents / 100).toLocaleString()}`;
@@ -31,6 +32,14 @@ function formatDate(ts: number) {
 }
 
 export default function DeveloperPortalPage() {
+  return (
+    <MarketplaceErrorBoundary>
+      <DeveloperPortalContent />
+    </MarketplaceErrorBoundary>
+  );
+}
+
+function DeveloperPortalContent() {
   const { sessionToken } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);

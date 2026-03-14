@@ -22,6 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { MarketplaceErrorBoundary } from "../MarketplaceErrorBoundary";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("en-KE", { year: "numeric", month: "short", day: "numeric" });
@@ -38,6 +39,14 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function MarketplaceAdminPage() {
+  return (
+    <MarketplaceErrorBoundary>
+      <MarketplaceAdminContent />
+    </MarketplaceErrorBoundary>
+  );
+}
+
+function MarketplaceAdminContent() {
   const router = useRouter();
   const { sessionToken } = useAuth();
   const [activeTab, setActiveTab] = useState("pending");
