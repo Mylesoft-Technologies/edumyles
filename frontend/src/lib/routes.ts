@@ -47,6 +47,7 @@ export const platformNavItems: NavItem[] = [
   { label: "System Health", href: "/platform/health", icon: Activity },
   { label: "Security Operations", href: "/platform/security", icon: Shield },
   { label: "Automation Center", href: "/platform/automation", icon: Zap },
+  { label: "Tenant Success", href: "/platform/tenant-success", icon: TrendingUp },
   { label: "Analytics", href: "/platform/analytics", icon: BarChart3 },
   { label: "Marketplace", href: "/platform/marketplace", icon: ShoppingCart },
   { label: "Billing", href: "/platform/billing", icon: DollarSign },

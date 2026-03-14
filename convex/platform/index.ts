@@ -10,5 +10,6 @@ export * from "./impersonation";
 export * from "./notifications";
 export * from "./security";
 export * from "./settings";
+export * from "./tenantSuccess";
 export * from "./tenants";
 export * from "./users";
