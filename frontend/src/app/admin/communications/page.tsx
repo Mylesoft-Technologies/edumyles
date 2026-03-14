@@ -6,7 +6,7 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { AdminStatsCard } from "@/components/admin/AdminStatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@/hooks/useSSRSafeConvex";
+import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Bell, MessageSquare, Send, Users, Mail } from "lucide-react";
@@ -32,20 +32,19 @@ const priorityColors: Record<string, "default" | "secondary" | "destructive" | "
 export default function CommunicationsPage() {
     const { isLoading, sessionToken } = useAuth();
 
-    const announcements = useQuery(
+    const announcements = usePlatformQuery(
         api.modules.communications.queries.listAnnouncements,
-        sessionToken ? { sessionToken } : "skip"
+        sessionToken ? { sessionToken } : "skip",
+        !!sessionToken
     );
 
-    // Mock stats - in real app, this would come from API
-    const stats = {
-        totalMessages: 1247,
-        activeCampaigns: 3,
-        deliveryRate: 96,
-        openRate: 78,
-    };
+    const stats = usePlatformQuery(
+        api.modules.communications.queries.getCommunicationsStats,
+        sessionToken ? { sessionToken } : "skip",
+        !!sessionToken
+    );
 
-    if (isLoading || !announcements) return <LoadingSkeleton variant="page" />;
+    if (isLoading || !announcements || !stats) return <LoadingSkeleton variant="page" />;
 
     const columns: Column<Announcement>[] = [
         {

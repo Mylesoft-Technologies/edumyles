@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { AdminStatsCard } from "@/components/admin/AdminStatsCard";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@/hooks/useSSRSafeConvex";
+import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
 import { 
   BookOpen, 
@@ -25,69 +25,14 @@ import Link from "next/link";
 export default function AcademicsPage() {
   const { isLoading, sessionToken } = useAuth();
 
-  // Mock data - in real app, this would come from API
-  const stats = {
-    totalClasses: 24,
-    totalSubjects: 45,
-    activeTeachers: 32,
-    avgPerformance: 78,
-  };
+  // Fetch real data from Convex
+  const stats = usePlatformQuery(api.modules.academics.queries.getAcademicsStats, { sessionToken }, !!sessionToken);
+  const recentExams = usePlatformQuery(api.modules.academics.queries.getRecentExams, { sessionToken, limit: 5 }, !!sessionToken);
+  const upcomingEvents = usePlatformQuery(api.modules.academics.queries.getUpcomingEvents, { sessionToken, limit: 5 }, !!sessionToken);
 
-  const recentExams = [
-    {
-      id: "1",
-      name: "Mid-Term Examinations",
-      class: "Grade 5",
-      date: "2024-03-15",
-      status: "completed",
-      submissions: 38,
-      total: 40,
-    },
-    {
-      id: "2",
-      name: "Science Practical Test",
-      class: "Grade 8",
-      date: "2024-03-18",
-      status: "ongoing",
-      submissions: 25,
-      total: 35,
-    },
-    {
-      id: "3",
-      name: "Mathematics Assessment",
-      class: "Grade 3",
-      date: "2024-03-20",
-      status: "scheduled",
-      submissions: 0,
-      total: 42,
-    },
-  ];
-
-  const upcomingEvents = [
-    {
-      id: "1",
-      title: "Parent-Teacher Meeting",
-      date: "2024-03-25",
-      time: "2:00 PM",
-      type: "meeting",
-    },
-    {
-      id: "2",
-      title: "Science Fair",
-      date: "2024-03-28",
-      time: "9:00 AM",
-      type: "event",
-    },
-    {
-      id: "3",
-      title: "End of Term Exams",
-      date: "2024-04-10",
-      time: "8:00 AM",
-      type: "exam",
-    },
-  ];
-
-  if (isLoading) return <LoadingSkeleton variant="page" />;
+  if (isLoading || !stats || !recentExams || !upcomingEvents) {
+    return <LoadingSkeleton variant="page" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -151,7 +96,7 @@ export default function AcademicsPage() {
             <CardContent>
               <div className="space-y-4">
                 {recentExams.map((exam) => (
-                  <div key={exam.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={exam._id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-medium">{exam.name}</h4>
@@ -167,7 +112,7 @@ export default function AcademicsPage() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          {exam.class}
+                          {exam.className}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -180,7 +125,7 @@ export default function AcademicsPage() {
                       </div>
                     </div>
                     <Button asChild size="sm" variant="outline">
-                      <Link href={`/admin/academics/exams/${exam.id}`}>Manage</Link>
+                      <Link href={`/admin/academics/exams/${exam._id}`}>Manage</Link>
                     </Button>
                   </div>
                 ))}
@@ -233,7 +178,7 @@ export default function AcademicsPage() {
             <CardContent>
               <div className="space-y-3">
                 {upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                  <div key={event._id} className="flex items-start gap-3 p-3 border rounded-lg">
                     <div className="p-2 bg-success-bg rounded-full">
                       <Clock className="h-4 w-4 text-primary" />
                     </div>

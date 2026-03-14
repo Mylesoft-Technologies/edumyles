@@ -39,9 +39,7 @@ export default function TenantsPage() {
     { sessionToken: sessionToken || "" }
   );
 
-  // Debug logging
-  console.log("TenantsPage - API data:", { tenants, tenantsLoading, hasSessionToken: !!sessionToken });
-
+  
   // Mock data for demonstration
   const mockTenants: Tenant[] = [
     {
@@ -123,13 +121,6 @@ export default function TenantsPage() {
 
   // Use real data if available, otherwise use mock data
   const tenantsData = tenants && tenants.length > 0 ? tenants : mockTenants;
-  
-  // Debug logging to show what data is being used
-  console.log("TenantsPage - Using data:", { 
-    hasRealData: !!(tenants && tenants.length > 0), 
-    realDataCount: tenants?.length || 0, 
-    mockDataCount: mockTenants.length 
-  });
 
   // Calculate statistics
   const stats = useMemo(() => {

@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { StatCard } from "@/components/shared/StatCard";
 import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@/hooks/useSSRSafeConvex";
+import { usePlatformQuery } from "@/hooks/usePlatformQuery";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,10 @@ import { formatCurrency, formatPercentage } from "@/lib/formatters";
 export default function FinanceDashboardPage() {
     const { isLoading, sessionToken } = useAuth();
 
-    const report = useQuery(
+    const report = usePlatformQuery(
         api.modules.finance.queries.getFinancialReport,
-        sessionToken ? { sessionToken } : "skip"
+        sessionToken ? { sessionToken } : "skip",
+        !!sessionToken
     );
 
     if (isLoading || !report) return <LoadingSkeleton variant="page" />;
