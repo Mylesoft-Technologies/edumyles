@@ -797,6 +797,132 @@ export default defineSchema({
     .index("by_tenant", ["tenantId"])
     .index("by_student_term", ["studentId", "term", "academicYear"]),
 
+  // Workflow Management System
+  workflows: defineTable({
+    tenantId: v.string(),
+    name: v.string(),
+    description: v.string(),
+    category: v.union(
+      v.literal("onboarding"),
+      v.literal("offboarding"),
+      v.literal("compliance"),
+      v.literal("security"),
+      v.literal("communications"),
+      v.literal("data_management"),
+      v.literal("approval"),
+      v.literal("notification"),
+      v.literal("integration")
+    ),
+    trigger: v.union(
+      v.literal("manual"),
+      v.literal("scheduled"),
+      v.literal("event_based"),
+      v.literal("webhook")
+    ),
+    triggerConfig: v.optional(v.record(v.any())),
+    steps: v.array(v.object({
+      id: v.string(),
+      name: v.string(),
+      type: v.union(
+        v.literal("action"),
+        v.literal("condition"),
+        v.literal("approval"),
+        v.literal("notification"),
+        v.literal("delay"),
+        v.literal("integration"),
+        v.literal("data_operation")
+      ),
+      config: v.record(v.any()),
+      position: v.number(),
+    })),
+    isActive: v.boolean(),
+    createdBy: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    executionCount: v.number(),
+    successRate: v.number(),
+    averageDuration: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_category", ["tenantId", "category"])
+    .index("by_status", ["tenantId", "isActive"]),
+
+  workflowExecutions: defineTable({
+    workflowId: v.string(),
+    workflowName: v.string(),
+    executionId: v.string(),
+    status: v.union(v.literal("running"), v.literal("completed"), v.literal("failed"), v.literal("cancelled")),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    duration: v.number(),
+    triggeredBy: v.string(),
+    triggerData: v.record(v.any()),
+    steps: v.array(v.object({
+      id: v.string(),
+      name: v.string(),
+      type: v.string(),
+      status: v.union(v.literal("pending"), v.literal("running"), v.literal("completed"), v.literal("failed")),
+      startedAt: v.number(),
+      completedAt: v.optional(v.number()),
+      duration: v.number(),
+      output: v.optional(v.any()),
+      error: v.optional(v.object({
+        message: v.string(),
+        timestamp: v.number(),
+      })),
+    })),
+    error: v.optional(v.object({
+      message: v.string(),
+      stack: v.string(),
+      timestamp: v.number(),
+    })),
+    tenantId: v.string(),
+  })
+    .index("by_workflow", ["workflowId"])
+    .index("by_tenant", ["tenantId"])
+    .index("by_status", ["tenantId", "status"])
+    .index("by_executionId", ["executionId"]),
+
+  // Analytics and Reporting System
+  reports: defineTable({
+    tenantId: v.string(),
+    name: v.string(),
+    description: v.string(),
+    reportType: v.union(
+      v.literal("user_analytics"),
+      v.literal("ticket_analytics"),
+      v.literal("workflow_analytics"),
+      v.literal("tenant_analytics"),
+      v.literal("system_analytics"),
+      v.literal("custom")
+    ),
+    config: v.object({
+      timeRange: v.union(v.literal("1h"), v.literal("24h"), v.literal("7d"), v.literal("30d"), v.literal("90d")),
+      filters: v.optional(v.record(v.any())),
+      metrics: v.array(v.string()),
+      groupBy: v.optional(v.string()),
+      chartType: v.union(v.literal("line"), v.literal("bar"), v.literal("pie"), v.literal("table")),
+    }),
+    schedule: v.optional(v.object({
+      enabled: v.boolean(),
+      frequency: v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly")),
+      recipients: v.array(v.string()),
+    })),
+    status: v.union(v.literal("created"), v.literal("generating"), v.literal("completed"), v.literal("failed")),
+    createdBy: v.string(),
+    createdAt: v.number(),
+    lastGenerated: v.optional(v.number()),
+    nextScheduled: v.optional(v.number()),
+    data: v.optional(v.any()),
+    lastExported: v.optional(v.number()),
+    exportFormat: v.optional(v.union(v.literal("csv"), v.literal("excel"), v.literal("pdf"))),
+    exportUrl: v.optional(v.string()),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_type", ["tenantId", "reportType"])
+    .index("by_status", ["tenantId", "status"])
+    .index("by_createdBy", ["tenantId", "createdBy"]),
+
   // Ticket Management System - Module 04
   tickets: defineTable({
     tenantId: v.string(),
@@ -820,6 +946,36 @@ export default defineSchema({
     csatScore: v.optional(v.number()),
     csatComment: v.optional(v.string()),
     linearIssueUrl: v.optional(v.string()),
+    // AI Analysis fields
+    aiAnalysis: v.optional(v.object({
+      sentiment: v.object({
+        sentiment: v.string(),
+        confidence: v.number(),
+        emotions: v.array(v.string()),
+        keyPhrases: v.array(v.string()),
+        urgency: v.string(),
+        escalationRecommended: v.boolean(),
+      }),
+      analyzedAt: v.number(),
+      analyzedBy: v.string(),
+    })),
+    aiCategorization: v.optional(v.object({
+      category: v.string(),
+      confidence: v.number(),
+      priority: v.string(),
+      reasoning: v.string(),
+      alternatives: v.array(v.string()),
+      factors: v.array(v.string()),
+      escalation: v.object({
+        recommended: v.boolean(),
+        confidence: v.number(),
+        reason: v.string(),
+        suggestedLevel: v.string(),
+      }),
+    })),
+    categorizedAt: v.optional(v.number()),
+    categorizedBy: v.optional(v.string()),
+    escalatedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
