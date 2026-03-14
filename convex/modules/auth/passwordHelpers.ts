@@ -23,6 +23,7 @@ export const getUserByUserId = query({
       email: user.email,
       passwordHash: user.passwordHash ?? null,
       twoFactorEnabled: user.twoFactorEnabled ?? false,
+      twoFactorSecret: user.twoFactorSecret,
     };
   },
 });

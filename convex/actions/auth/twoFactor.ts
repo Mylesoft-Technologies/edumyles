@@ -21,11 +21,10 @@ export const generateTwoFactorSecret = action({
     if (!session) throw new Error("UNAUTHENTICATED: Invalid session");
 
     // Get user details
-    const users = (await ctx.runQuery(api.modules.auth.queries.getAllUsers)) as Array<{
-      eduMylesUserId?: string;
-      email?: string;
-    }>;
-    const user = users.find((u) => u.eduMylesUserId === session.userId);
+    const user = await ctx.runQuery(api.modules.auth.passwordHelpers.getUserByUserId, {
+      sessionToken: args.sessionToken,
+      userId: session.userId,
+    });
     if (!user) throw new Error("User not found");
 
     // Generate TOTP secret
@@ -170,7 +169,7 @@ export const verifyTwoFactor = action({
 
     if (!verified) {
       // Check backup codes
-      const backupCodeValid = await ctx.runQuery(api.modules.auth.twoFactorHelpers.verifyBackupCode, {
+      const backupCodeValid = await ctx.runMutation(api.modules.auth.twoFactorHelpers.verifyBackupCode, {
         sessionToken: args.sessionToken,
         userId: session.userId,
         code: args.token,
