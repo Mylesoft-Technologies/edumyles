@@ -730,33 +730,48 @@ export default function ProfilePage() {
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const firstName = isEditing ? (editForm?.firstName ?? "") : (profileData?.firstName ?? sessionUser?.firstName ?? "");
-  const lastName = isEditing ? (editForm?.lastName ?? "") : (profileData?.lastName ?? sessionUser?.lastName ?? "");
-  const email = profileData?.email ?? sessionUser?.email ?? "";
-  const role = profileData?.role ?? sessionUser?.role ?? "";
-  const avatarUrl = profileData?.avatarUrl ?? sessionUser?.avatarUrl;
-  const initials =
-    `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() ||
-    email[0]?.toUpperCase() ||
-    "U";
-  const createdAt = profileData?.createdAt ? new Date(profileData.createdAt) : null;
-  const hasExistingPassword = !!profileData?.passwordHash;
-  const twoFactorEnabled = !!profileData?.twoFactorEnabled;
-
-  const profileFields = [
-    profileData?.firstName,
-    profileData?.lastName,
-    profileData?.phone,
-    profileData?.bio,
-    profileData?.location,
-  ];
-  const filledCount = profileFields.filter(Boolean).length;
-  const completeness = Math.round((filledCount / profileFields.length) * 100);
-
-  // Filter activity logs for current user
-  const userActivity = Array.isArray(activityLog)
-    ? activityLog.filter((log: any) => log.actorId === sessionUser?._id).slice(0, 10)
-    : [];
+    const file = e.target.files?.[0];
+    if (!file || !sessionToken) return;
+    setIsUploadingAvatar(true);
+    try {
+      const uploadUrl = await generateUploadUrl({ sessionToken });
+      console.log("Avatar upload URL:", uploadUrl);
+      console.log("File details:", { name: file.name, type: file.type, size: file.size });
+      
+      const result = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": file.type,
+          "Content-Length": file.size.toString(),
+          },
+        body: file,
+      });
+      
+      console.log("Upload response status:", result.status);
+      console.log("Upload response ok:", result.ok);
+      
+      if (!result.ok) {
+        const errorText = await result.text();
+        console.error("Upload failed:", errorText);
+        throw new Error(`Upload failed: ${errorText}`);
+      }
+      
+      const { storageId } = await result.json();
+      console.log("Storage ID received:", storageId);
+      
+      await saveAvatar({ sessionToken, storageId });
+      toast({ title: "Photo Updated", description: "Your avatar has been updated." });
+    } catch (error: any) {
+      console.error("Avatar upload error:", error);
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Could not upload photo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
