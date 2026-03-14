@@ -24,7 +24,7 @@ export default function FeeStructuresPage() {
 
     const feeStructures = useQuery(
         api.modules.finance.queries.listFeeStructures,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     if (isLoading) return <LoadingSkeleton variant="page" />;

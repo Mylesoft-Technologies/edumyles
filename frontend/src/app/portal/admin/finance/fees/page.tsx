@@ -53,7 +53,7 @@ interface DiscountRule {
 }
 
 export default function FeeStructuresPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, sessionToken } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("all");
   const [selectedYear, setSelectedYear] = useState("2024");
@@ -83,6 +83,7 @@ export default function FeeStructuresPage() {
   const feeStructures = useQuery(
     api.modules.finance.queries.listFeeStructures,
     user ? {
+      sessionToken: sessionToken ?? undefined,
       grade: selectedGrade === "all" ? undefined : selectedGrade,
       academicYear: selectedYear === "all" ? undefined : selectedYear
     } : "skip"

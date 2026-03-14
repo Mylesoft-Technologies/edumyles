@@ -43,7 +43,7 @@ export default function ParentPaymentsPage() {
 
   const payments = useQuery(
     api.modules.finance.queries.getFinancialReport,
-    {}
+    user ? { sessionToken: sessionToken ?? undefined } : "skip"
   );
 
   const generateReceipt = useMutation(api.modules.finance.mutations.generateReceipt);

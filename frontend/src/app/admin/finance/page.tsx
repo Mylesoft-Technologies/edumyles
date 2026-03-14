@@ -17,7 +17,7 @@ export default function FinanceDashboardPage() {
 
     const report = useQuery(
         api.modules.finance.queries.getFinancialReport,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     if (isLoading || !report) return <LoadingSkeleton variant="page" />;
