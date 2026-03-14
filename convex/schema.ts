@@ -1165,6 +1165,332 @@ export default defineSchema({
     .index("by_overall", ["tenantId", "overall"])
     .index("by_lastChecked", ["lastChecked"]),
 
+  // Advanced Security Dashboard - Threat Detection & Security Monitoring
+  threats: defineTable({
+    tenantId: v.string(),
+    type: v.union(
+      v.literal("malware"),
+      v.literal("phishing"),
+      v.literal("brute_force"),
+      v.literal("ddos"),
+      v.literal("injection"),
+      v.literal("xss"),
+      v.literal("social_engineering"),
+      v.literal("insider_threat")
+    ),
+    severity: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("critical")),
+    status: v.union(v.literal("active"), v.literal("mitigating"), v.literal("resolved"), v.literal("false_positive")),
+    source: v.object({
+      ip: v.string(),
+      country: v.string(),
+      userAgent: v.optional(v.string()),
+      email: v.optional(v.string()),
+    }),
+    target: v.object({
+      system: v.string(),
+      user: v.optional(v.string()),
+      data: v.optional(v.string()),
+    }),
+    detectedAt: v.number(),
+    mitigatedAt: v.optional(v.number()),
+    description: v.string(),
+    indicators: v.array(v.string()),
+    confidence: v.number(),
+    falsePositive: v.optional(v.boolean()),
+    createdBy: v.string(),
+    tenantId: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_type", ["tenantId", "type"])
+    .index("by_severity", ["tenantId", "severity"])
+    .index("by_status", ["tenantId", "status"])
+    .index("by_detectedAt", ["detectedAt"]),
+
+  threatAcknowledgements: defineTable({
+    threatId: v.string(),
+    userId: v.string(),
+    notes: v.string(),
+    acknowledgedAt: v.number(),
+    tenantId: v.string(),
+  })
+    .index("by_threatId", ["threatId"])
+    .index("by_userId", ["userId", "acknowledgedAt"]),
+
+  threatMitigations: defineTable({
+    threatId: v.string(),
+    action: v.string(),
+    implementedBy: v.string(),
+    implementedAt: v.number(),
+    effectiveness: v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
+    verified: v.boolean(),
+    tenantId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_threatId", ["threatId"])
+    .index("by_tenant", ["tenantId"]),
+
+  blockedIPs: defineTable({
+    _id: v.string(),
+    ip: v.string(),
+    reason: v.string(),
+    blockedBy: v.string(),
+    blockedAt: v.number(),
+    expiresAt: v.number(),
+    threatId: v.optional(v.string()),
+    tenantId: v.string(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_ip", ["ip"])
+    .index("by_expiresAt", ["expiresAt"]),
+
+  securityIncidents: defineTable({
+    tenantId: v.string(),
+    title: v.string(),
+    description: v.string(),
+    severity: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("critical")),
+    category: v.union(
+      v.literal("unauthorized_access"),
+      v.literal("data_breach"),
+      v.literal("malware"),
+      v.literal("phishing"),
+      v.literal("denial_of_service"),
+      v.literal("vulnerability"),
+      v.literal("policy_violation"),
+      v.literal("other")
+    ),
+    status: v.union(v.literal("open"), v.literal("investigating"), v.literal("contained"), v.literal("resolved"), v.literal("closed")),
+    affectedSystems: v.array(v.string()),
+    affectedTenants: v.array(v.string()),
+    discoveredAt: v.number(),
+    reportedAt: v.number(),
+    reportedBy: v.string(),
+    assignee: v.optional(v.string()),
+    tags: v.array(v.string()),
+    tenantId: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    startTime: v.number(),
+    endTime: v.optional(v.number()),
+    duration: v.optional(v.number()),
+    resolution: v.optional(v.string()),
+    resolvedBy: v.optional(v.string()),
+    impactAssessment: v.object({
+      affectedUsers: v.number(),
+      dataExposed: v.boolean(),
+      systemIntegrity: v.string(),
+      businessImpact: v.string(),
+    }),
+    mitigations: v.array(v.string()),
+    rootCause: v.optional(v.string()),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_status", ["tenantId", "status"])
+    .index("by_category", ["tenantId", "category"])
+    .index("by_severity", ["tenantId", "severity"])
+    .index("by_createdBy", ["tenantId", "createdBy"])
+    .index("by_createdAt", ["createdAt"]),
+
+  securityIncidentTimeline: defineTable({
+    incidentId: v.string(),
+    type: v.union(v.literal("status_change"), v.literal("note"), v.literal("action"), v.literal("notification")),
+    message: v.string(),
+    metadata: v.optional(v.any()),
+    createdBy: v.string(),
+    tenantId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_incidentId", ["incidentId"])
+    .index("by_tenant", ["tenantId"])
+    .index("by_createdAt", ["createdAt"]),
+
+  securityNotifications: defineTable({
+    _id: v.string(),
+    type: v.string(),
+    title: v.string(),
+    message: v.string(),
+    incidentId: v.optional(v.string()),
+    severity: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("critical")),
+    status: v.union(v.literal("unread"), v.literal("read")),
+    sentTo: v.string(),
+    sentBy: v.string(),
+    tenantId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_type", ["tenantId", "type"])
+    .index("by_status", ["tenantId", "status"])
+    .index("by_createdAt", ["createdAt"]),
+
+  vulnerabilityScans: defineTable({
+    _id: v.string(),
+    type: v.union(v.literal("quick"), v.literal("standard"), v.literal("comprehensive")),
+    status: v.union(v.literal("running"), v.literal("completed"), v.literal("failed")),
+    targets: v.array(v.string()),
+    initiatedBy: v.string(),
+    tenantId: v.string(),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    vulnerabilitiesFound: v.number(),
+    highRiskVulnerabilities: v.number(),
+    mediumRiskVulnerabilities: v.number(),
+    lowRiskVulnerabilities: v.number(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_status", ["tenantId", "status"])
+    .index("by_type", ["tenantId", "type"])
+    .index("by_initiatedBy", ["tenantId", "initiatedBy"])
+    .index("by_startedAt", ["startedAt"]),
+
+  vulnerabilities: defineTable({
+    _id: v.string(),
+    scanId: v.string(),
+    id: v.string(),
+    severity: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("critical")),
+    category: v.string(),
+    title: v.string(),
+    description: v.string(),
+    affectedSystem: v.string(),
+    cveId: v.optional(v.string()),
+    riskScore: v.number(),
+    recommendation: v.string(),
+    tenantId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_scanId", ["scanId"])
+    .index("by_severity", ["tenantId", "severity"])
+    .index("by_category", ["tenantId", "category"]),
+
+  // Integration Marketplace - Third-party App Integration
+  integrations: defineTable({
+    tenantId: v.string(),
+    name: v.string(),
+    description: v.string(),
+    category: v.union(
+      v.literal("crm"),
+      v.literal("communication"),
+      v.literal("analytics"),
+      v.literal("payment"),
+      v.literal("storage"),
+      v.literal("security"),
+      v.literal("productivity"),
+      v.literal("development"),
+      v.literal("other")
+    ),
+    type: v.union(v.literal("webhook"), v.literal("api"), v.literal("oauth"), v.literal("database")),
+    isCustom: v.boolean(),
+    isPublic: v.boolean(),
+    isFeatured: v.boolean(),
+    status: v.union(v.literal("draft"), v.literal("published"), v.literal("deprecated")),
+    configuration: v.record(v.any()),
+    endpoints: v.array(v.object({
+      name: v.string(),
+      url: v.string(),
+      method: v.union(v.literal("GET"), v.literal("POST"), v.literal("PUT"), v.literal("DELETE")),
+      authentication: v.object({
+        type: v.union(v.literal("none"), v.literal("api_key"), v.literal("oauth"), v.literal("basic")),
+        credentials: v.optional(v.record(v.any())),
+      }),
+    })),
+    webhookUrl: v.optional(v.string()),
+    documentationUrl: v.optional(v.string()),
+    supportEmail: v.optional(v.string()),
+    createdBy: v.string(),
+    tenantId: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    publishedAt: v.optional(v.number()),
+    usage: v.object({
+      installs: v.number(),
+      apiCalls: v.number(),
+      dataTransferred: v.number(),
+    }),
+    pricing: v.object({
+      type: v.union(v.literal("free"), v.literal("paid"), v.literal("freemium")),
+      amount: v.number(),
+      currency: v.string(),
+      billingCycle: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("annual")),
+    }),
+    defaultPlan: v.union(v.literal("free"), v.literal("basic"), v.literal("pro"), v.literal("enterprise")),
+    features: v.array(v.string()),
+    requirements: v.array(v.string()),
+    limitations: v.array(v.string()),
+    tags: v.array(v.string()),
+  })
+    .index("by_status", ["status"])
+    .index("by_category", ["category"])
+    .index("by_type", ["type"])
+    .index("by_featured", ["isFeatured"])
+    .index("by_createdBy", ["tenantId", "createdBy"])
+    .index("by_createdAt", ["createdAt"]),
+
+  integrationInstallations: defineTable({
+    _id: v.string(),
+    tenantId: v.string(),
+    integrationId: v.string(),
+    configuration: v.record(v.any()),
+    status: v.union(v.literal("installed"), v.literal("active"), v.literal("disabled"), v.literal("error"), v.literal("uninstalled")),
+    installedBy: v.string(),
+    installedAt: v.number(),
+    lastSyncAt: v.optional(v.number()),
+    syncStatus: v.union(v.literal("pending"), v.literal("running"), v.literal("completed"), v.literal("failed")),
+    usage: v.object({
+      apiCalls: v.number(),
+      dataTransferred: v.number(),
+      errors: v.number(),
+    }),
+    subscription: v.object({
+      plan: v.union(v.literal("free"), v.literal("basic"), v.literal("pro"), v.literal("enterprise")),
+      status: v.union(v.literal("active"), v.literal("cancelled"), v.literal("expired")),
+      billingCycle: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("annual")),
+      amount: v.number(),
+      currency: v.string(),
+      features: v.array(v.string()),
+      startedAt: v.number(),
+      expiresAt: v.optional(v.number()),
+      lastBilledAt: v.optional(v.number()),
+    }),
+    updatedAt: v.number(),
+    uninstalledAt: v.optional(v.number()),
+    uninstalledBy: v.optional(v.string()),
+    uninstalledReason: v.optional(v.string()),
+    keepData: v.boolean(),
+  })
+    .index("by_tenant", ["tenantId"])
+    .index("by_tenant_integration", ["tenantId", "integrationId"])
+    .index("by_status", ["tenantId", "status"])
+    .index("by_installedBy", ["tenantId", "installedBy"])
+    .index("by_installedAt", ["installedAt"]),
+
+  integrationInstallationTimeline: defineTable({
+    _id: v.string(),
+    installationId: v.string(),
+    type: v.union(
+      v.literal("installed"),
+      v.literal("configured"),
+      v.literal("enabled"),
+      v.literal("disabled"),
+      v.literal("sync_started"),
+      v.literal("sync_completed"),
+      v.literal("test_connection"),
+      v.literal("uninstalled"),
+      v.literal("subscription_updated"),
+      v.literal("activated")
+    ),
+    message: v.string(),
+    metadata: v.optional(v.any()),
+    userId: v.string(),
+    tenantId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_installationId", ["installationId"])
+    .index("by_tenant", ["tenantId"])
+    .index("by_type", ["tenantId", "type"])
+    .index("by_createdAt", ["createdAt"]),
+
   // Ticket Management System - Module 04
   tickets: defineTable({
     tenantId: v.string(),

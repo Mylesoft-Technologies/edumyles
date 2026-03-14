@@ -1,58 +1,62 @@
 "use client";
 
-import { useState } from "react";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useMemo } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMutation, useQuery } from "@/hooks/useSSRSafeConvex";
+import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/hooks/useAuth";
+import { formatRelativeTime } from "@/lib/utils";
 import { 
-  Shield,
-  AlertTriangle,
-  CheckCircle,
+  Shield, 
+  AlertTriangle, 
+  Activity, 
+  Eye, 
+  Lock, 
+  Unlock, 
+  TrendingUp, 
+  TrendingDown,
+  Users,
+  Globe,
+  Database,
+  Wifi,
+  Server,
+  FileText,
   Clock,
-  Eye,
-  Plus,
-  Search,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Info,
+  Target,
+  Zap,
+  BarChart3,
+  LineChart,
+  PieChart,
   Filter,
   Download,
   RefreshCw,
-  FileText,
   Settings,
-  Users,
-  Activity,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  Target,
-  Lock,
+  Camera,
+  Fingerprint,
   Key,
-  Database,
-  Wifi,
-  Globe,
-  Bug,
-  UserX,
-  AlertCircle,
-  Info,
-  Zap,
-  BarChart3,
+  ShieldCheck,
+  Ban,
+  UserCheck,
+  Mail,
+  Phone
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { usePlatformQuery } from "@/hooks/usePlatformQuery";
-import { api } from "@/convex/_generated/api";
 
 interface SecurityIncident {
   _id: string;
   title: string;
   description: string;
   severity: "low" | "medium" | "high" | "critical";
-  category: string;
+  category: "unauthorized_access" | "data_breach" | "malware" | "phishing" | "denial_of_service" | "vulnerability" | "policy_violation" | "other";
   status: "open" | "investigating" | "contained" | "resolved" | "closed";
   affectedSystems: string[];
   affectedTenants: string[];
@@ -61,952 +65,696 @@ interface SecurityIncident {
   reportedBy: string;
   assignee?: string;
   tags: string[];
-  timeline: Array<{
+  timeline?: Array<{
     timestamp: number;
     action: string;
     description: string;
     user: string;
   }>;
-  mitigations: Array<{
+  mitigations?: Array<{
     id: string;
     description: string;
-    effectiveness: string;
+    effectiveness: "low" | "medium" | "high";
     implementedAt: number;
     implementedBy: string;
     verified: boolean;
   }>;
-  rootCause?: string;
-  impactAssessment?: any;
+  rootCause: string;
+  impactAssessment: {
+    affectedUsers: number;
+    dataExposed: boolean;
+    systemIntegrity: string;
+    businessImpact: string;
+  };
   resolvedAt?: number;
 }
 
-interface SecurityPolicy {
+interface Threat {
   _id: string;
-  name: string;
+  type: "malware" | "phishing" | "brute_force" | "ddos" | "injection" | "xss" | "social_engineering" | "insider_threat";
+  severity: "low" | "medium" | "high" | "critical";
+  status: "active" | "mitigated" | "resolved" | "false_positive";
+  source: {
+    ip: string;
+    country: string;
+    userAgent?: string;
+    email?: string;
+  };
+  target: {
+    system: string;
+    user?: string;
+    data?: string;
+  };
+  detectedAt: number;
+  mitigatedAt?: number;
   description: string;
-  category: string;
-  severity: string;
-  content: string;
-  enforcementType: string;
-  applicableRoles: string[];
-  status: string;
-  version: number;
-  reviewFrequency: string;
-  lastReviewed: number;
-  nextReview: number;
-  createdBy: string;
-  createdAt: number;
-  updatedAt: number;
-  compliance: Array<{
-    tenantId: string;
-    status: string;
-    notes: string;
-    evidence: string[];
-    reviewedAt: number;
-    reviewedBy: string;
-  }>;
+  indicators: string[];
+  confidence: number;
+  falsePositive?: boolean;
 }
 
-export default function SecurityOperationsPage() {
+interface SecurityMetrics {
+  overall: {
+    score: number;
+    level: "excellent" | "good" | "fair" | "poor" | "critical";
+    trend: "improving" | "stable" | "degrading";
+  };
+  threats: {
+    active: number;
+    mitigated: number;
+    falsePositives: number;
+    trend: "increasing" | "decreasing" | "stable";
+  };
+  incidents: {
+    open: number;
+    investigating: number;
+    resolved: number;
+    averageResolutionTime: number;
+  };
+  compliance: {
+    score: number;
+    violations: number;
+    lastAudit: number;
+  };
+  access: {
+    totalAttempts: number;
+    failedAttempts: number;
+    suspiciousIPs: number;
+    blockedAttempts: number;
+  };
+}
+
+export default function SecurityDashboardPage() {
   const { sessionToken } = useAuth();
-  const [activeTab, setActiveTab] = useState("incidents");
-  const [selectedSeverity, setSelectedSeverity] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [isCreateIncidentOpen, setIsCreateIncidentOpen] = useState(false);
-  const [isCreatePolicyOpen, setIsCreatePolicyOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedTimeRange, setSelectedTimeRange] = useState("24h");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // Mock data - replace with actual queries
-  const securityIncidents: SecurityIncident[] = [
-    {
-      _id: "incident_1",
-      title: "Suspicious Login Activity Detected",
-      description: "Multiple failed login attempts from unusual IP addresses detected for several tenant accounts",
-      severity: "high",
-      category: "unauthorized_access",
-      status: "investigating",
-      affectedSystems: ["authentication", "user_management"],
-      affectedTenants: ["tenant_1", "tenant_2", "tenant_3"],
-      discoveredAt: Date.now() - 2 * 60 * 60 * 1000,
-      reportedAt: Date.now() - 2 * 60 * 60 * 1000,
-      reportedBy: "security_monitor@edumyles.com",
-      assignee: "security_team@edumyles.com",
-      tags: ["brute_force", "ip_anomaly", "automated_detection"],
-      timeline: [
-        {
-          timestamp: Date.now() - 2 * 60 * 60 * 1000,
-          action: "incident_detected",
-          description: "Automated security monitoring detected unusual login patterns",
-          user: "security_monitor@edumyles.com",
-        },
-        {
-          timestamp: Date.now() - 1.8 * 60 * 60 * 1000,
-          action: "incident_created",
-          description: "Security incident created and assigned to investigation team",
-          user: "security_monitor@edumyles.com",
-        },
-        {
-          timestamp: Date.now() - 1 * 60 * 60 * 1000,
-          action: "investigation_started",
-          description: "Security team began investigation of the incident",
-          user: "security_team@edumyles.com",
-        },
-      ],
-      mitigations: [
-        {
-          id: "mitigation_1",
-          description: "IP blocking implemented for suspicious addresses",
-          effectiveness: "high",
-          implementedAt: Date.now() - 1.5 * 60 * 60 * 1000,
-          implementedBy: "security_team@edumyles.com",
-          verified: true,
-        },
-        {
-          id: "mitigation_2",
-          description: "Temporary account lockout for affected users",
-          effectiveness: "medium",
-          implementedAt: Date.now() - 1.2 * 60 * 60 * 1000,
-          implementedBy: "security_team@edumyles.com",
-          verified: true,
-        },
-      ],
-      rootCause: "Potential brute force attack attempt from botnet",
-      impactAssessment: {
-        affectedUsers: 15,
-        dataExposed: false,
-        systemIntegrity: "maintained",
-        businessImpact: "low",
-      },
-    },
-    {
-      _id: "incident_2",
-      title: "Data Access Anomaly in Billing Module",
-      description: "Unusual data access patterns detected in billing module, potential data exfiltration attempt",
-      severity: "critical",
-      category: "data_breach",
-      status: "contained",
-      affectedSystems: ["billing", "database"],
-      affectedTenants: ["tenant_4"],
-      discoveredAt: Date.now() - 6 * 60 * 60 * 1000,
-      reportedAt: Date.now() - 5.5 * 60 * 60 * 1000,
-      reportedBy: "billing_admin@edumyles.com",
-      assignee: "incident_response@edumyles.com",
-      tags: ["data_access", "billing", "potential_breach"],
-      timeline: [
-        {
-          timestamp: Date.now() - 6 * 60 * 60 * 1000,
-          action: "anomaly_detected",
-          description: "Unusual data access patterns detected by automated monitoring",
-          user: "security_monitor@edumyles.com",
-        },
-        {
-          timestamp: Date.now() - 5.5 * 60 * 60 * 1000,
-          action: "incident_created",
-          description: "Security incident created and escalated to critical",
-          user: "billing_admin@edumyles.com",
-        },
-        {
-          timestamp: Date.now() - 4 * 60 * 60 * 1000,
-          action: "containment_initiated",
-          description: "Immediate containment measures implemented",
-          user: "incident_response@edumyles.com",
-        },
-      ],
-      mitigations: [
-        {
-          id: "mitigation_3",
-          description: "Access revoked for suspicious user accounts",
-          effectiveness: "high",
-          implementedAt: Date.now() - 4.5 * 60 * 60 * 1000,
-          implementedBy: "incident_response@edumyles.com",
-          verified: true,
-        },
-        {
-          id: "mitigation_4",
-          description: "Database access logs secured and backed up",
-          effectiveness: "high",
-          implementedAt: Date.now() - 4 * 60 * 60 * 1000,
-          implementedBy: "security_team@edumyles.com",
-          verified: true,
-        },
-      ],
-      rootCause: "Compromised user credentials leading to unauthorized data access",
-      impactAssessment: {
-        affectedUsers: 1,
-        dataExposed: "investigating",
-        systemIntegrity: "maintained",
-        businessImpact: "medium",
-      },
-    },
-  ];
+  // Get security overview
+  const { data: securityOverview, isLoading: overviewLoading } = useQuery(
+    api.platform.security.getSecurityOverview,
+    { sessionToken, timeRange: selectedTimeRange },
+    !!sessionToken
+  );
 
-  const securityPolicies: SecurityPolicy[] = [
-    {
-      _id: "policy_1",
-      name: "Password Security Policy",
-      description: "Comprehensive password security requirements and guidelines for all users",
-      category: "access_control",
-      severity: "critical",
-      content: "All users must create passwords that are at least 12 characters long, contain uppercase and lowercase letters, numbers, and special characters. Passwords must be changed every 90 days.",
-      enforcementType: "mandatory",
-      applicableRoles: ["all"],
-      status: "active",
-      version: 2,
-      reviewFrequency: "quarterly",
-      lastReviewed: Date.now() - 30 * 24 * 60 * 60 * 1000,
-      nextReview: Date.now() + 60 * 24 * 60 * 60 * 1000,
-      createdBy: "security_admin@edumyles.com",
-      createdAt: Date.now() - 180 * 24 * 60 * 60 * 1000,
-      updatedAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
-      compliance: [
-        { tenantId: "tenant_1", status: "compliant", notes: "All users compliant with password policy", reviewedAt: Date.now() - 7 * 24 * 60 * 60 * 1000, reviewedBy: "admin@tenant1.com" },
-        { tenantId: "tenant_2", status: "partially_compliant", notes: "Some users still using old passwords", reviewedAt: Date.now() - 5 * 24 * 60 * 60 * 1000, reviewedBy: "admin@tenant2.com" },
-        { tenantId: "tenant_3", status: "compliant", notes: "Full compliance achieved", reviewedAt: Date.now() - 3 * 24 * 60 * 60 * 1000, reviewedBy: "admin@tenant3.com" },
-      ],
-    },
-    {
-      _id: "policy_2",
-      name: "Data Protection and Privacy Policy",
-      description: "Guidelines for handling sensitive student and staff data in compliance with data protection regulations",
-      category: "data_protection",
-      severity: "critical",
-      content: "All sensitive data must be encrypted at rest and in transit. Data access must be logged and audited regularly. Personal data retention policies must be followed.",
-      enforcementType: "mandatory",
-      applicableRoles: ["admin", "teacher", "staff"],
-      status: "active",
-      version: 1,
-      reviewFrequency: "annually",
-      lastReviewed: Date.now() - 15 * 24 * 60 * 60 * 1000,
-      nextReview: Date.now() + 350 * 24 * 60 * 60 * 1000,
-      createdBy: "compliance_officer@edumyles.com",
-      createdAt: Date.now() - 120 * 24 * 60 * 60 * 1000,
-      updatedAt: Date.now() - 15 * 24 * 60 * 60 * 1000,
-      compliance: [
-        { tenantId: "tenant_1", status: "compliant", notes: "All data protection measures in place", reviewedAt: Date.now() - 10 * 24 * 60 * 60 * 1000, reviewedBy: "admin@tenant1.com" },
-        { tenantId: "tenant_2", status: "non_compliant", notes: "Some data not properly encrypted", reviewedAt: Date.now() - 8 * 24 * 60 * 60 * 1000, reviewedBy: "admin@tenant2.com" },
-      ],
-    },
-  ];
+  // Get security incidents
+  const { data: incidents, isLoading: incidentsLoading } = useQuery(
+    api.platform.security.getSecurityIncidents,
+    { sessionToken, status: "open", limit: 20 },
+    !!sessionToken
+  );
 
+  // Get active threats
+  const { data: threats, isLoading: threatsLoading } = useQuery(
+    api.platform.security.getActiveThreats,
+    { sessionToken, status: "active", limit: 50 },
+    !!sessionToken
+  );
+
+  // Get compliance status
+  const { data: compliance, isLoading: complianceLoading } = useQuery(
+    api.platform.security.getComplianceStatus,
+    { sessionToken },
+    !!sessionToken
+  );
+
+  // Get access logs
+  const { data: accessLogs, isLoading: accessLogsLoading } = useQuery(
+    api.platform.security.getAccessLogs,
+    { sessionToken, timeRange: selectedTimeRange, limit: 100 },
+    !!sessionToken
+  );
+
+  // Get vulnerability scan results
+  const { data: vulnerabilityScan, isLoading: vulnerabilityLoading } = useQuery(
+    api.platform.security.getVulnerabilityScan,
+    { sessionToken },
+    !!sessionToken
+  );
+
+  // Mutations
+  const acknowledgeThreatMutation = useMutation(api.platform.security.acknowledgeThreat);
+  const mitigateThreatMutation = useMutation(api.platform.security.mitigateThreat);
+  const blockIPMutation = useMutation(api.platform.security.blockIP);
+
+  // Get severity color
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "critical": return "bg-red-100 text-red-700 border-red-200";
-      case "high": return "bg-orange-100 text-orange-700 border-orange-200";
-      case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "low": return "bg-blue-100 text-blue-700 border-blue-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case "critical": return "bg-red-100 text-red-800 border-red-200";
+      case "high": return "bg-orange-100 text-orange-800 border-orange-200";
+      case "medium": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low": return "bg-blue-100 text-blue-800 border-blue-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
+  // Get status color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "open": return "bg-red-100 text-red-700 border-red-200";
-      case "investigating": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "contained": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "resolved": return "bg-green-100 text-green-700 border-green-200";
-      case "closed": return "bg-gray-100 text-gray-700 border-gray-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case "active": return "bg-red-100 text-red-800";
+      case "mitigating": return "bg-yellow-100 text-yellow-800";
+      case "resolved": return "bg-green-100 text-green-800";
+      case "false_positive": return "bg-gray-100 text-gray-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "unauthorized_access": return <UserX className="h-4 w-4" />;
-      case "data_breach": return <Database className="h-4 w-4" />;
-      case "malware": return <Bug className="h-4 w-4" />;
-      case "phishing": return <Globe className="h-4 w-4" />;
-      case "denial_of_service": return <Wifi className="h-4 w-4" />;
-      case "vulnerability": return <AlertTriangle className="h-4 w-4" />;
-      case "policy_violation": return <Shield className="h-4 w-4" />;
-      default: return <AlertCircle className="h-4 w-4" />;
+  // Get security level color
+  const getSecurityLevelColor = (level: string) => {
+    switch (level) {
+      case "excellent": return "text-green-600";
+      case "good": return "text-blue-600";
+      case "fair": return "text-yellow-600";
+      case "poor": return "text-orange-600";
+      case "critical": return "text-red-600";
+      default: return "text-gray-600";
     }
   };
 
-  const formatRelativeTime = (timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-    
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    return "Just now";
+  // Handle threat acknowledgment
+  const handleAcknowledgeThreat = async (threatId: string) => {
+    try {
+      await acknowledgeThreatMutation({
+        sessionToken,
+        threatId,
+        notes: "Acknowledged by security team",
+      });
+    } catch (error: any) {
+      console.error("Failed to acknowledge threat:", error);
+    }
   };
 
-  const IncidentsTab = () => (
+  // Handle threat mitigation
+  const handleMitigateThreat = async (threatId: string, mitigation: string) => {
+    try {
+      await mitigateThreatMutation({
+        sessionToken,
+        threatId,
+        mitigation,
+      });
+    } catch (error: any) {
+      console.error("Failed to mitigate threat:", error);
+    }
+  };
+
+  // Handle IP blocking
+  const handleBlockIP = async (ip: string) => {
+    try {
+      await blockIPMutation({
+        sessionToken,
+        ip,
+        reason: "Suspicious activity detected",
+        duration: 24 * 60 * 60 * 1000, // 24 hours
+      });
+    } catch (error: any) {
+      console.error("Failed to block IP:", error);
+    }
+  };
+
+  if (!sessionToken) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading security dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search incidents..."
-              className="pl-10 w-80"
-            />
-          </div>
-          <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Severity" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Severities</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="unauthorized_access">Unauthorized Access</SelectItem>
-              <SelectItem value="data_breach">Data Breach</SelectItem>
-              <SelectItem value="malware">Malware</SelectItem>
-              <SelectItem value="phishing">Phishing</SelectItem>
-              <SelectItem value="denial_of_service">Denial of Service</SelectItem>
-              <SelectItem value="vulnerability">Vulnerability</SelectItem>
-              <SelectItem value="policy_violation">Policy Violation</SelectItem>
-            </SelectContent>
-          </Select>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Advanced Security Dashboard</h1>
+          <p className="text-gray-600 mt-1">Real-time threat detection and security monitoring</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
+        <div className="flex items-center gap-2">
+          <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1h">Last Hour</SelectItem>
+              <SelectItem value="24h">Last 24 Hours</SelectItem>
+              <SelectItem value="7d">Last 7 Days</SelectItem>
+              <SelectItem value="30d">Last 30 Days</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Dialog open={isCreateIncidentOpen} onOpenChange={setIsCreateIncidentOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Incident
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create Security Incident</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="incident-title">Incident Title</Label>
-                  <Input id="incident-title" placeholder="Enter incident title" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="incident-description">Description</Label>
-                  <Textarea id="incident-description" placeholder="Describe the incident in detail" rows={4} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Severity</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select severity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="critical">Critical</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Category</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unauthorized_access">Unauthorized Access</SelectItem>
-                        <SelectItem value="data_breach">Data Breach</SelectItem>
-                        <SelectItem value="malware">Malware</SelectItem>
-                        <SelectItem value="phishing">Phishing</SelectItem>
-                        <SelectItem value="denial_of_service">Denial of Service</SelectItem>
-                        <SelectItem value="vulnerability">Vulnerability</SelectItem>
-                        <SelectItem value="policy_violation">Policy Violation</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Affected Systems</Label>
-                  <Input placeholder="Enter affected systems (comma separated)" />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Assign To</Label>
-                  <Input placeholder="Enter assignee email" />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsCreateIncidentOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => setIsCreateIncidentOpen(false)}>
-                  Create Incident
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
 
-      {/* Security Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Incidents</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">+3 from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Incidents</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">3</div>
-            <p className="text-xs text-muted-foreground">2 critical, 1 high</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Resolution Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.2h</div>
-            <p className="text-xs text-muted-foreground">-30min from last week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">MTTR</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.2h</div>
-            <p className="text-xs text-muted-foreground">Within SLA</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Security Overview */}
+      {securityOverview && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg">Security Score</CardTitle>
+              <Shield className="h-5 w-5 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">{securityOverview.overall.score}%</div>
+              <p className={`text-sm ${getSecurityLevelColor(securityOverview.overall.level)}`}>
+                {securityOverview.overall.level.toUpperCase()} - {securityOverview.overall.trend}
+              </p>
+            </CardContent>
+          </Card>
 
-      {/* Incidents List */}
-      <div className="space-y-4">
-        {securityIncidents.map((incident) => (
-          <Card key={incident._id}>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Badge className={getSeverityColor(incident.severity)}>
-                      {incident.severity.toUpperCase()}
-                    </Badge>
-                    <Badge className={getStatusColor(incident.status)}>
-                      {incident.status.replace("_", " ").toUpperCase()}
-                    </Badge>
-                    <div className="flex items-center space-x-1">
-                      {getCategoryIcon(incident.category)}
-                      <span className="text-sm text-muted-foreground capitalize">{incident.category.replace("_", " ")}</span>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg">Active Threats</CardTitle>
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-600">{securityOverview.threats.active}</div>
+              <p className="text-sm text-gray-600">
+                {securityOverview.threats.trend === "increasing" ? "↑ Increasing" : 
+                 securityOverview.threats.trend === "decreasing" ? "↓ Decreasing" : "→ Stable"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg">Open Incidents</CardTitle>
+              <Activity className="h-5 w-5 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-600">{securityOverview.incidents.open}</div>
+              <p className="text-sm text-gray-600">
+                {securityOverview.incidents.investigating} investigating
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg">Compliance Score</CardTitle>
+              <ShieldCheck className="h-5 w-5 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600">{securityOverview.compliance.score}%</div>
+              <p className="text-sm text-gray-600">
+                {securityOverview.compliance.violations} violations
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="threats">Threats</TabsTrigger>
+          <TabsTrigger value="incidents">Incidents</TabsTrigger>
+          <TabsTrigger value="compliance">Compliance</TabsTrigger>
+          <TabsTrigger value="access">Access Logs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Security Metrics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Security Metrics
+                </CardTitle>
+                <CardDescription>Real-time security indicators</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Failed Login Attempts</span>
+                    <span className="text-lg font-bold text-red-600">
+                      {securityOverview?.access?.failedAttempts || 0}
+                    </span>
+                  </div>
+                  <Progress value={75} className="h-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Blocked IPs</span>
+                    <span className="text-lg font-bold text-orange-600">
+                      {securityOverview?.access?.blockedAttempts || 0}
+                    </span>
+                  </div>
+                  <Progress value={60} className="h-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Suspicious Activities</span>
+                    <span className="text-lg font-bold text-yellow-600">
+                      {securityOverview?.access?.suspiciousIPs || 0}
+                    </span>
+                  </div>
+                  <Progress value={30} className="h-2" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Threat Intelligence */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Threat Intelligence
+                </CardTitle>
+                <CardDescription>Automated threat detection and analysis</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Malware Detected:</span>
+                      <div className="text-lg font-bold text-red-600">3</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Phishing Attempts:</span>
+                      <div className="text-lg font-bold text-orange-600">12</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Brute Force:</span>
+                      <div className="text-lg font-bold text-yellow-600">8</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">DDoS Attacks:</span>
+                      <div className="text-lg font-bold text-purple-600">2</div>
                     </div>
                   </div>
-                  
-                  <div>
-                    <h3 className="font-semibold text-lg">{incident.title}</h3>
-                    <p className="text-muted-foreground mt-1">{incident.description}</p>
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                      <span className="font-medium text-red-800">High-Risk Threat Detected</span>
+                    </div>
+                    <p className="text-sm text-red-700 mt-2">
+                      Suspicious login patterns detected from multiple IP addresses indicating potential brute force attack
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                    <span>Discovered {formatRelativeTime(incident.discoveredAt)}</span>
-                    <span>Reported by {incident.reportedBy}</span>
-                    {incident.assignee && <span>Assigned to {incident.assignee}</span>}
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {incident.tags.map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="threats" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="malware">Malware</SelectItem>
+                  <SelectItem value="phishing">Phishing</SelectItem>
+                  <SelectItem value="brute_force">Brute Force</SelectItem>
+                  <SelectItem value="ddos">DDoS</SelectItem>
+                  <SelectItem value="injection">Injection</SelectItem>
+                  <SelectItem value="social_engineering">Social Engineering</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button className="flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              Export Report
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {threats?.map((threat: Threat) => (
+              <Card key={threat._id} className="border-l-4 border-l-red-500">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Zap className="w-4 h-4" />
+                        {threat.type.replace('_', ' ').toUpperCase()}
+                      </CardTitle>
+                      <CardDescription>{threat.description}</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getSeverityColor(threat.severity)}>
+                        {threat.severity}
                       </Badge>
-                    ))}
+                      <Badge className={getStatusColor(threat.status)}>
+                        {threat.status}
+                      </Badge>
+                    </div>
                   </div>
-                  
-                  {incident.affectedSystems.length > 0 && (
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <div className="text-sm font-medium mb-2">Affected Systems:</div>
-                      <div className="flex flex-wrap gap-2">
-                        {incident.affectedSystems.map((system) => (
-                          <Badge key={system} variant="secondary" className="text-xs">
-                            {system}
+                      <span className="font-medium">Source IP:</span>
+                      <div className="text-gray-600">{threat.source.ip}</div>
+                      <div className="text-xs text-gray-500">{threat.source.country}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Target:</span>
+                      <div className="text-gray-600">{threat.target.system}</div>
+                      {threat.target.user && (
+                        <div className="text-xs text-gray-500">User: {threat.target.user}</div>
+                      )}
+                    </div>
+                    <div>
+                      <span className="font-medium">Confidence:</span>
+                      <div className="text-gray-600">{Math.round(threat.confidence * 100)}%</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Detected:</span>
+                      <div className="text-gray-600">{formatRelativeTime(threat.detectedAt)}</div>
+                    </div>
+                  </div>
+
+                  {threat.indicators && threat.indicators.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="font-medium mb-2">Threat Indicators:</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {threat.indicators.map((indicator, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {indicator}
                           </Badge>
                         ))}
                       </div>
                     </div>
                   )}
-                  
-                  {incident.mitigations.length > 0 && (
+
+                  <div className="flex items-center justify-between pt-4">
+                    <div className="text-sm text-gray-600">
+                      {threat.falsePositive ? "Marked as false positive" : "Active threat"}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {threat.status === "active" && (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => handleAcknowledgeThreat(threat._id)}>
+                            <Eye className="w-4 h-4 mr-1" />
+                            Acknowledge
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleMitigateThreat(threat._id, "block_ip")}>
+                            <Ban className="w-4 h-4 mr-1" />
+                            Block IP
+                          </Button>
+                        </>
+                      )}
+                      {threat.status === "mitigating" && (
+                        <Button variant="outline" size="sm" onClick={() => handleMitigateThreat(threat._id, "resolve")}>
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Resolve
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="incidents" className="space-y-6">
+          <div className="space-y-4">
+            {incidents?.map((incident: SecurityIncident) => (
+              <Card key={incident._id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{incident.title}</CardTitle>
+                      <CardDescription>{incident.description}</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getSeverityColor(incident.severity)}>
+                        {incident.severity}
+                      </Badge>
+                      <Badge className={getStatusColor(incident.status)}>
+                        {incident.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <div className="text-sm font-medium mb-2">Mitigations Applied:</div>
-                      <div className="space-y-1">
-                        {incident.mitigations.map((mitigation) => (
-                          <div key={mitigation.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded">
-                            <span>{mitigation.description}</span>
-                            <Badge variant={mitigation.verified ? "default" : "secondary"} className="text-xs">
-                              {mitigation.verified ? "Verified" : "Pending"}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
+                      <span className="font-medium">Category:</span>
+                      <div className="text-gray-600">{incident.category.replace('_', ' ')}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Affected Systems:</span>
+                      <div className="text-gray-600">{incident.affectedSystems.join(", ")}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Discovered:</span>
+                      <div className="text-gray-600">{formatRelativeTime(incident.discoveredAt)}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Impact:</span>
+                      <div className="text-gray-600">{incident.impactAssessment.businessImpact}</div>
+                    </div>
+                  </div>
+
+                  {incident.rootCause && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-medium mb-2">Root Cause Analysis:</h4>
+                      <p className="text-sm text-yellow-800">{incident.rootCause}</p>
                     </div>
                   )}
-                </div>
-                
-                <div className="flex items-center space-x-2 ml-4">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View Details
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Settings className="h-4 w-4 mr-1" />
-                    Manage
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
 
-  const PoliciesTab = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search policies..."
-              className="pl-10 w-80"
-            />
+                  <div className="flex items-center justify-between pt-4">
+                    <div className="text-sm text-gray-600">
+                      {incident.affectedTenants.length} tenants affected
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        <FileText className="w-4 h-4 mr-1" />
+                        View Details
+                      </Button>
+                      {incident.status === "open" && (
+                        <Button variant="outline" size="sm">
+                          <Settings className="w-4 h-4 mr-1" />
+                          Assign
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <Select>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="access_control">Access Control</SelectItem>
-              <SelectItem value="data_protection">Data Protection</SelectItem>
-              <SelectItem value="incident_response">Incident Response</SelectItem>
-              <SelectItem value="compliance">Compliance</SelectItem>
-              <SelectItem value="training">Training</SelectItem>
-              <SelectItem value="technical">Technical</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Dialog open={isCreatePolicyOpen} onOpenChange={setIsCreatePolicyOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Policy
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create Security Policy</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="policy-name">Policy Name</Label>
-                  <Input id="policy-name" placeholder="Enter policy name" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="policy-description">Description</Label>
-                  <Textarea id="policy-description" placeholder="Describe the policy" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Category</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="access_control">Access Control</SelectItem>
-                        <SelectItem value="data_protection">Data Protection</SelectItem>
-                        <SelectItem value="incident_response">Incident Response</SelectItem>
-                        <SelectItem value="compliance">Compliance</SelectItem>
-                        <SelectItem value="training">Training</SelectItem>
-                        <SelectItem value="technical">Technical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Severity</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select severity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="informational">Informational</SelectItem>
-                        <SelectItem value="warning">Warning</SelectItem>
-                        <SelectItem value="critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Policy Content</Label>
-                  <Textarea placeholder="Enter the full policy content" rows={6} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Enforcement Type</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select enforcement" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="advisory">Advisory</SelectItem>
-                        <SelectItem value="mandatory">Mandatory</SelectItem>
-                        <SelectItem value="automated">Automated</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Review Frequency</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select frequency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="annually">Annually</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsCreatePolicyOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => setIsCreatePolicyOpen(false)}>
-                  Create Policy
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+        </TabsContent>
 
-      {/* Policies List */}
-      <div className="space-y-4">
-        {securityPolicies.map((policy) => (
-          <Card key={policy._id}>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Badge className={getSeverityColor(policy.severity)}>
-                      {policy.severity.toUpperCase()}
-                    </Badge>
-                    <Badge variant="secondary">{policy.category.replace("_", " ").toUpperCase()}</Badge>
-                    <Badge variant="outline">v{policy.version}</Badge>
-                    <Badge variant={policy.status === "active" ? "default" : "secondary"}>
-                      {policy.status.toUpperCase()}
-                    </Badge>
+        <TabsContent value="compliance" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Compliance Score */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5" />
+                  Compliance Score
+                </CardTitle>
+                <CardDescription>Overall security compliance status</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center">
+                  <div className={`text-6xl font-bold ${getSecurityLevelColor(compliance?.level || 'fair')}`}>
+                    {compliance?.score || 0}%
                   </div>
-                  
-                  <div>
-                    <h3 className="font-semibold text-lg">{policy.name}</h3>
-                    <p className="text-muted-foreground mt-1">{policy.description}</p>
+                  <p className="text-lg font-medium mt-2">{compliance?.level?.toUpperCase() || 'FAIR'}</p>
+                </div>
+                <div className="space-y-2 mt-4">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Last Audit:</span>
+                    <span className="text-sm text-gray-600">
+                      {compliance?.lastAudit ? formatRelativeTime(compliance.lastAudit) : 'Never'}
+                    </span>
                   </div>
-                  
-                  <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                    <span>Created by {policy.createdBy}</span>
-                    <span>Last reviewed {formatRelativeTime(policy.lastReviewed)}</span>
-                    <span>Next review {formatRelativeTime(policy.nextReview)}</span>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Violations:</span>
+                    <span className="text-sm text-red-600 font-medium">
+                      {compliance?.violations || 0}
+                    </span>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-3 border rounded-lg">
-                      <div className="text-sm font-medium mb-2">Compliance Overview</div>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>Compliant</span>
-                          <span className="text-green-600">{policy.compliance.filter(c => c.status === "compliant").length}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Compliance Areas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  Compliance Areas
+                </CardTitle>
+                <CardDescription>Detailed compliance by category</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {[
+                    { area: "Access Control", score: 95, status: "compliant" },
+                    { area: "Data Protection", score: 88, status: "needs_improvement" },
+                    { area: "Network Security", score: 92, status: "compliant" },
+                    { area: "Incident Response", score: 78, status: "needs_improvement" },
+                    { area: "Audit Logging", score: 98, status: "compliant" },
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium">{item.area}</div>
+                        <div className="text-sm text-gray-600">Compliance status</div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-lg font-bold ${
+                          item.status === 'compliant' ? 'text-green-600' : 'text-yellow-600'
+                        }`}>
+                          {item.score}%
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Partially Compliant</span>
-                          <span className="text-yellow-600">{policy.compliance.filter(c => c.status === "partially_compliant").length}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Non-Compliant</span>
-                          <span className="text-red-600">{policy.compliance.filter(c => c.status === "non_compliant").length}</span>
+                        <Badge className={
+                          item.status === 'compliant' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }>
+                          {item.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="access" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Recent Access Logs
+              </CardTitle>
+              <CardDescription>System access and authentication events</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {accessLogs?.slice(0, 20).map((log: any, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border-b">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`w-2 h-2 rounded-full ${
+                        log.success ? 'bg-green-500' : 'bg-red-500'
+                      }`}></div>
+                      <div>
+                        <div className="font-medium">{log.action}</div>
+                        <div className="text-sm text-gray-600">
+                          {log.user} • {log.ip} • {formatRelativeTime(log.timestamp)}
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="p-3 border rounded-lg">
-                      <div className="text-sm font-medium mb-2">Enforcement</div>
-                      <div className="text-sm">{policy.enforcementType}</div>
-                      <div className="text-xs text-muted-foreground mt-1">Applies to {policy.applicableRoles.length} roles</div>
-                    </div>
-                    
-                    <div className="p-3 border rounded-lg">
-                      <div className="text-sm font-medium mb-2">Review Schedule</div>
-                      <div className="text-sm capitalize">{policy.reviewFrequency}</div>
-                      <div className="text-xs text-muted-foreground mt-1">Next: {formatRelativeTime(policy.nextReview)}</div>
+                    <div className="text-right">
+                      {log.success ? (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-red-500" />
+                      )}
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-2 ml-4">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Settings className="h-4 w-4 mr-1" />
-                    Manage
-                  </Button>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  const ThreatIntelligenceTab = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Select>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Threat Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="malware">Malware</SelectItem>
-              <SelectItem value="phishing">Phishing</SelectItem>
-              <SelectItem value="vulnerability">Vulnerability</SelectItem>
-              <SelectItem value="social_engineering">Social Engineering</SelectItem>
-              <SelectItem value="insider_threat">Insider Threat</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Threat Intel
-        </Button>
-      </div>
-
-      {/* Threat Intelligence Cards */}
-      <div className="grid gap-4">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center space-x-2">
-                <Globe className="h-5 w-5 text-orange-600" />
-                <span>Education Sector Phishing Campaign</span>
-              </CardTitle>
-              <Badge className="bg-orange-100 text-orange-700 border-orange-200">
-                HIGH
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
-              Targeted phishing campaign against educational institutions in East Africa
-            </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <div className="font-medium">Threat Type</div>
-                <div>Phishing</div>
-              </div>
-              <div>
-                <div className="font-medium">Confidence</div>
-                <div className="text-orange-600">85%</div>
-              </div>
-              <div>
-                <div className="font-medium">First Seen</div>
-                <div>7 days ago</div>
-              </div>
-              <div>
-                <div className="font-medium">Last Seen</div>
-                <div>2 days ago</div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="font-medium mb-2">Indicators</div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                  <span>Domain: edumyles-support.com</span>
-                  <Badge variant="outline" className="text-xs">90% confidence</Badge>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                  <span>IP: 192.168.1.100</span>
-                  <Badge variant="outline" className="text-xs">70% confidence</Badge>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                  <span>URL: /login/verify-account</span>
-                  <Badge variant="outline" className="text-xs">80% confidence</Badge>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="font-medium mb-2">Mitigations Applied</div>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">Email filtering updated</Badge>
-                <Badge variant="secondary">User training conducted</Badge>
-                <Badge variant="secondary">Domain blocklisted</Badge>
-              </div>
-            </div>
-            
-            <div>
-              <div className="font-medium mb-2">Recommendations</div>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Implement advanced email filtering</li>
-                <li>• Conduct user awareness training</li>
-                <li>• Monitor for suspicious login attempts</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center space-x-2">
-                <Bug className="h-5 w-5 text-red-600" />
-                <span>Student Management System Vulnerability</span>
-              </CardTitle>
-              <Badge className="bg-red-100 text-red-700 border-red-200">
-                CRITICAL
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
-              Critical vulnerability discovered in student data management module
-            </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <div className="font-medium">Threat Type</div>
-                <div>Vulnerability</div>
-              </div>
-              <div>
-                <div className="font-medium">Confidence</div>
-                <div className="text-red-600">95%</div>
-              </div>
-              <div>
-                <div className="font-medium">First Seen</div>
-                <div>3 days ago</div>
-              </div>
-              <div>
-                <div className="font-medium">Last Seen</div>
-                <div>1 day ago</div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="font-medium mb-2">Indicators</div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                  <span>CVE: CVE-2024-1234</span>
-                  <Badge variant="outline" className="text-xs">100% confidence</Badge>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                  <span>Module: student_management</span>
-                  <Badge variant="outline" className="text-xs">90% confidence</Badge>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                  <span>Version: 2.1.0</span>
-                  <Badge variant="outline" className="text-xs">80% confidence</Badge>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="font-medium mb-2">Mitigations Applied</div>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">Security patch deployed</Badge>
-                <Badge variant="secondary">Access restrictions applied</Badge>
-                <Badge variant="secondary">Enhanced monitoring</Badge>
-              </div>
-            </div>
-            
-            <div>
-              <div className="font-medium mb-2">Recommendations</div>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Apply security patches immediately</li>
-                <li>• Implement additional access controls</li>
-                <li>• Conduct security audit of related modules</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Security Operations Center" 
-        description="Comprehensive security incident management, policy enforcement, and threat intelligence"
-        breadcrumbs={[
-          { label: "Platform", href: "/platform" },
-          { label: "Security Operations", href: "/platform/security" }
-        ]}
-      />
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="incidents">Incidents</TabsTrigger>
-          <TabsTrigger value="policies">Policies</TabsTrigger>
-          <TabsTrigger value="threat-intel">Threat Intelligence</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="incidents">
-          <IncidentsTab />
-        </TabsContent>
-        
-        <TabsContent value="policies">
-          <PoliciesTab />
-        </TabsContent>
-        
-        <TabsContent value="threat-intel">
-          <ThreatIntelligenceTab />
         </TabsContent>
       </Tabs>
     </div>

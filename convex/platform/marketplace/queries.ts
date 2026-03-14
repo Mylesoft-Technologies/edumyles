@@ -885,3 +885,107 @@ export const getMarketplaceOverview = query({
     };
   },
 });
+
+export const getMarketplaceHome = query({
+  args: {
+    sessionToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    console.log("getMarketplaceHome called with:", {
+      sessionToken: args.sessionToken ? "present" : "missing"
+    });
+
+    try {
+      // Return mock data for now - this should integrate with actual marketplace data
+      return {
+        featuredModules: [
+          {
+            _id: "featured_1",
+            moduleId: "ai_tutor",
+            name: "AI Tutor Assistant",
+            description: "Advanced AI-powered tutoring system for personalized learning",
+            category: "academics",
+            tier: "premium",
+            status: "active",
+            version: "2.1.0",
+            pricing: {
+              monthly: 2999,
+              currency: "KES"
+            },
+            features: [
+              "Personalized learning paths",
+              "Real-time feedback",
+              "Progress tracking"
+            ],
+            availableForTier: true,
+            popularity: 95,
+            rating: 4.8,
+            reviews: 1247
+          },
+          {
+            _id: "featured_2",
+            moduleId: "finance_manager",
+            name: "Finance Manager",
+            description: "Comprehensive financial management for educational institutions",
+            category: "finance",
+            tier: "basic",
+            status: "active",
+            version: "1.5.0",
+            pricing: {
+              monthly: 1499,
+              currency: "KES"
+            },
+            features: [
+              "Fee collection management",
+              "Budget tracking",
+              "Financial reporting"
+            ],
+            availableForTier: true,
+            popularity: 88,
+            rating: 4.6,
+            reviews: 892
+          }
+        ],
+        categories: [
+          {
+            id: "academics",
+            name: "Academics",
+            description: "Learning management and academic tools",
+            count: 12,
+            icon: "book"
+          },
+          {
+            id: "finance",
+            name: "Finance",
+            description: "Financial management and billing",
+            count: 8,
+            icon: "dollar-sign"
+          },
+          {
+            id: "communications",
+            name: "Communications",
+            description: "Messaging and notification systems",
+            count: 6,
+            icon: "message-circle"
+          },
+          {
+            id: "analytics",
+            name: "Analytics",
+            description: "Data analysis and reporting",
+            count: 4,
+            icon: "bar-chart"
+          }
+        ],
+        stats: {
+          totalModules: 30,
+          activeModules: 28,
+          totalInstalls: 8967,
+          averageRating: 4.6
+        }
+      };
+    } catch (error) {
+      console.error("getMarketplaceHome error:", error);
+      throw new Error("Failed to load marketplace home data");
+    }
+  },
+});
