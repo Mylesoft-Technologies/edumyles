@@ -56,12 +56,12 @@ export default function ECommercePage() {
 
     const products = useQuery(
         api.modules.ecommerce.queries.listProducts,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     const orders = useQuery(
         api.modules.ecommerce.queries.listOrders,
-        sessionToken ? {} : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     if (isLoading) return <LoadingSkeleton variant="page" />;
