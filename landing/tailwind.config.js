@@ -1,7 +1,8 @@
-import type { Config } from "tailwindcss";
-
-const config: Config = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   darkMode: "class",
   theme: {
     extend: {
@@ -28,9 +29,7 @@ const config: Config = {
       },
       animation: {
         "pulse-ring": "pulseRing 3s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite",
-        "count-up": "countUp 1.5s ease-out forwards",
         "fade-in-up": "fadeInUp 0.5s ease-out forwards",
-        "slide-in-right": "slideInRight 0.3s ease-in-out forwards",
         shimmer: "shimmer 2s infinite",
       },
       keyframes: {
@@ -42,10 +41,6 @@ const config: Config = {
         fadeInUp: {
           from: { opacity: "0", transform: "translateY(30px)" },
           to: { opacity: "1", transform: "translateY(0)" },
-        },
-        slideInRight: {
-          from: { opacity: "0", transform: "translateX(30px)" },
-          to: { opacity: "1", transform: "translateX(0)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
@@ -60,4 +55,3 @@ const config: Config = {
   },
   plugins: [],
 };
-export default config;
