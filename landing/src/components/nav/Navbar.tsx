@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -15,6 +16,8 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -33,8 +36,8 @@ export default function Navbar() {
       role="banner"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/98 backdrop-blur-sm shadow-md border-b border-light-grey"
-          : "bg-white/90 backdrop-blur-sm border-b border-light-grey/50"
+          ? "bg-white/98 dark:bg-navy-dark/98 backdrop-blur-sm shadow-md border-b border-light-grey dark:border-navy-light/30"
+          : "bg-white/90 dark:bg-navy-dark/90 backdrop-blur-sm border-b border-light-grey/50 dark:border-navy-light/20"
       }`}
     >
       <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,7 +58,7 @@ export default function Navbar() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="font-inter font-medium text-[15px] transition-colors text-navy hover:text-gold"
+                className="font-inter font-medium text-[15px] transition-colors text-navy dark:text-off-white hover:text-gold"
               >
                 {link.label}
               </Link>
@@ -64,9 +67,10 @@ export default function Navbar() {
 
           {/* Desktop CTAs */}
           <div className="hidden lg:flex items-center gap-3">
+            {mounted && <ThemeToggle />}
             <Link
               href="https://app.edumyles.com/auth/login"
-              className="font-inter font-medium text-[15px] px-4 py-2 transition-colors text-navy hover:text-gold"
+              className="font-inter font-medium text-[15px] px-4 py-2 transition-colors text-navy dark:text-off-white hover:text-gold"
             >
               Login
             </Link>
@@ -81,7 +85,7 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             type="button"
-            className="lg:hidden p-2 rounded-lg transition-colors text-navy"
+            className="lg:hidden p-2 rounded-lg transition-colors text-navy dark:text-off-white"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -93,14 +97,14 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-white z-40 flex flex-col p-6 border-t border-light-grey">
+        <div className="lg:hidden fixed inset-0 top-16 bg-white dark:bg-navy-dark z-40 flex flex-col p-6 border-t border-light-grey dark:border-navy-light/30">
           <nav className="flex flex-col gap-2 flex-1">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className="text-navy hover:text-gold font-inter font-medium text-xl py-3 border-b border-light-grey transition-colors"
+                className="text-navy dark:text-off-white hover:text-gold font-inter font-medium text-xl py-3 border-b border-light-grey dark:border-navy-light/30 transition-colors"
               >
                 {link.label}
               </Link>
@@ -110,7 +114,7 @@ export default function Navbar() {
             <Link
               href="https://app.edumyles.com/auth/login"
               onClick={() => setMobileOpen(false)}
-              className="text-center text-navy border border-light-grey rounded-lg py-3 font-inter font-medium transition-colors hover:border-gold hover:text-gold"
+              className="text-center text-navy dark:text-off-white border border-light-grey dark:border-navy-light/50 rounded-lg py-3 font-inter font-medium transition-colors hover:border-gold hover:text-gold"
             >
               Login
             </Link>
@@ -126,7 +130,7 @@ export default function Navbar() {
       )}
 
       {/* Mobile sticky bottom CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-light-grey p-4 shadow-lg">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-navy-dark border-t border-light-grey dark:border-navy-light/30 p-4 shadow-lg">
         <Link
           href="#demo"
           className="block text-center bg-gold hover:bg-gold-dark text-white rounded-lg py-3.5 font-inter font-semibold transition-colors w-full"

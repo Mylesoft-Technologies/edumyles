@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${jakarta.variable} ${inter.variable} font-inter antialiased bg-white text-dark-grey`}>
+      <body className={`${jakarta.variable} ${inter.variable} font-inter antialiased bg-white dark:bg-[#0D1E30] text-dark-grey dark:text-[#E8EDF4]`}>
         <ConditionalLayout>{children}</ConditionalLayout>
         <SpeedInsights />
       </body>
