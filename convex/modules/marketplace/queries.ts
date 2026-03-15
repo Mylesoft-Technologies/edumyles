@@ -20,6 +20,28 @@ export const getModuleRegistry = query({
       .withIndex("by_status", (q) => q.eq("status", "published"))
       .collect();
 
+    if (modules.length === 0) {
+      const { ALL_MODULES } = await import("./moduleDefinitions");
+      return ALL_MODULES.map((mod) => ({
+        _id: mod.moduleId as any,
+        _creationTime: 0,
+        moduleId: mod.moduleId,
+        name: mod.name,
+        description: mod.description,
+        tier: mod.tier,
+        category: mod.category,
+        isCore: mod.isCore,
+        iconName: mod.iconName,
+        version: mod.version,
+        features: mod.features,
+        dependencies: mod.dependencies,
+        documentation: mod.documentation,
+        pricing: mod.pricing,
+        support: mod.support,
+        status: "published" as const,
+      }));
+    }
+
     return modules;
   },
 });
@@ -84,9 +106,34 @@ export const getAvailableForTier = query({
     const tier = tenant.plan ?? "free";
     const allowedModuleIds = TIER_MODULES[tier] || TIER_MODULES["free"];
 
-    const allModules = await ctx.db.query("moduleRegistry").collect();
+    const dbModules = await ctx.db.query("moduleRegistry").collect();
 
-    return allModules.map((mod) => ({
+    // If the registry is empty, fall back to in-memory module definitions
+    // so the marketplace always shows modules even before the seed is run.
+    if (dbModules.length === 0) {
+      const { ALL_MODULES } = await import("./moduleDefinitions");
+      return ALL_MODULES.map((mod) => ({
+        _id: mod.moduleId as any,
+        _creationTime: 0,
+        moduleId: mod.moduleId,
+        name: mod.name,
+        description: mod.description,
+        tier: mod.tier,
+        category: mod.category,
+        isCore: mod.isCore,
+        iconName: mod.iconName,
+        version: mod.version,
+        features: mod.features,
+        dependencies: mod.dependencies,
+        documentation: mod.documentation,
+        pricing: mod.pricing,
+        support: mod.support,
+        status: "published" as const,
+        availableForTier: CORE_MODULE_IDS.includes(mod.moduleId) || allowedModuleIds!.includes(mod.moduleId),
+      }));
+    }
+
+    return dbModules.map((mod) => ({
       ...mod,
       isCore: mod.isCore ?? CORE_MODULE_IDS.includes(mod.moduleId),
       availableForTier: CORE_MODULE_IDS.includes(mod.moduleId) || allowedModuleIds!.includes(mod.moduleId),

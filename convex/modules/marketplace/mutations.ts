@@ -4,7 +4,7 @@ import { requireTenantContext } from "../../helpers/tenantGuard";
 import { requireRole } from "../../helpers/authorize";
 import { logAction } from "../../helpers/auditLog";
 import { TIER_MODULES } from "./tierModules";
-import { isCoreModule, CORE_MODULE_IDS } from "./moduleDefinitions";
+import { isCoreModule, CORE_MODULE_IDS, ALL_MODULES } from "./moduleDefinitions";
 
 // Module dependency map — some modules require others to be installed first
 const MODULE_DEPENDENCIES: Record<string, string[]> = {
@@ -431,5 +431,64 @@ export const toggleModuleStatus = mutation({
     });
 
     return { success: true };
+  },
+});
+
+/**
+ * One-time seed: populate moduleRegistry from ALL_MODULES definition.
+ * Idempotent — safe to run multiple times.
+ * No auth required — this only inserts catalogue data, never tenant data.
+ */
+export const runSeedModuleRegistry = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let created = 0;
+    let updated = 0;
+
+    for (const mod of ALL_MODULES) {
+      const existing = await ctx.db
+        .query("moduleRegistry")
+        .withIndex("by_module_id", (q) => q.eq("moduleId", mod.moduleId))
+        .first();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          name: mod.name,
+          description: mod.description,
+          tier: mod.tier,
+          category: mod.category,
+          isCore: mod.isCore,
+          iconName: mod.iconName,
+          version: mod.version,
+          features: mod.features,
+          dependencies: mod.dependencies,
+          documentation: mod.documentation,
+          pricing: mod.pricing,
+          support: mod.support,
+          status: "published" as const,
+        });
+        updated++;
+      } else {
+        await ctx.db.insert("moduleRegistry", {
+          moduleId: mod.moduleId,
+          name: mod.name,
+          description: mod.description,
+          tier: mod.tier,
+          category: mod.category,
+          isCore: mod.isCore,
+          iconName: mod.iconName,
+          status: "published" as const,
+          version: mod.version,
+          pricing: mod.pricing,
+          features: mod.features,
+          dependencies: mod.dependencies,
+          documentation: mod.documentation,
+          support: mod.support,
+        });
+        created++;
+      }
+    }
+
+    return { created, updated, total: ALL_MODULES.length };
   },
 });
