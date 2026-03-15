@@ -87,7 +87,7 @@ export default function CreateTicketPage() {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   }
 
   const selectedCategory = CATEGORIES.find(c => c.value === form.category);

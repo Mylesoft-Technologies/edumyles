@@ -153,7 +153,7 @@ export async function GET(req: NextRequest) {
 
     // Save the WorkOS AuthKit session (enables useAuth() / withAuth() on the frontend)
     if (process.env.WORKOS_COOKIE_PASSWORD) {
-      await saveSession(response, { accessToken, refreshToken });
+      await saveSession(response as any, { accessToken, refreshToken } as any);
     }
 
     response.cookies.set("edumyles_session", sessionToken, {

@@ -30,8 +30,9 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   const { unreadCount } = useNotifications();
   const pathname = usePathname();
 
-  const displayName = formatName(user?.firstName, user?.lastName);
-  const initials = getInitials(user?.firstName, user?.lastName);
+  const anyUser = user as any;
+  const displayName = formatName(anyUser?.firstName, anyUser?.lastName);
+  const initials = getInitials(anyUser?.firstName, anyUser?.lastName);
   const notificationsHref = pathname?.startsWith("/platform")
     ? "/platform/audit"
     : "/admin/notifications";
@@ -77,7 +78,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-1 hover:bg-accent">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.avatarUrl ?? undefined} alt={displayName} />
+              <AvatarImage src={anyUser?.avatarUrl ?? undefined} alt={displayName} />
               <AvatarFallback className="text-xs">{initials}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>

@@ -756,7 +756,7 @@ export default function OperationsCenterPage() {
                 </div>
                 <div>
                   <Label htmlFor="severity">Severity *</Label>
-                  <Select id="severity" name="severity" required>
+                  <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="Select severity" />
                     </SelectTrigger>
@@ -826,7 +826,7 @@ export default function OperationsCenterPage() {
                 </div>
                 <div>
                   <Label htmlFor="impact">Impact *</Label>
-                  <Select id="impact" name="impact" required>
+                  <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="Select impact level" />
                     </SelectTrigger>

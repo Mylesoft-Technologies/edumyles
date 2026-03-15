@@ -557,7 +557,7 @@ export default function SecurityDashboardPage() {
                           </Button>
                         </>
                       )}
-                      {threat.status === "mitigating" && (
+                      {(threat.status as string) === "mitigating" && (
                         <Button variant="outline" size="sm" onClick={() => handleMitigateThreat(threat._id, "resolve")}>
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Resolve

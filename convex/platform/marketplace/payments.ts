@@ -1,5 +1,6 @@
 import { mutation, query } from "../../_generated/server";
 import { v } from "convex/values";
+import { Id } from "../../_generated/dataModel";
 
 // Payment processing mutations
 export const initiatePayment = mutation({
@@ -52,6 +53,21 @@ export const initiatePayment = mutation({
 
     const finalAmount = pricing.total - discount;
 
+    // Generate reference before insert (paymentReference is required)
+    let paymentReference: string;
+    switch (args.paymentMethod) {
+      case "mpesa":
+        paymentReference = generateMpesaReference();
+        break;
+      case "card":
+        paymentReference = `CARD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        break;
+      case "bank_transfer":
+      default:
+        paymentReference = `BANK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        break;
+    }
+
     // Create payment transaction
     const transactionId = await ctx.db.insert("paymentTransactions", {
       tenantId: session.tenantId,
@@ -65,17 +81,16 @@ export const initiatePayment = mutation({
       discountAmount: discount,
       originalAmount: pricing.total,
       initiatedAt: Date.now(),
-      expiresAt: Date.now() + (15 * 60 * 1000), // 15 minutes expiry
+      expiresAt: Date.now() + (15 * 60 * 1000),
       initiatedBy: session.userId,
+      paymentReference,
     });
 
     // Generate payment URL based on method
-    let paymentUrl;
-    let paymentReference;
+    let paymentUrl: string | undefined;
 
     switch (args.paymentMethod) {
       case "mpesa":
-        paymentReference = generateMpesaReference();
         paymentUrl = await initiateMpesaPayment(ctx, {
           transactionId,
           amount: finalAmount,
@@ -84,7 +99,6 @@ export const initiatePayment = mutation({
         });
         break;
       case "card":
-        paymentReference = `CARD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         paymentUrl = await initiateCardPayment(ctx, {
           transactionId,
           amount: finalAmount,
@@ -92,7 +106,6 @@ export const initiatePayment = mutation({
         });
         break;
       case "bank_transfer":
-        paymentReference = `BANK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         paymentUrl = await initiateBankTransfer(ctx, {
           transactionId,
           amount: finalAmount,
@@ -101,9 +114,8 @@ export const initiatePayment = mutation({
         break;
     }
 
-    // Update transaction with payment details
+    // Update transaction with payment URL
     await ctx.db.patch(transactionId, {
-      paymentReference,
       paymentUrl,
     });
 
@@ -169,7 +181,7 @@ async function activateModule(ctx: any, args: any) {
   // Get module details
   const module = await ctx.db
     .query("moduleRegistry")
-    .filter((q) => q.eq(q.field("moduleId"), moduleId))
+    .filter((q: any) => q.eq(q.field("moduleId"), moduleId))
     .first();
 
   if (!module) {
@@ -199,9 +211,8 @@ async function activateModule(ctx: any, args: any) {
     actorId: "system",
     actorEmail: "payment@edumyles.com",
     action: "module_installed",
-    entityId: subscriptionId,
+    entityId: subscriptionId as string,
     entityType: "module_subscription",
-    before: null,
     after: {
       moduleId,
       billingCycle,
@@ -328,7 +339,7 @@ export const cancelSubscription = mutation({
     }
 
     // Update subscription status
-    await ctx.db.patch(args.subscriptionId, {
+    await ctx.db.patch(args.subscriptionId as Id<"moduleSubscriptions">, {
       status: "cancelled",
       cancelledAt: Date.now(),
       cancelReason: args.reason,
@@ -339,7 +350,7 @@ export const cancelSubscription = mutation({
     await ctx.db.insert("auditLogs", {
       tenantId: session.tenantId,
       actorId: session.userId,
-      actorEmail: session.email,
+      actorEmail: session.email ?? "",
       action: "subscription_cancelled",
       entityId: args.subscriptionId,
       entityType: "module_subscription",

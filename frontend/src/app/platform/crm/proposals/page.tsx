@@ -34,7 +34,8 @@ import {
   Settings,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  XCircle,
 } from "lucide-react";
 
 interface ProposalTemplate {

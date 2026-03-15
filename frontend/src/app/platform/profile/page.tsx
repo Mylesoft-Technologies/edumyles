@@ -460,7 +460,7 @@ function TwoFactorModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && resetSetup() && onOpenChange(v)}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) resetSetup(); onOpenChange(v); }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -738,11 +738,12 @@ export default function ProfilePage() {
   };
 
   // Extract variables for JSX use
-  const firstName = isEditing ? (editForm?.firstName ?? "") : (profileData?.firstName ?? sessionUser?.firstName ?? "");
-  const lastName = isEditing ? (editForm?.lastName ?? "") : (profileData?.lastName ?? sessionUser?.lastName ?? "");
-  const email = profileData?.email ?? sessionUser?.email ?? "";
-  const role = profileData?.role ?? sessionUser?.role ?? "";
-  const avatarUrl = profileData?.avatarUrl ?? sessionUser?.avatarUrl;
+  const anySessionUser = sessionUser as any;
+  const firstName = isEditing ? (editForm?.firstName ?? "") : (profileData?.firstName ?? anySessionUser?.firstName ?? "");
+  const lastName = isEditing ? (editForm?.lastName ?? "") : (profileData?.lastName ?? anySessionUser?.lastName ?? "");
+  const email = profileData?.email ?? anySessionUser?.email ?? "";
+  const role = profileData?.role ?? anySessionUser?.role ?? "";
+  const avatarUrl = profileData?.avatarUrl ?? anySessionUser?.avatarUrl;
   const initials =
     `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() ||
     email[0]?.toUpperCase() ||

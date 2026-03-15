@@ -151,14 +151,14 @@ export function Sidebar({ navItems, installedModules, isMobile = false, onClose 
           )}>
             <div className="relative h-8 w-8 rounded-full bg-gradient-to-br from-em-primary-light to-em-primary flex items-center justify-center shadow-sm">
               <span className="text-xs font-medium text-sidebar-text-active">
-                {user?.firstName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U"}
+                {(user as any)?.firstName?.[0]?.toUpperCase() ?? (user as any)?.email?.[0]?.toUpperCase() ?? "U"}
               </span>
               <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-em-success border-2 border-sidebar-bg"></div>
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-text-active truncate">
-                  {[user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "User"}
+                  {[(user as any)?.firstName, (user as any)?.lastName].filter(Boolean).join(" ") || (user as any)?.email || "User"}
                 </p>
                 <p className="text-xs text-sidebar-text truncate">{user?.email ?? ""}</p>
               </div>

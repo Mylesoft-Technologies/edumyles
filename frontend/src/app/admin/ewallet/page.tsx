@@ -274,7 +274,7 @@ export default function EWalletPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                data={mockTransactions}
+                                data={currentTransactions}
                                 columns={transactionColumns}
                                 searchable
                                 searchPlaceholder="Search by reference or user..."
@@ -292,7 +292,7 @@ export default function EWalletPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                data={mockTransactions.filter(t => t.status === "pending")}
+                                data={currentTransactions.filter(t => t.status === "pending")}
                                 columns={transactionColumns}
                                 searchable={false}
                                 emptyTitle="No pending transactions"
