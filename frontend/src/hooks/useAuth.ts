@@ -1,6 +1,5 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { setConvexAuthToken, clearConvexAuthToken } from "@/lib/convexAuth";
 import { useQuery } from "@/hooks/useSSRSafeConvex";
 import { api } from "@/convex/_generated/api";
 
@@ -31,7 +30,6 @@ export function useAuth() {
           if (!cancelled) {
             setSession(null);
             setIsLoading(false);
-            clearConvexAuthToken();
           }
           return;
         }
@@ -41,19 +39,11 @@ export function useAuth() {
         if (!cancelled) {
           setSession(data.session as Session | null);
           setIsLoading(false);
-          
-          // Store session in localStorage for Convex client
-          if (data.session) {
-            setConvexAuthToken(data.session);
-          } else {
-            clearConvexAuthToken();
-          }
         }
       } catch {
         if (!cancelled) {
           setSession(null);
           setIsLoading(false);
-          clearConvexAuthToken();
         }
       }
     }
@@ -113,9 +103,6 @@ export function useAuth() {
       if (response.ok) {
         setSession(null);
         setIsLoading(false);
-        
-        // Clear session from localStorage
-        clearConvexAuthToken();
       }
 
       if (response.ok) {

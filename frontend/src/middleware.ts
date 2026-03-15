@@ -8,49 +8,14 @@ const PUBLIC_ROUTES = ["/auth/login", "/auth/callback", "/auth/forgot-password",
 const ROUTE_ROLE_MAP: Record<string, string[]> = {
   "/platform": ["master_admin", "super_admin"],
   "/admin": [
-    "school_admin",
-    "principal",
-    "bursar",
-    "hr_manager",
-    "librarian",
-    "transport_manager",
-    "master_admin",
-    "super_admin",
+    "school_admin", "principal", "bursar", "hr_manager",
+    "librarian", "transport_manager", "master_admin", "super_admin",
   ],
-  "/portal/teacher": [
-    "teacher",
-    "master_admin",
-    "super_admin",
-    "school_admin",
-    "principal",
-  ],
-  "/portal/student": [
-    "student",
-    "master_admin",
-    "super_admin",
-    "school_admin",
-    "principal",
-    "teacher",
-  ],
-  "/portal/parent": [
-    "parent",
-    "master_admin",
-    "super_admin",
-    "school_admin",
-    "principal",
-  ],
-  "/portal/alumni": [
-    "alumni",
-    "master_admin",
-    "super_admin",
-    "school_admin",
-  ],
-  "/portal/partner": [
-    "partner",
-    "master_admin",
-    "super_admin",
-    "school_admin",
-  ],
+  "/portal/teacher": ["teacher", "master_admin", "super_admin", "school_admin", "principal"],
+  "/portal/student": ["student", "master_admin", "super_admin", "school_admin", "principal", "teacher"],
+  "/portal/parent": ["parent", "master_admin", "super_admin", "school_admin", "principal"],
+  "/portal/alumni": ["alumni", "master_admin", "super_admin", "school_admin"],
+  "/portal/partner": ["partner", "master_admin", "super_admin", "school_admin"],
 };
 
 function getRoleDashboard(role: string): string {
@@ -81,34 +46,30 @@ function getRoleDashboard(role: string): string {
 }
 
 function isRoleAllowedForPath(pathname: string, role: string): boolean {
-  const sortedPrefixes = Object.keys(ROUTE_ROLE_MAP).sort(
-    (a, b) => b.length - a.length
-  );
-
+  const sortedPrefixes = Object.keys(ROUTE_ROLE_MAP).sort((a, b) => b.length - a.length);
   for (const prefix of sortedPrefixes) {
     if (pathname.startsWith(prefix)) {
       const allowedRoles = ROUTE_ROLE_MAP[prefix];
       return allowedRoles ? allowedRoles.includes(role) : true;
     }
   }
-
   return true;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = request.cookies.get("edumyles_session");
   const role = request.cookies.get("edumyles_role")?.value;
 
-  // Development bypass - skip middleware for admin routes in development
-  if (process.env.NODE_ENV === "development" && pathname.startsWith("/admin")) {
+  // Dev bypass — skip all auth checks when explicitly enabled
+  if (process.env.ENABLE_DEV_AUTH_BYPASS === "true" && pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
   const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
   const isPublic = PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
 
-  // 0. Maintenance mode check - redirect non-platform-admin users to maintenance page
+  // 0. Maintenance mode
   const maintenanceMode = request.cookies.get("edumyles_maintenance")?.value === "true";
   if (maintenanceMode && !pathname.startsWith("/platform") && !pathname.startsWith("/maintenance") && !pathname.startsWith("/auth")) {
     const isPlatformAdmin = role === "master_admin" || role === "super_admin";
@@ -117,25 +78,22 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 1. Redirect unauthenticated users from protected routes to auth (landing when NEXT_PUBLIC_AUTH_BASE_URL is set)
+  // 1. Unauthenticated → login
   if (isProtected && !session) {
-    const authBase =
-      process.env.NEXT_PUBLIC_AUTH_BASE_URL || request.nextUrl.origin;
+    const authBase = process.env.NEXT_PUBLIC_AUTH_BASE_URL || request.nextUrl.origin;
     const loginUrl = new URL("/auth/login", authBase);
-    loginUrl.searchParams.set("next", request.url);
+    loginUrl.searchParams.set("returnTo", request.url);
     return NextResponse.redirect(loginUrl.toString());
   }
 
-  // 2. Redirect authenticated users away from auth pages to dashboard
+  // 2. Already authenticated → skip login page
   if (isPublic && session && pathname === "/auth/login") {
-    const dashboard = getRoleDashboard(role ?? "school_admin");
-    return NextResponse.redirect(new URL(dashboard, request.url));
+    return NextResponse.redirect(new URL(getRoleDashboard(role ?? "school_admin"), request.url));
   }
 
-  // 3. Redirect root to role-based dashboard
+  // 3. Root → role dashboard
   if (pathname === "/" && session) {
-    const dashboard = getRoleDashboard(role ?? "school_admin");
-    return NextResponse.redirect(new URL(dashboard, request.url));
+    return NextResponse.redirect(new URL(getRoleDashboard(role ?? "school_admin"), request.url));
   }
 
   // 4. RBAC enforcement
@@ -150,18 +108,17 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 5. Extract tenant slug from subdomain
+  // 5. Tenant slug from subdomain
   const host = request.headers.get("host") ?? "";
   const parts = host.split(".");
-  const response = NextResponse.next();
-
   const firstPart = parts[0] ?? "";
+
+  const response = NextResponse.next();
   if (parts.length >= 3 || (parts.length === 2 && !firstPart.includes("localhost"))) {
     if (firstPart !== "www" && firstPart !== "app" && firstPart !== "") {
       response.headers.set("x-tenant-slug", firstPart);
     }
   }
-
   return response;
 }
 
