@@ -1,10 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev:frontend",
+  "buildCommand": "cd landing && npm install --legacy-peer-deps && npm run build",
+  "devCommand": "cd landing && npm run dev",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
-  "outputDirectory": "frontend/.next",
+  "outputDirectory": "landing/.next",
   "headers": [
     {
       "source": "/(.*)",
