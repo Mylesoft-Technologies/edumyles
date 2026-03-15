@@ -1,25 +1,52 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
-import { ConvexProvider } from "convex/react";
-import { getConvexClient } from "@/lib/convex";
+import { ConvexReactClient } from "convex/react";
+import { ConvexProviderWithAuthKit } from "@convex-dev/workos";
+import { AuthKitProvider, useAuth } from "@workos-inc/authkit-nextjs/components";
+import { type ReactNode, useEffect, useState } from "react";
 
-interface ConvexAuthProviderProps {
-  children: ReactNode;
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
+
+// Singleton Convex client — lazy-initialized client-side only
+let _client: ConvexReactClient | null = null;
+function getClient(): ConvexReactClient {
+  if (!_client) {
+    if (!convexUrl) throw new Error("Missing NEXT_PUBLIC_CONVEX_URL");
+    _client = new ConvexReactClient(convexUrl);
+  }
+  return _client;
 }
 
-export function ConvexAuthProvider({ children }: ConvexAuthProviderProps) {
-  const [client, setClient] = useState<any>(null);
+function ConvexWithAuthKit({ children }: { children: ReactNode }) {
+  return (
+    <ConvexProviderWithAuthKit client={getClient()} useAuth={useAuth}>
+      {children}
+    </ConvexProviderWithAuthKit>
+  );
+}
+
+/**
+ * Wraps the app with:
+ *  1. AuthKitProvider           — manages WorkOS AuthKit session state
+ *  2. ConvexProviderWithAuthKit — passes WorkOS access tokens to Convex
+ *
+ * Defers rendering until client-side to avoid SSR issues
+ * (Convex requires browser environment).
+ */
+export function ConvexAuthProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Only initialize client on client side
-    const convexClient = getConvexClient();
-    setClient(convexClient);
+    setMounted(true);
   }, []);
 
-  if (!client) {
-    return null; // or a loading spinner
-  }
+  // During SSR / static generation, render nothing to avoid Convex context errors.
+  // Pages that need server-side data should use direct Convex HTTP client calls.
+  if (!mounted) return null;
 
-  return <ConvexProvider client={client}>{children}</ConvexProvider>;
+  return (
+    <AuthKitProvider>
+      <ConvexWithAuthKit>{children}</ConvexWithAuthKit>
+    </AuthKitProvider>
+  );
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { WorkOS } from "@workos-inc/node";
+import { saveSession } from "@workos-inc/authkit-nextjs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import crypto from "crypto";
@@ -83,7 +84,7 @@ export async function GET(req: NextRequest) {
     const convex = new ConvexHttpClient(convexUrl);
 
     // --- Exchange authorization code for user profile ----------------------
-    const { user, organizationId } = await workos.userManagement.authenticateWithCode({
+    const { user, accessToken, refreshToken, organizationId } = await workos.userManagement.authenticateWithCode({
       clientId,
       code,
     });
@@ -149,6 +150,11 @@ export async function GET(req: NextRequest) {
 
     const response = NextResponse.redirect(new URL(dashboard, req.url));
     const isProduction = process.env.NODE_ENV === "production";
+
+    // Save the WorkOS AuthKit session (enables useAuth() / withAuth() on the frontend)
+    if (process.env.WORKOS_COOKIE_PASSWORD) {
+      await saveSession(response, { accessToken, refreshToken });
+    }
 
     response.cookies.set("edumyles_session", sessionToken, {
       httpOnly: true,

@@ -1,63 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { WorkOS } from "@workos-inc/node";
+import { getSignUpUrl } from "@workos-inc/authkit-nextjs";
 import crypto from "crypto";
 
-function generateState(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
-
-function buildAuthUrl(req: NextRequest, email?: string, state?: string) {
-  const apiKey = process.env.WORKOS_API_KEY;
-  const clientId = process.env.NEXT_PUBLIC_WORKOS_CLIENT_ID || process.env.WORKOS_CLIENT_ID;
-  const redirectUri =
-    process.env.WORKOS_REDIRECT_URI ||
-    process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI ||
-    req.nextUrl.origin + "/auth/callback";
-
-  if (!clientId || !apiKey) {
-    throw new Error("Authentication service not configured");
-  }
-
-  const workos = new WorkOS(apiKey);
-  return workos.userManagement.getAuthorizationUrl({
-    clientId,
-    redirectUri,
-    provider: "authkit",
-    screenHint: "sign-up",
-    state: state,
-    ...(email ? { loginHint: email } : {}),
-  });
-}
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[auth/signup] Development mode: Bypassing WorkOS auth");
-      const response = NextResponse.redirect(new URL("/admin", req.url));
-      return response;
+    // Dev bypass — only when ENABLE_DEV_AUTH_BYPASS=true is explicitly set
+    if (process.env.ENABLE_DEV_AUTH_BYPASS === "true") {
+      console.log("[auth/signup] Dev bypass: redirecting to /admin");
+      return NextResponse.redirect(new URL("/admin", req.url));
     }
 
     const email = req.nextUrl.searchParams.get("email") ?? undefined;
-    const state = generateState();
-    const authUrl = buildAuthUrl(req, email, state);
+    const plan = req.nextUrl.searchParams.get("plan") ?? undefined;
+
+    // Encode plan in state so the callback can read it
+    const statePayload = plan ? Buffer.from(JSON.stringify({ plan })).toString("base64url") : undefined;
+    const state = statePayload ? `${crypto.randomBytes(8).toString("hex")}.${statePayload}` : undefined;
+
+    const authUrl = await getSignUpUrl({ loginHint: email, state, returnTo: "/admin" });
 
     const response = NextResponse.redirect(authUrl);
-    response.cookies.set("workos_state", state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 600,
-      path: "/",
-    });
-
+    if (state) {
+      response.cookies.set("workos_state", state.split(".")[0]!, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 600,
+        path: "/",
+      });
+    }
     return response;
   } catch (error) {
-    console.error("Signup redirect error:", error);
-    const fallback = new URL("/", req.url);
-    fallback.searchParams.set(
-      "auth_error",
-      "Signup service is temporarily unavailable. Please try again later."
+    console.error("[auth/signup] Failed to build sign-up URL:", error);
+    return NextResponse.redirect(
+      new URL("/auth/signup?error=not_configured", req.url)
     );
-    return NextResponse.redirect(fallback);
   }
 }
