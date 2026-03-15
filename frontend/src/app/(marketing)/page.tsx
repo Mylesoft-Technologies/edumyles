@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import LandingNavbar from "@/components/landing/LandingNavbar";
-import LandingFooter from "@/components/landing/LandingFooter";
-
 // Lazy load heavy components
 const HeroSection = dynamic(() => import("@/components/landing/HeroSection"), {
   loading: () => <div className="loading-state">Loading hero...</div>,
@@ -52,9 +49,7 @@ function LandingPageContent() {
   }, [searchParams]);
 
   return (
-    <>
-      <LandingNavbar />
-      <main>
+    <main>
       {authError && (
         <div className="auth-error-banner" role="alert" aria-live="polite">
           <strong>Authentication Error:</strong> {authError}
@@ -403,8 +398,6 @@ function LandingPageContent() {
         </div>
       </section>
     </main>
-      <LandingFooter />
-    </>
   );
 }
 
