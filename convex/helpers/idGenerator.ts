@@ -1,5 +1,11 @@
 export type UserType = "STU" | "TCH" | "PAR" | "ADM" | "STF";
 
+/** Generate a prefixed unique ID string (not a Convex document ID) */
+export function idGenerator(prefix: string): string {
+  const rand = Math.random().toString(36).slice(2, 9);
+  return `${prefix}_${Date.now()}_${rand}`;
+}
+
 export function generateTenantId(): string {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   return `TENANT-${code}`;

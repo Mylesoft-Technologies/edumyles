@@ -1,7 +1,7 @@
-import { mutation } from "../../../_generated/server";
+import { mutation } from "../../_generated/server";
 import { v } from "convex/values";
-import { requirePlatformSession } from "../../../helpers/platformGuard";
-import { idGenerator } from "../../../helpers/idGenerator";
+import { requirePlatformSession } from "../../helpers/platformGuard";
+import { idGenerator } from "../../helpers/idGenerator";
 
 /**
  * Acknowledge a security threat

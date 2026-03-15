@@ -13,7 +13,7 @@ export const createTenantHealthScore = mutation({
       v.literal("financial"),
       v.literal("overall")
     ),
-    metrics: v.record(v.number()),
+    metrics: v.record(v.string(), v.number()),
     score: v.number(),
     grade: v.union(v.literal("A"), v.literal("B"), v.literal("C"), v.literal("D"), v.literal("F")),
     factors: v.array(v.object({
@@ -51,7 +51,7 @@ export const updateTenantHealthScore = mutation({
   args: {
     sessionToken: v.string(),
     healthScoreId: v.string(),
-    metrics: v.optional(v.record(v.number())),
+    metrics: v.optional(v.record(v.string(), v.number())),
     score: v.optional(v.number()),
     grade: v.optional(v.union(v.literal("A"), v.literal("B"), v.literal("C"), v.literal("D"), v.literal("F"))),
     factors: v.optional(v.array(v.object({

@@ -522,7 +522,7 @@ export const getAIAgentMetrics = query({
       v.literal("satisfaction"),
       v.literal("tickets_handled"),
       v.literal("ai_assistance")
-    )),
+    ))),
   },
   handler: async (ctx, args) => {
     // TODO: Implement AI agent metrics retrieval
@@ -686,7 +686,7 @@ export const getAISystemPerformance = query({
       v.literal("throughput"),
       v.literal("satisfaction"),
       v.literal("cost_efficiency")
-    )),
+    ))),
   },
   handler: async (ctx, args) => {
     // TODO: Implement AI system performance retrieval

@@ -355,7 +355,7 @@ export const createCustomReport = mutation({
     ),
     config: v.object({
       timeRange: v.union(v.literal("1h"), v.literal("24h"), v.literal("7d"), v.literal("30d"), v.literal("90d")),
-      filters: v.optional(v.record(v.any())),
+      filters: v.optional(v.record(v.string(), v.any())),
       metrics: v.array(v.string()),
       groupBy: v.optional(v.string()),
       chartType: v.union(v.literal("line"), v.literal("bar"), v.literal("pie"), v.literal("table")),

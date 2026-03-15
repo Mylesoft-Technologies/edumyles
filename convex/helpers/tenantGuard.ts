@@ -64,7 +64,7 @@ export async function requireTenantSession(
     throw new Error("UNAUTHENTICATED: Session expired");
   }
 
-  if (!session.tenantId.startsWith("TENANT-")) {
+  if (!session.tenantId.startsWith("TENANT-") && session.tenantId !== "PLATFORM") {
     throw new Error("INVALID_TENANT: Malformed tenantId");
   }
 
@@ -106,7 +106,7 @@ export async function requireTenantContext(
     throw new Error("UNAUTHENTICATED: Session expired");
   }
 
-  if (!session.tenantId.startsWith("TENANT-")) {
+  if (!session.tenantId.startsWith("TENANT-") && session.tenantId !== "PLATFORM") {
     throw new Error("INVALID_TENANT: Malformed tenantId");
   }
 

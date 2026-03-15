@@ -491,7 +491,7 @@ export const createWorkflow = mutation({
       v.literal("event_based"),
       v.literal("webhook")
     ),
-    triggerConfig: v.optional(v.record(v.any())),
+    triggerConfig: v.optional(v.record(v.string(), v.any())),
     steps: v.array(v.object({
       id: v.string(),
       name: v.string(),
@@ -504,7 +504,7 @@ export const createWorkflow = mutation({
         v.literal("integration"),
         v.literal("data_operation")
       ),
-      config: v.record(v.any()),
+      config: v.record(v.string(), v.any()),
       position: v.number(),
     })),
     isActive: v.boolean(),
@@ -531,11 +531,11 @@ export const createWorkflow = mutation({
   },
 });
 
-export const executeWorkflow = mutation({
+export const triggerWorkflow = mutation({
   args: {
     sessionToken: v.string(),
     workflowId: v.string(),
-    triggerData: v.optional(v.record(v.any())),
+    triggerData: v.optional(v.record(v.string(), v.any())),
     executionId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -605,7 +605,7 @@ export const createWorkflowTemplate = mutation({
         v.literal("integration"),
         v.literal("data_operation")
       ),
-      config: v.record(v.any()),
+      config: v.record(v.string(), v.any()),
       position: v.number(),
     })),
     isPublic: v.boolean(),
@@ -643,7 +643,7 @@ export const scheduleWorkflow = mutation({
       endDate: v.optional(v.number()),
       timezone: v.string(),
     }),
-    parameters: v.optional(v.record(v.any())),
+    parameters: v.optional(v.record(v.string(), v.any())),
   },
   handler: async (ctx, args) => {
     // TODO: Implement workflow scheduling

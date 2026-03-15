@@ -85,6 +85,11 @@ export const getInstalledModuleIds = query({
   handler: async (ctx, args) => {
     const { tenantId } = await requireTenantSession(ctx, args);
 
+    // Platform admins are not tenants — return all module IDs as "installed"
+    if (tenantId === "PLATFORM") {
+      return ALL_MODULES.map((m) => m.moduleId);
+    }
+
     const installed = await ctx.db
       .query("installedModules")
       .withIndex("by_tenant_status", (q) =>
@@ -102,6 +107,20 @@ export const getAvailableForTier = query({
   args: { sessionToken: v.string() },
   handler: async (ctx, args) => {
     const { tenantId } = await requireTenantSession(ctx, args);
+
+    // Platform admins see all modules as available
+    if (tenantId === "PLATFORM") {
+      const allModuleIds = ALL_MODULES.map((m) => m.moduleId);
+      const dbModules = await ctx.db.query("moduleRegistry").collect();
+      if (dbModules.length === 0) {
+        return buildFallbackModules(allModuleIds);
+      }
+      return dbModules.map((mod) => ({
+        ...mod,
+        isCore: mod.isCore ?? CORE_MODULE_IDS.includes(mod.moduleId),
+        availableForTier: true,
+      }));
+    }
 
     const tenant = await ctx.db
       .query("tenants")

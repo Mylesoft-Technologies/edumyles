@@ -1,7 +1,7 @@
-import { mutation } from "../../../_generated/server";
+import { mutation } from "../../_generated/server";
 import { v } from "convex/values";
-import { requirePlatformSession } from "../../../helpers/platformGuard";
-import { idGenerator } from "../../../helpers/idGenerator";
+import { requirePlatformSession } from "../../helpers/platformGuard";
+import { idGenerator } from "../../helpers/idGenerator";
 
 /**
  * Install a third-party integration
@@ -10,7 +10,7 @@ export const installIntegration = mutation({
   args: {
     sessionToken: v.string(),
     integrationId: v.string(),
-    configuration: v.optional(v.record(v.any())),
+    configuration: v.optional(v.record(v.string(), v.any())),
     autoEnable: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -105,7 +105,7 @@ export const configureIntegration = mutation({
   args: {
     sessionToken: v.string(),
     installationId: v.string(),
-    configuration: v.record(v.any()),
+    configuration: v.record(v.string(), v.any()),
     testConnection: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -367,14 +367,14 @@ export const createCustomIntegration = mutation({
       v.literal("other")
     ),
     type: v.union(v.literal("webhook"), v.literal("api"), v.literal("oauth"), v.literal("database")),
-    configuration: v.record(v.any()),
+    configuration: v.record(v.string(), v.any()),
     endpoints: v.array(v.object({
       name: v.string(),
       url: v.string(),
       method: v.union(v.literal("GET"), v.literal("POST"), v.literal("PUT"), v.literal("DELETE")),
       authentication: v.object({
         type: v.union(v.literal("none"), v.literal("api_key"), v.literal("oauth"), v.literal("basic")),
-        credentials: v.optional(v.record(v.any())),
+        credentials: v.optional(v.record(v.string(), v.any())),
       }),
     })),
     webhookUrl: v.optional(v.string()),
