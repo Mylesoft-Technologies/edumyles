@@ -93,8 +93,8 @@ export default function LandingNavbar() {
 
   return (
     <nav ref={navRef} className={`navbar ${scrolled ? "scrolled" : ""}`}>
-      <Link href="/" className="navbar-logo">
-        EduMyles
+      <Link href="/" className="navbar-logo" aria-label="EduMyles — home">
+        Edu<span style={{ opacity: 0.65 }}>Myles</span>
       </Link>
 
       {/* Desktop Nav */}

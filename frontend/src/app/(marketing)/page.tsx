@@ -71,14 +71,14 @@ function LandingPageContent() {
       {/* ── Integrations ── */}
       <section className="content-section alt">
         <div className="content-inner">
-          <div className="section-header centered">
+          <div className="section-header centered" data-reveal>
             <h2>Integrations that just work</h2>
             <p className="section-subtitle">
               Connect with the tools schools already use across Africa. Payment gateways, messaging
               services, and infrastructure - all pre-built and ready.
             </p>
           </div>
-          <div className="integrations-grid">
+          <div className="integrations-grid" data-reveal data-reveal-delay="100">
             {integrations.map((item) => (
               <div key={item.name} className="integration-card">
                 <span className="integration-name">{item.name}</span>
@@ -91,7 +91,7 @@ function LandingPageContent() {
 
       {/* ── Concierge CTA ── */}
       <section className="concierge-section" id="concierge">
-        <div className="concierge-content">
+        <div className="concierge-content" data-reveal>
           <span className="concierge-label">EduMyles Concierge</span>
           <h2>Speak to a school-tech expert - free.</h2>
           <p>
@@ -107,7 +107,7 @@ function LandingPageContent() {
 
       {/* ── Success Stories ── */}
       <section className="stories-section" id="stories">
-        <div className="section-header centered">
+        <div className="section-header centered" data-reveal>
           <h2>Schools thriving with EduMyles</h2>
           <p className="section-subtitle">
             See how institutions across East Africa are transforming their operations with real,
@@ -141,8 +141,8 @@ function LandingPageContent() {
                 "Everything we need is in one place - from timetables to report cards. Staff spend more time on teaching and less on paperwork.",
               person: "Amina Hassan, Director",
             },
-          ].map((story) => (
-            <div key={story.name} className="story-card">
+          ].map((story, i) => (
+            <div key={story.name} className="story-card" data-reveal data-reveal-delay={String(i * 150)}>
               <div className="story-metric">
                 <span className="story-metric-value">{story.result.split(" ")[0]}</span>
                 <span className="story-metric-label">{story.result.split(" ").slice(1).join(" ")}</span>
@@ -164,28 +164,28 @@ function LandingPageContent() {
       {/* ── How It Works ── */}
       <section className="content-section">
         <div className="content-inner">
-          <div className="section-header centered">
+          <div className="section-header centered" data-reveal>
             <h2>Get started in 3 steps</h2>
             <p className="section-subtitle">
               From sign-up to fully operational in under a week. Our team guides you every step of the way.
             </p>
           </div>
           <div className="highlights">
-            <div className="panel">
+            <div className="panel" data-reveal data-reveal-delay="100">
               <h3>1. Sign Up &amp; Configure</h3>
               <p>
                 Create your school account, import student data, and configure your modules. Our
                 onboarding wizard guides you through every setting.
               </p>
             </div>
-            <div className="panel">
+            <div className="panel" data-reveal data-reveal-delay="200">
               <h3>2. Invite Your Team</h3>
               <p>
                 Add staff with role-based access. Teachers, bursars, HR managers - everyone gets
                 exactly the tools and permissions they need.
               </p>
             </div>
-            <div className="panel">
+            <div className="panel" data-reveal data-reveal-delay="300">
               <h3>3. Go Live</h3>
               <p>
                 Start managing your school from one dashboard. Parents and students access their
@@ -198,7 +198,7 @@ function LandingPageContent() {
 
       {/* ── Brand & Values ── */}
       <section className="brand-section" id="brand">
-        <div className="section-header centered">
+        <div className="section-header centered" data-reveal>
           <h2>The M.Y.L.E.S. Principle</h2>
           <p className="section-subtitle">
             Our core values framework that drives every decision we make - from product design to
@@ -207,7 +207,7 @@ function LandingPageContent() {
         </div>
 
         <div className="brand-grid">
-          <div className="brand-column">
+          <div className="brand-column" data-reveal data-reveal-delay="100">
             <h3>Our Mission</h3>
             <p>
               To empower schools across Africa with intuitive, affordable technology that simplifies
@@ -223,7 +223,7 @@ function LandingPageContent() {
             </p>
           </div>
 
-          <div className="brand-column">
+          <div className="brand-column" data-reveal data-reveal-delay="200">
             <h3>Our Values</h3>
             <ul className="brand-values-list">
               <li>
@@ -253,7 +253,7 @@ function LandingPageContent() {
 
       {/* ── Pricing ── */}
       <section className="pricing-section" id="pricing">
-        <div className="section-header centered">
+        <div className="section-header centered" data-reveal>
           <h2>Simple, transparent pricing</h2>
           <p className="section-subtitle light">
             No hidden fees. Pay per student per month. Cancel anytime. Start free for 30 days.
@@ -301,8 +301,8 @@ function LandingPageContent() {
               ],
               featured: false,
             },
-          ].map((plan) => (
-            <div key={plan.name} className={`pricing-card ${plan.featured ? "featured" : ""}`}>
+          ].map((plan, i) => (
+            <div key={plan.name} className={`pricing-card ${plan.featured ? "featured" : ""}`} data-reveal data-reveal-delay={String(i * 150)}>
               {plan.featured && <span className="pricing-badge">Most Popular</span>}
               <h3>{plan.name}</h3>
               <div className="pricing-price">
@@ -340,7 +340,7 @@ function LandingPageContent() {
       {/* ── FAQ Preview ── */}
       <section className="content-section">
         <div className="content-inner">
-          <div className="section-header centered">
+          <div className="section-header centered" data-reveal>
             <h2>Frequently asked questions</h2>
           </div>
           <div className="faq-grid">
@@ -369,8 +369,8 @@ function LandingPageContent() {
                 q: "Can parents access the system?",
                 a: "Yes. Parents get a dedicated portal to view grades, attendance, fee balances, make payments, and communicate with teachers.",
               },
-            ].map((faq) => (
-              <div key={faq.q} className="faq-item">
+            ].map((faq, i) => (
+              <div key={faq.q} className="faq-item" data-reveal data-reveal-delay={String(i * 80)}>
                 <h4>{faq.q}</h4>
                 <p>{faq.a}</p>
               </div>
@@ -381,7 +381,7 @@ function LandingPageContent() {
 
       {/* ── Final CTA ── */}
       <section className="final-cta">
-        <div className="final-cta-card">
+        <div className="final-cta-card" data-reveal>
           <h2>Choose EduMyles. Transform your school.</h2>
           <p>
             Join 50+ schools across East Africa already running smarter with one unified platform.
