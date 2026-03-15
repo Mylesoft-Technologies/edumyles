@@ -2,51 +2,68 @@ import { query } from "../../_generated/server";
 import { v } from "convex/values";
 import { requirePlatformSession } from "../../helpers/platformGuard";
 
-/**
- * Get the current platform user's full profile.
- */
+// List all platform admins (master_admin + super_admin)
+export const listPlatformAdmins = query({
+    args: { sessionToken: v.string() },
+    handler: async (ctx, args) => {
+        await requirePlatformSession(ctx, args);
+
+        const users = await ctx.db.query("users").collect();
+        return users.filter(
+            (u) => u.role === "master_admin" || u.role === "super_admin"
+        );
+    },
+});
+
+// Get the current logged-in platform user's full record
 export const getCurrentPlatformUser = query({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, args) => {
-    const session = await requirePlatformSession(ctx, args);
+    args: { sessionToken: v.string() },
+    handler: async (ctx, args) => {
+        try {
+            const session = await requirePlatformSession(ctx, args);
+            return await ctx.db
+                .query("users")
+                .filter((q) => q.eq(q.field("eduMylesUserId"), session.userId))
+                .first();
+        } catch (error) {
+            console.error("Error in getCurrentPlatformUser:", error);
+            // Return null instead of throwing to prevent app crashes
+            return null;
+        }
+    },
+});
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_tenant_email", (q) =>
-        q.eq("tenantId", session.tenantId).eq("email", session.email)
-      )
-      .first();
+// Cross-tenant user search (master_admin only)
+export const listAllUsers = query({
+    args: {
+        sessionToken: v.string(),
+        search: v.optional(v.string()),
+        role: v.optional(v.string()),
+        tenantId: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        await requirePlatformSession(ctx, args);
 
-    if (!user) {
-      throw new Error("Platform user not found");
-    }
+        let users = await ctx.db.query("users").collect();
 
-    // Return avatar URL if stored
-    let avatarUrl = user.avatarUrl;
-    if (user.avatarUrl && user.avatarUrl.startsWith("kg")) {
-      // It's a storage ID, resolve the URL
-      try {
-        const url = await ctx.storage.getUrl(user.avatarUrl as any);
-        avatarUrl = url ?? undefined;
-      } catch {
-        avatarUrl = undefined;
-      }
-    }
+        if (args.tenantId) {
+            users = users.filter((u) => u.tenantId === args.tenantId);
+        }
 
-    return {
-      _id: user._id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      phone: user.phone,
-      bio: user.bio,
-      location: user.location,
-      avatarUrl,
-      isActive: user.isActive,
-      twoFactorEnabled: user.twoFactorEnabled,
-      passwordHash: user.passwordHash ? true : false,
-      createdAt: user.createdAt,
-    };
-  },
+        if (args.role) {
+            users = users.filter((u) => u.role === args.role);
+        }
+
+        if (args.search) {
+            const lower = args.search.toLowerCase();
+            users = users.filter(
+                (u) =>
+                    u.email.toLowerCase().includes(lower) ||
+                    (u.firstName?.toLowerCase().includes(lower) ?? false) ||
+                    (u.lastName?.toLowerCase().includes(lower) ?? false)
+            );
+        }
+
+        return users;
+    },
 });
