@@ -84,6 +84,14 @@ import {
   XCircle as XCircleIcon,
   AlertTriangle as AlertTriangleIcon,
   Info as InfoIcon,
+  Lightbulb,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  Bot,
+  Star,
+  Eye,
+  Edit,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlatformQuery } from "@/hooks/usePlatformQuery";

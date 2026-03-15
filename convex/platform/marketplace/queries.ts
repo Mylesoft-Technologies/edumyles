@@ -253,7 +253,7 @@ export const browseModules = query({
       modules = modules.filter((m) =>
         m.name.toLowerCase().includes(searchLower) ||
         m.shortDescription.toLowerCase().includes(searchLower) ||
-        m.tags.some((t) => t.toLowerCase().includes(searchLower)) ||
+        m.tags.some((t: string) => t.toLowerCase().includes(searchLower)) ||
         m.publisherName.toLowerCase().includes(searchLower)
       );
     }

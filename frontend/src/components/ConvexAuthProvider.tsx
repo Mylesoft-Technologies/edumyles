@@ -19,7 +19,7 @@ function getClient(): ConvexReactClient {
 
 function ConvexWithAuthKit({ children }: { children: ReactNode }) {
   return (
-    <ConvexProviderWithAuthKit client={getClient()} useAuth={useAuth}>
+    <ConvexProviderWithAuthKit client={getClient()} useAuth={useAuth as any}>
       {children}
     </ConvexProviderWithAuthKit>
   );

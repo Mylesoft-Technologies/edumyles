@@ -334,11 +334,11 @@ export default function ECommercePage() {
                 <TabsList className="mb-4">
                     <TabsTrigger value="products" className="gap-2">
                         <Package className="h-4 w-4" />
-                        Products ({mockProducts.length})
+                        Products ({currentProducts.length})
                     </TabsTrigger>
                     <TabsTrigger value="orders" className="gap-2">
                         <ClipboardList className="h-4 w-4" />
-                        Orders ({mockOrders.length})
+                        Orders ({currentOrders.length})
                     </TabsTrigger>
                     <TabsTrigger value="overview" className="gap-2">
                         <BarChart3 className="h-4 w-4" />
@@ -359,7 +359,7 @@ export default function ECommercePage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                data={mockProducts}
+                                data={currentProducts}
                                 columns={productColumns}
                                 searchable
                                 searchPlaceholder="Search products..."
@@ -382,7 +382,7 @@ export default function ECommercePage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                data={mockOrders}
+                                data={currentOrders}
                                 columns={orderColumns}
                                 searchable
                                 searchPlaceholder="Search by order number..."

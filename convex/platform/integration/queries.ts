@@ -1,5 +1,6 @@
 import { query } from "../../_generated/server";
 import { v } from "convex/values";
+import { Id } from "../../_generated/dataModel";
 import { requirePlatformSession } from "../../helpers/platformGuard";
 
 /**
@@ -24,13 +25,12 @@ export const getAvailableIntegrations = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const { tenantId } = await requirePlatformSession(ctx, args.sessionToken);
+    const { tenantId } = await requirePlatformSession(ctx, { sessionToken: args.sessionToken });
 
     let integrationsQuery = ctx.db
       .query("integrations")
       .withIndex("by_status", (q) => q.eq("status", "published"));
 
-    // Apply filters
     if (args.category) {
       integrationsQuery = integrationsQuery.filter((q) => q.eq(q.field("category"), args.category));
     }
@@ -39,27 +39,26 @@ export const getAvailableIntegrations = query({
       integrationsQuery = integrationsQuery.filter((q) => q.eq(q.field("isFeatured"), true));
     }
 
+    let integrations = await integrationsQuery.order("desc").take(args.limit || 200);
+
+    // JS-level search filter (q.contains doesn't exist in Convex)
     if (args.search) {
-      integrationsQuery = integrationsQuery.filter((q) => 
-        q.or(
-          q.contains(q.field("name"), args.search),
-          q.contains(q.field("description"), args.search),
-          q.contains(q.field("tags"), args.search)
-        )
+      const searchLower = args.search.toLowerCase();
+      integrations = integrations.filter((i: any) =>
+        i.name?.toLowerCase().includes(searchLower) ||
+        i.description?.toLowerCase().includes(searchLower) ||
+        (Array.isArray(i.tags) && i.tags.some((t: string) => t.toLowerCase().includes(searchLower)))
       );
     }
 
-    const integrations = await integrationsQuery
-      .order("desc")
-      .take(args.limit || 50)
-      .collect();
+    const limited = integrations.slice(0, args.limit || 50);
 
     // Enrich with installation status
     const enrichedIntegrations = await Promise.all(
-      integrations.map(async (integration) => {
+      limited.map(async (integration) => {
         const installation = await ctx.db
           .query("integrationInstallations")
-          .withIndex("by_tenant_integration", (q) => 
+          .withIndex("by_tenant_integration", (q) =>
             q.eq("tenantId", tenantId).eq("integrationId", integration._id)
           )
           .first();
@@ -67,7 +66,7 @@ export const getAvailableIntegrations = query({
         return {
           ...integration,
           isInstalled: !!installation,
-          installation: installation || null,
+          installation: installation ?? null,
         };
       })
     );
@@ -96,31 +95,28 @@ export const getInstalledIntegrations = query({
     )),
   },
   handler: async (ctx, args) => {
-    const { tenantId } = await requirePlatformSession(ctx, args.sessionToken);
+    const { tenantId } = await requirePlatformSession(ctx, { sessionToken: args.sessionToken });
 
-    let installationsQuery = ctx.db
+    let installations = await ctx.db
       .query("integrationInstallations")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId));
-
-    // Apply filters
-    if (args.status && args.status !== "all") {
-      installationsQuery = installationsQuery.withIndex("by_status", (q) => q.eq("status", args.status));
-    }
-
-    const installations = await installationsQuery
+      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
       .order("desc")
       .collect();
+
+    // JS-level status filter (can't chain withIndex)
+    if (args.status && args.status !== "all") {
+      installations = installations.filter((i) => i.status === args.status);
+    }
 
     // Enrich with integration details
     const enrichedInstallations = await Promise.all(
       installations.map(async (installation) => {
-        const integration = await ctx.db.get(installation.integrationId);
+        const integration = await ctx.db.get(installation.integrationId as Id<"integrations">);
         const timeline = await ctx.db
           .query("integrationInstallationTimeline")
           .withIndex("by_installationId", (q) => q.eq("installationId", installation._id))
           .order("desc")
-          .take(10)
-          .collect();
+          .take(10);
 
         return {
           ...installation,
@@ -143,31 +139,26 @@ export const getIntegrationDetails = query({
     installationId: v.string(),
   },
   handler: async (ctx, args) => {
-    const { tenantId } = await requirePlatformSession(ctx, args.sessionToken);
+    const { tenantId } = await requirePlatformSession(ctx, { sessionToken: args.sessionToken });
 
-    // Get installation
-    const installation = await ctx.db.get(args.installationId);
+    const installation = await ctx.db.get(args.installationId as Id<"integrationInstallations">);
     if (!installation || installation.tenantId !== tenantId) {
       throw new Error("Installation not found");
     }
 
-    // Get integration details
-    const integration = await ctx.db.get(installation.integrationId);
+    const integration = await ctx.db.get(installation.integrationId as Id<"integrations">);
     if (!integration) {
       throw new Error("Integration not found");
     }
 
-    // Get full timeline
     const timeline = await ctx.db
       .query("integrationInstallationTimeline")
       .withIndex("by_installationId", (q) => q.eq("installationId", args.installationId))
       .order("desc")
       .collect();
 
-    // Get sync history
     const syncHistory = timeline.filter(entry => entry.type === "sync_completed");
 
-    // Get usage statistics
     const usageStats = {
       totalApiCalls: installation.usage?.apiCalls || 0,
       totalDataTransferred: installation.usage?.dataTransferred || 0,
@@ -194,80 +185,47 @@ export const getIntegrationMarketplaceOverview = query({
     sessionToken: v.string(),
   },
   handler: async (ctx, args) => {
-    const { tenantId } = await requirePlatformSession(ctx, args.sessionToken);
+    const { tenantId } = await requirePlatformSession(ctx, { sessionToken: args.sessionToken });
 
-    // Get marketplace statistics
-    const [totalIntegrations, featuredIntegrations, newIntegrations, installedCount] = await Promise.all([
-      ctx.db
-        .query("integrations")
-        .withIndex("by_status", (q) => q.eq("status", "published"))
-        .collect()
-        .then(integrations => integrations.length),
-      
-      ctx.db
-        .query("integrations")
-        .withIndex("by_status", (q) => q.eq("status", "published"))
-        .filter((q) => q.eq(q.field("isFeatured"), true))
-        .collect()
-        .then(integrations => integrations.length),
-      
-      ctx.db
-        .query("integrations")
-        .withIndex("by_status", (q) => q.eq("status", "published"))
-        .filter((q) => q.gte(q.field("createdAt"), Date.now() - (7 * 24 * 60 * 60 * 1000)))
-        .collect()
-        .then(integrations => integrations.length),
-      
-      ctx.db
-        .query("integrationInstallations")
-        .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
-        .withIndex("by_status", (q) => q.eq("status", "active"))
-        .collect()
-        .then(installations => installations.length),
-    ]);
-
-    // Get category breakdown
-    const categoryBreakdown = await Promise.all([
-      { category: "crm", count: 0 },
-      { category: "communication", count: 0 },
-      { category: "analytics", count: 0 },
-      { category: "payment", count: 0 },
-      { category: "storage", count: 0 },
-      { category: "security", count: 0 },
-      { category: "productivity", count: 0 },
-      { category: "development", count: 0 },
-      { category: "other", count: 0 },
-    ]);
-
-    // Get popular integrations
-    const popularIntegrations = await ctx.db
+    const allPublished = await ctx.db
       .query("integrations")
       .withIndex("by_status", (q) => q.eq("status", "published"))
-      .order("desc")
-      .take(6)
       .collect();
+
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const totalIntegrations = allPublished.length;
+    const featuredCount = allPublished.filter((i: any) => i.isFeatured).length;
+    const newCount = allPublished.filter((i: any) => i.createdAt >= sevenDaysAgo).length;
+
+    const allInstallations = await ctx.db
+      .query("integrationInstallations")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", tenantId))
+      .collect();
+    const installedCount = allInstallations.filter((i) => i.status === "active").length;
+
+    const categoryBreakdown = [
+      "crm", "communication", "analytics", "payment", "storage",
+      "security", "productivity", "development", "other",
+    ].map((category) => ({
+      category,
+      count: allPublished.filter((i: any) => i.category === category).length,
+    }));
+
+    const popularIntegrations = allPublished.slice(0, 6);
+    const featuredIntegrations = allPublished.filter((i: any) => i.isFeatured).slice(0, 4);
+    const newIntegrations = allPublished.filter((i: any) => i.createdAt >= sevenDaysAgo).slice(0, 6);
 
     return {
       statistics: {
         totalIntegrations,
-        featuredIntegrations,
-        newIntegrations,
+        featuredIntegrations: featuredCount,
+        newIntegrations: newCount,
         installedCount,
         categoryBreakdown,
       },
       popularIntegrations,
-      featuredIntegrations: await ctx.db
-        .query("integrations")
-        .withIndex("by_status", (q) => q.eq("status", "published"))
-        .filter((q) => q.eq(q.field("isFeatured"), true))
-        .take(4)
-        .collect(),
-      newIntegrations: await ctx.db
-        .query("integrations")
-        .withIndex("by_status", (q) => q.eq("status", "published"))
-        .filter((q) => q.gte(q.field("createdAt"), Date.now() - (7 * 24 * 60 * 60 * 1000)))
-        .take(6)
-        .collect(),
+      featuredIntegrations,
+      newIntegrations,
     };
   },
 });
@@ -289,42 +247,28 @@ export const getIntegrationAnalytics = query({
     ))),
   },
   handler: async (ctx, args) => {
-    const { tenantId } = await requirePlatformSession(ctx, args.sessionToken);
+    const { tenantId } = await requirePlatformSession(ctx, { sessionToken: args.sessionToken });
 
-    // Get installation
-    const installation = await ctx.db.get(args.installationId);
+    const installation = await ctx.db.get(args.installationId as Id<"integrationInstallations">);
     if (!installation || installation.tenantId !== tenantId) {
       throw new Error("Installation not found");
     }
 
     const timeRange = args.timeRange || "30d";
     const now = Date.now();
-    let timeFilter = 0;
-    
-    switch (timeRange) {
-      case "7d":
-        timeFilter = 7 * 24 * 60 * 60 * 1000;
-        break;
-      case "30d":
-        timeFilter = 30 * 24 * 60 * 60 * 1000;
-        break;
-      case "90d":
-        timeFilter = 90 * 24 * 60 * 60 * 1000;
-        break;
-    }
+    const msMap: Record<string, number> = { "7d": 7, "30d": 30, "90d": 90 };
+    const timeFilter = (msMap[timeRange] || 30) * 24 * 60 * 60 * 1000;
 
-    // Get timeline entries for analytics
     const timeline = await ctx.db
       .query("integrationInstallationTimeline")
       .withIndex("by_installationId", (q) => q.eq("installationId", args.installationId))
       .filter((q) => q.gte(q.field("createdAt"), now - timeFilter))
       .collect();
 
-    // Calculate analytics
     const analytics = {
       apiCalls: {
         total: installation.usage?.apiCalls || 0,
-        trend: "stable", // Would be calculated from historical data
+        trend: "stable",
         daily: Array.from({ length: 30 }, (_, i) => ({
           date: now - ((29 - i) * 24 * 60 * 60 * 1000),
           calls: Math.floor(Math.random() * 100) + 20,
@@ -337,7 +281,7 @@ export const getIntegrationAnalytics = query({
       },
       errors: {
         total: installation.usage?.errors || 0,
-        rate: installation.usage?.apiCalls ? ((installation.usage?.errors || 0) / installation.usage?.apiCalls) * 100 : 0,
+        rate: installation.usage?.apiCalls ? ((installation.usage?.errors || 0) / installation.usage.apiCalls) * 100 : 0,
         types: [
           { type: "authentication", count: 2 },
           { type: "rate_limit", count: 1 },
@@ -391,53 +335,53 @@ export const searchIntegrations = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const { tenantId } = await requirePlatformSession(ctx, args.sessionToken);
+    const { tenantId } = await requirePlatformSession(ctx, { sessionToken: args.sessionToken });
 
-    let integrationsQuery = ctx.db
+    // Collect all published integrations, then filter in JS
+    let integrations: any[] = await ctx.db
       .query("integrations")
-      .withIndex("by_status", (q) => q.eq("status", "published"));
+      .withIndex("by_status", (q) => q.eq("status", "published"))
+      .collect();
 
-    // Apply search query
+    // JS search filter
     if (args.query) {
-      integrationsQuery = integrationsQuery.filter((q) => 
-        q.or(
-          q.contains(q.field("name"), args.query),
-          q.contains(q.field("description"), args.query),
-          q.contains(q.field("tags"), args.query),
-          q.contains(q.field("category"), args.query)
-        )
+      const searchLower = args.query.toLowerCase();
+      integrations = integrations.filter((i) =>
+        i.name?.toLowerCase().includes(searchLower) ||
+        i.description?.toLowerCase().includes(searchLower) ||
+        i.category?.toLowerCase().includes(searchLower) ||
+        (Array.isArray(i.tags) && i.tags.some((t: string) => t.toLowerCase().includes(searchLower)))
       );
     }
 
-    // Apply filters
+    // Apply filters in JS
     if (args.filters) {
       if (args.filters.category) {
-        integrationsQuery = integrationsQuery.filter((q) => q.eq(q.field("category"), args.filters.category));
+        integrations = integrations.filter((i) => i.category === args.filters!.category);
       }
       if (args.filters.type) {
-        integrationsQuery = integrationsQuery.filter((q) => q.eq(q.field("type"), args.filters.type));
+        integrations = integrations.filter((i) => i.type === args.filters!.type);
       }
       if (args.filters.pricing) {
-        integrationsQuery = integrationsQuery.filter((q) => q.eq(q.field("pricing.type"), args.filters.pricing));
+        integrations = integrations.filter((i) => i.pricing?.type === args.filters!.pricing);
       }
       if (args.filters.features && args.filters.features.length > 0) {
-        integrationsQuery = integrationsQuery.filter((q) => 
-          args.filters.features!.some(feature => q.contains(q.field("features"), feature))
+        const requiredFeatures = args.filters.features;
+        integrations = integrations.filter((i) =>
+          Array.isArray(i.features) &&
+          requiredFeatures.some((f) => i.features.includes(f))
         );
       }
     }
 
-    const integrations = await integrationsQuery
-      .order("desc")
-      .take(args.limit || 20)
-      .collect();
+    const limited = integrations.slice(0, args.limit || 20);
 
     // Enrich with installation status
     const enrichedIntegrations = await Promise.all(
-      integrations.map(async (integration) => {
+      limited.map(async (integration) => {
         const installation = await ctx.db
           .query("integrationInstallations")
-          .withIndex("by_tenant_integration", (q) => 
+          .withIndex("by_tenant_integration", (q) =>
             q.eq("tenantId", tenantId).eq("integrationId", integration._id)
           )
           .first();
@@ -445,7 +389,7 @@ export const searchIntegrations = query({
         return {
           ...integration,
           isInstalled: !!installation,
-          installation: installation || null,
+          installation: installation ?? null,
         };
       })
     );
@@ -467,15 +411,13 @@ export const getIntegrationCategories = query({
     sessionToken: v.string(),
   },
   handler: async (ctx, args) => {
-    const { tenantId } = await requirePlatformSession(ctx, args.sessionToken);
+    await requirePlatformSession(ctx, { sessionToken: args.sessionToken });
 
-    // Get all published integrations
     const integrations = await ctx.db
       .query("integrations")
       .withIndex("by_status", (q) => q.eq("status", "published"))
       .collect();
 
-    // Calculate category statistics
     const categories = [
       { id: "crm", name: "CRM", description: "Customer relationship management", count: 0, icon: "Users" },
       { id: "communication", name: "Communication", description: "Email, chat, and messaging", count: 0, icon: "MessageSquare" },
@@ -488,8 +430,7 @@ export const getIntegrationCategories = query({
       { id: "other", name: "Other", description: "Other integrations", count: 0, icon: "MoreHorizontal" },
     ];
 
-    // Count integrations per category
-    integrations.forEach(integration => {
+    integrations.forEach((integration: any) => {
       const category = categories.find(cat => cat.id === integration.category);
       if (category) {
         category.count++;

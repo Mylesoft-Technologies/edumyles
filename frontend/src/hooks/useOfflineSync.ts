@@ -68,7 +68,7 @@ export function useOfflineSync() {
           const db = (event.target as IDBDatabase);
           
           // Create object store if it doesn't exist
-          if (!db.objectStoreNames().contains('operations')) {
+          if (!db.objectStoreNames.contains('operations')) {
             db.createObjectStore('operations', { keyPath: 'id' });
           }
           
@@ -76,14 +76,14 @@ export function useOfflineSync() {
           const store = transaction.objectStore('operations');
           
           const getAllRequest = store.getAll();
-          getAllRequest.onsuccess = (e: any) => {
+          getAllRequest.onsuccess = async (e: any) => {
             operations.push(...e.target.result);
-            
+
             // Process each operation
             for (const operation of operations) {
               // Here you would make API calls to sync the operations
               console.log('Syncing operation:', operation);
-              
+
               // Simulate API call delay
               await new Promise<void>(resolve => setTimeout(resolve, 1000));
             }
@@ -130,7 +130,7 @@ export function useOfflineSync() {
         const db = (event.target as IDBDatabase);
         
         // Create object store if it doesn't exist
-        if (!db.objectStoreNames().contains('operations')) {
+        if (!db.objectStoreNames.contains('operations')) {
           db.createObjectStore('operations', { keyPath: 'id' });
         }
         

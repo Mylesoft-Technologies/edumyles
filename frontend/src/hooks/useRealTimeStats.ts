@@ -17,7 +17,7 @@ export function useRealTimeStats(sessionToken: string | null) {
 
   // Simulate real-time updates (in production, this would connect to WebSocket/SSE)
   useEffect(() => {
-    if (!sessionToken) return;
+    if (!sessionToken) return undefined;
 
     // For now, we'll simulate with polling
     const interval = setInterval(() => {

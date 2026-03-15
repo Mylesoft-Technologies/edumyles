@@ -367,15 +367,15 @@ export default function TransportPage() {
                 <TabsList className="mb-4">
                     <TabsTrigger value="routes" className="gap-2">
                         <MapPin className="h-4 w-4" />
-                        Routes ({mockRoutes.length})
+                        Routes ({(routes as any[]) || [].length})
                     </TabsTrigger>
                     <TabsTrigger value="vehicles" className="gap-2">
                         <Bus className="h-4 w-4" />
-                        Vehicles ({mockVehicles.length})
+                        Vehicles ({(vehicles as any[]) || [].length})
                     </TabsTrigger>
                     <TabsTrigger value="drivers" className="gap-2">
                         <Users className="h-4 w-4" />
-                        Drivers ({mockDrivers.length})
+                        Drivers ({(drivers as any[]) || [].length})
                     </TabsTrigger>
                 </TabsList>
 
@@ -392,7 +392,7 @@ export default function TransportPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                data={mockRoutes}
+                                data={(routes as any[]) || []}
                                 columns={routeColumns}
                                 searchable
                                 searchPlaceholder="Search routes..."
@@ -414,7 +414,7 @@ export default function TransportPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                data={mockVehicles}
+                                data={(vehicles as any[]) || []}
                                 columns={vehicleColumns}
                                 searchable
                                 searchPlaceholder="Search vehicles..."
@@ -436,7 +436,7 @@ export default function TransportPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                data={mockDrivers}
+                                data={(drivers as any[]) || []}
                                 columns={driverColumns}
                                 searchable
                                 searchPlaceholder="Search drivers..."
