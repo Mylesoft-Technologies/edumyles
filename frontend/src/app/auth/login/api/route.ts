@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Dev bypass
+    // Dev bypass — only when ENABLE_DEV_AUTH_BYPASS=true is explicitly set
     if (process.env.ENABLE_DEV_AUTH_BYPASS === "true") {
       console.log("[auth/login] Dev bypass: returning /admin");
       return NextResponse.json({ redirectUrl: "/admin" });
