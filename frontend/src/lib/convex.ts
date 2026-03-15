@@ -3,14 +3,7 @@
 // ============================================================
 import { ConvexReactClient } from "convex/react";
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
-
-if (!CONVEX_URL) {
-  throw new Error(
-    "Missing NEXT_PUBLIC_CONVEX_URL environment variable. " +
-      "Set it in .env.local to point to your Convex deployment."
-  );
-}
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
 
 /**
  * Singleton Convex client for the frontend.
@@ -20,7 +13,13 @@ if (!CONVEX_URL) {
 let convexClient: ConvexReactClient | null = null;
 
 export const getConvexClient = () => {
-  if (!convexClient && typeof window !== 'undefined') {
+  if (!convexClient && typeof window !== "undefined") {
+    if (!CONVEX_URL) {
+      throw new Error(
+        "Missing NEXT_PUBLIC_CONVEX_URL environment variable. " +
+          "Set it in .env.local to point to your Convex deployment."
+      );
+    }
     convexClient = new ConvexReactClient(CONVEX_URL);
   }
   return convexClient;

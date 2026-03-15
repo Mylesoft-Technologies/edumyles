@@ -3,14 +3,7 @@
 // ============================================================
 import { ConvexReactClient } from "convex/react";
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
-
-if (!CONVEX_URL) {
-  throw new Error(
-    "Missing NEXT_PUBLIC_CONVEX_URL environment variable. " +
-      "Set it in .env.local to point to your Convex deployment."
-  );
-}
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
 
 /**
  * Get the current session token for Convex authentication
@@ -43,6 +36,12 @@ export function createAuthenticatedConvexClient(): ConvexReactClient {
 }
 
 /**
- * Singleton Convex client with authentication
+ * Singleton Convex client with authentication — lazily initialized.
  */
-export const authenticatedConvexClient = createAuthenticatedConvexClient();
+let _authConvexClient: ConvexReactClient | null = null;
+export const authenticatedConvexClient = (() => {
+  if (!_authConvexClient && typeof window !== "undefined") {
+    _authConvexClient = createAuthenticatedConvexClient();
+  }
+  return _authConvexClient;
+})();
